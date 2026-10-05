@@ -1,0 +1,17 @@
+{
+  "name": "hyperskill",
+  "owner": {
+    "name": "raj742133"
+  },
+  "plugins": [
+    {
+      "name": "hyperskill",
+      "source": "./",
+      "description": "Orchestrates a product from research to shipped, monitored and promoted, with gated phases.",
+      "author": {
+        "name": "raj742133"
+      }
+    }
+  ],
+  "description": "HyperSkill: gated idea-to-launch orchestration for Claude Code"
+}

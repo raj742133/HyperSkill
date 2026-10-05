@@ -1,0 +1,16 @@
+{
+  "name": "hyperskill",
+  "version": "0.1.0",
+  "description": "Orchestrates a product from research to shipped, monitored and promoted: nine gated phases with evidence-based verification.",
+  "keywords": [
+    "orchestration",
+    "saas",
+    "workflow",
+    "ci-cd",
+    "security",
+    "motion-graphics"
+  ],
+  "author": {
+    "name": "raj742133"
+  }
+}

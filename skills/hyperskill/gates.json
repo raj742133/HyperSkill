@@ -1,0 +1,137 @@
+{
+  "phases": [
+    {
+      "id": "research",
+      "title": "Research",
+      "skill": "hs-research",
+      "gate": [
+        {"id": "problem-statement", "text": "Problem, target user and the job they hire the product for are written down in docs/research.md"},
+        {"id": "alternatives-mapped", "text": "At least 3 existing alternatives (including 'do nothing' / spreadsheets) compared, with sources"},
+        {"id": "user-evidence", "text": "At least one piece of evidence of real demand (quotes, threads, search volume, interviews), not just reasoning"},
+        {"id": "risks-listed", "text": "Top risks and unknowns listed, each with a cheap way to test it"},
+        {"id": "go-no-go", "text": "A go / pivot / stop recommendation is recorded and the user has confirmed it"}
+      ]
+    },
+    {
+      "id": "plan",
+      "title": "Plan",
+      "skill": "hs-plan",
+      "gate": [
+        {"id": "system-design-read", "text": "docs/system-design.md exists and the user has read every line"},
+        {"id": "tenancy-explicit", "text": "Tenancy model (individual / team / organisation) is written down explicitly"},
+        {"id": "out-of-scope", "text": "An out-of-scope section exists"},
+        {"id": "design-stress-tested", "text": "The design was reviewed by a skeptical reviewer pass and the findings were resolved or accepted"},
+        {"id": "architecture-explained", "text": "Every box in the architecture diagram can be explained by the user"},
+        {"id": "deps-justified", "text": "Every dependency in the manifest has a stated reason"},
+        {"id": "logic-layer", "text": "Business logic lives in a dedicated layer, not in UI or route files"},
+        {"id": "memory-updated", "text": "CLAUDE.md (and AGENTS.md if used) carries stack, rules, commands and decision pointers"},
+        {"id": "scaffold-runs", "text": "Scaffold runs: dev server starts and /api/health responds"}
+      ]
+    },
+    {
+      "id": "foundation",
+      "title": "Foundation (data, auth, API)",
+      "skill": "hs-foundation",
+      "gate": [
+        {"id": "migrations-only", "text": "Every schema change is a migration file in version control"},
+        {"id": "tenant-scoping", "text": "Every tenant-owned table carries organization_id and every query on it is scoped"},
+        {"id": "cross-tenant-blocked", "text": "A user of Org A requesting an Org B resource by ID is refused (404) - shown by test output"},
+        {"id": "files-private", "text": "Uploaded files are private by default and downloads are authorised"},
+        {"id": "restore-tested", "text": "A backup was actually restored into a separate database at least once"},
+        {"id": "no-custom-auth", "text": "Auth uses a proven provider/library; no custom password hashing code exists"},
+        {"id": "can-function", "text": "A single central can(user, action, resource) function is used by every endpoint"},
+        {"id": "authz-matrix-tests", "text": "Authorisation tests are generated from the permissions matrix (401 / 403 / 404 / allowed)"},
+        {"id": "input-validation", "text": "Garbage input returns a clean 400 in the standard error format, never a stack trace"},
+        {"id": "webhook-idempotent", "text": "Replaying every webhook event twice creates no duplicates (skip with reason if no payments)"},
+        {"id": "slow-work-offloaded", "text": "Any request over ~1s has a reason or has been moved to a background job"}
+      ]
+    },
+    {
+      "id": "product",
+      "title": "Product (frontend)",
+      "skill": "hs-product",
+      "gate": [
+        {"id": "design-system", "text": "Design tokens and base components exist, with a /design page showing every component in every state"},
+        {"id": "four-states", "text": "Every data screen handles loading, empty, error and success states"},
+        {"id": "offline-sensible", "text": "With the network off, every screen shows a sensible error"},
+        {"id": "keyboard-only", "text": "The whole app is usable with only a keyboard"},
+        {"id": "a11y-automated", "text": "An automated accessibility check (e.g. axe) runs in the test suite"},
+        {"id": "real-device", "text": "The app was opened on a real phone (or 375px emulation) and works"},
+        {"id": "no-client-secrets", "text": "Client bundle was searched for keys, secrets and private URLs; none found"}
+      ]
+    },
+    {
+      "id": "ship",
+      "title": "Ship (CI/CD, testing, hosting)",
+      "skill": "hs-ship",
+      "gate": [
+        {"id": "git-hygiene", "text": ".gitignore, pre-commit secret scan and commit convention are in place; git history scanned for secrets"},
+        {"id": "ci-blocks", "text": "A PR with a deliberately failing test is blocked by CI"},
+        {"id": "preview-and-staging", "text": "PRs get previews; main deploys to staging; production needs approval"},
+        {"id": "migrations-in-deploy", "text": "Migrations run during deploy before new code goes live, and a failed migration fails the deploy"},
+        {"id": "rollback-practised", "text": "A rollback was performed once on purpose and documented"},
+        {"id": "e2e-critical", "text": "Signup, login, core workflow, billing and invite flows have end-to-end tests"},
+        {"id": "mutation-sanity", "text": "Deliberately breaking a line of business logic makes at least one test fail"},
+        {"id": "skips-justified", "text": "Every skipped test (.skip, xit, mark.skip) has a written reason"},
+        {"id": "env-separation", "text": "Staging and production use different databases and API keys"},
+        {"id": "env-validation", "text": "Removing a required env variable makes the app refuse to start with a clear message"},
+        {"id": "backups-and-billing", "text": "Production backups are enabled and billing alerts are set on every provider"}
+      ]
+    },
+    {
+      "id": "harden",
+      "title": "Harden (security, limits, caching)",
+      "skill": "hs-harden",
+      "gate": [
+        {"id": "threat-model", "text": "docs/security/threat-model.md exists with assets, entry points and mitigations"},
+        {"id": "independent-review", "text": "Security review was run by a fresh session or reviewer subagent, not the code's author; findings triaged"},
+        {"id": "xss-probe", "text": "Script-injection payloads pasted into every text field execute nothing"},
+        {"id": "dependency-audit", "text": "Dependency audit done and automated update PRs configured"},
+        {"id": "rate-limits", "text": "Login, signup and expensive endpoints are rate limited with a shared store; 20 rapid logins get blocked"},
+        {"id": "limits-survive-deploy", "text": "Rate limits keep working after a redeploy"},
+        {"id": "uniform-auth-errors", "text": "'Wrong password' and 'no such user' return the same message"},
+        {"id": "cost-caps", "text": "Paid-API usage has quotas and a hard spending cap (skip with reason if none)"},
+        {"id": "cache-tenant-safe", "text": "Every tenant-data cache key includes organization_id; authenticated responses are never cached at a shared layer"},
+        {"id": "cache-two-org-test", "text": "Test proves two orgs never receive each other's cached data and writes invalidate the cache"}
+      ]
+    },
+    {
+      "id": "operate",
+      "title": "Operate (logs, errors, monitoring)",
+      "skill": "hs-operate",
+      "gate": [
+        {"id": "structured-logs", "text": "Structured JSON logs with request ID, user_id and organization_id; one request traceable end to end"},
+        {"id": "redaction", "text": "Searching the logs for 'password' and token values returns nothing"},
+        {"id": "error-tracker", "text": "A staging error appears in the tracker with a readable stack trace within a minute"},
+        {"id": "no-silent-catch", "text": "No empty or over-broad catch blocks remain"},
+        {"id": "health-real", "text": "/api/health checks DB, cache and job system; a lightweight liveness endpoint exists"},
+        {"id": "alert-fires", "text": "Stopping the staging database produces an alert within the defined time"},
+        {"id": "runbook-per-alert", "text": "Every alert links to a runbook"},
+        {"id": "incident-process", "text": "Status page and incident runbook exist"}
+      ]
+    },
+    {
+      "id": "launch",
+      "title": "Launch (promo and go-live audit)",
+      "skill": "hs-launch",
+      "gate": [
+        {"id": "legal-published", "text": "Terms of service and privacy policy are published"},
+        {"id": "claims-true", "text": "Every claim in the promo copy matches something the product really does"},
+        {"id": "promo-rendered", "text": "Promo video(s) rendered and played back end to end by the user"},
+        {"id": "asset-licences", "text": "Licences for fonts, music, sound effects and footage are checked and recorded"},
+        {"id": "prelaunch-audit", "text": "Pre-launch checklist in hs-launch/references/prelaunch.md is fully ticked or each gap is waived with a reason"}
+      ]
+    },
+    {
+      "id": "scale",
+      "title": "Scale",
+      "skill": "hs-scale",
+      "gate": [
+        {"id": "load-test-numbers", "text": "A load test produced real p50/p95/p99 and error-rate numbers"},
+        {"id": "multi-instance", "text": "Two backend instances run side by side with nothing breaking"},
+        {"id": "before-after", "text": "Every optimisation has before/after numbers"},
+        {"id": "cost-model", "text": "Monthly cost modelled at 10x and 100x users"}
+      ]
+    }
+  ]
+}
