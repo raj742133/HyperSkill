@@ -1,0 +1,498 @@
+{
+  "_comment": "Vetted 2026-10-05 from each project's README via fetch-and-summarise (not a source audit). Re-verify before relying; pin versions when enabling. 'detect' names are best-effort.",
+  "providers": {
+    "claude-deep-research": {
+      "name": "Deep research skill",
+      "kind": "builtin",
+      "license": "n/a",
+      "policy": "recommended",
+      "detect": {
+        "skills": [
+          "deep-research"
+        ]
+      },
+      "notes": "Ships with some Claude setups; falls back to hs-researcher agents when absent."
+    },
+    "claude-code-review": {
+      "name": "Built-in code-review skill",
+      "kind": "builtin",
+      "license": "n/a",
+      "policy": "recommended",
+      "detect": {
+        "skills": [
+          "code-review"
+        ]
+      },
+      "builtin": true
+    },
+    "claude-security-review": {
+      "name": "Built-in security-review skill",
+      "kind": "builtin",
+      "license": "n/a",
+      "policy": "recommended",
+      "detect": {
+        "skills": [
+          "security-review"
+        ]
+      },
+      "builtin": true
+    },
+    "claude-run": {
+      "name": "Built-in run skill (launch app, screenshots)",
+      "kind": "builtin",
+      "license": "n/a",
+      "policy": "recommended",
+      "detect": {
+        "skills": [
+          "run"
+        ]
+      },
+      "builtin": true
+    },
+    "hyperframes": {
+      "name": "HyperFrames",
+      "repo": "heygen-com/hyperframes",
+      "kind": "plugin",
+      "license": "Apache-2.0",
+      "policy": "recommended",
+      "install": [
+        "claude plugin marketplace add heygen-com/hyperframes",
+        "npx skills add heygen-com/hyperframes"
+      ],
+      "detect": {
+        "skills": [
+          "hyperframes",
+          "product-launch-video",
+          "faceless-explainer",
+          "embedded-captions",
+          "talking-head-recut",
+          "motion-graphics"
+        ]
+      },
+      "provides": "HTML/CSS/JS -> deterministic MP4. ~21 skills incl. router, product-launch-video, faceless-explainer, embedded-captions, talking-head-recut, motion-graphics.",
+      "risks": [
+        "needs Node 22+ and FFmpeg",
+        "full repo clone needs Git LFS (~240 MB test videos) - do not clone, install via plugin/npx",
+        "optional cloud rendering needs credentials - keep local"
+      ]
+    },
+    "watch": {
+      "name": "/watch (video understanding)",
+      "repo": "mathiaschu/watch",
+      "kind": "plugin",
+      "license": "MIT",
+      "policy": "opt-in",
+      "install": [
+        "claude plugin marketplace add mathiaschu/claude-video"
+      ],
+      "detect": {
+        "skills": [
+          "watch"
+        ]
+      },
+      "provides": "Downloads or opens a video, extracts frames, transcribes locally, so Claude can answer questions about it.",
+      "risks": [
+        "downloads media from URLs (yt-dlp)",
+        "can read local browser cookies for gated videos - never grant",
+        "one-time ~1.5 GB Whisper model download",
+        "needs ffmpeg, Python 3.9+"
+      ]
+    },
+    "onetake": {
+      "name": "onetake (continuous-motion launch videos)",
+      "repo": "feitangyuan/onetake",
+      "kind": "skill",
+      "license": "PolyForm-Noncommercial-1.0.0",
+      "noncommercial": true,
+      "policy": "blocked-if-commercial",
+      "install": [
+        "git clone into ~/.claude/skills/onetake"
+      ],
+      "detect": {
+        "skills": [
+          "onetake"
+        ]
+      },
+      "provides": "Seamless no-cut product/feature launch videos.",
+      "risks": [
+        "licence forbids commercial use - unusable for a commercial product's promo"
+      ]
+    },
+    "motion-reel-reference": {
+      "name": "Motion Reel '26 (code-generated showreel)",
+      "repo": "SuhaasNv/claude-opus5.5-video",
+      "kind": "reference",
+      "license": "unspecified",
+      "policy": "reference-only",
+      "provides": "A standalone project showing a fully code-generated 15 s reel. Not a skill. No licence stated, so do not copy code.",
+      "risks": [
+        "no licence"
+      ]
+    },
+    "herdr": {
+      "name": "herdr (agent terminal multiplexer)",
+      "repo": "herdrdev/herdr",
+      "kind": "cli",
+      "license": "Apache-2.0",
+      "policy": "opt-in",
+      "install": [
+        "brew install herdr (or release binary). The curl|sh installer should be read before running."
+      ],
+      "detect": {
+        "binaries": [
+          "herdr"
+        ]
+      },
+      "provides": "Persistent terminal sessions for coding agents with a socket API; lets several agents/panes run in parallel and survive disconnects.",
+      "risks": [
+        "not a skill - separate runtime",
+        "curl | sh installer",
+        "socket API gives agents control of panes"
+      ]
+    },
+    "cloudflare-security-audit": {
+      "name": "Cloudflare security-audit skill",
+      "repo": "cloudflare/security-audit-skill",
+      "kind": "skill",
+      "license": "MIT",
+      "policy": "recommended",
+      "install": [
+        "npx skills add https://github.com/cloudflare/security-audit-skill --skill security-audit"
+      ],
+      "detect": {
+        "skills": [
+          "security-audit"
+        ]
+      },
+      "provides": "Six-phase audit (recon, coverage-led hunting, validation, structured JSON, independent verification, neutral report).",
+      "risks": [
+        "builds/runs target code - run only inside an OS-enforced sandbox with networking off",
+        "needs parallel sub-agent support",
+        "needs Node for validators"
+      ]
+    },
+    "taste-skill": {
+      "name": "taste-skill",
+      "repo": "Leonxlnx/taste-skill",
+      "kind": "skill",
+      "license": "MIT",
+      "policy": "recommended",
+      "install": [
+        "npx skills add https://github.com/Leonxlnx/taste-skill"
+      ],
+      "detect": {
+        "skills": [
+          "design-taste-frontend",
+          "design-taste-frontend-v1",
+          "high-end-visual-design",
+          "minimalist-ui",
+          "industrial-brutalist-ui"
+        ]
+      },
+      "provides": "Design-direction skills with dials for variance, motion intensity and density. Image-generation variants exist but need an image model - not used by HyperSkill.",
+      "risks": []
+    },
+    "impeccable": {
+      "name": "impeccable",
+      "repo": "pbakaus/impeccable",
+      "kind": "plugin",
+      "license": "Apache-2.0",
+      "policy": "recommended",
+      "install": [
+        "npx impeccable install"
+      ],
+      "detect": {
+        "skills": [
+          "impeccable"
+        ]
+      },
+      "provides": "/impeccable with ~24 commands (audit, critique, polish, shape, craft ...) and 61 local detector rules for AI-design anti-patterns.",
+      "risks": [
+        "installs a design hook that runs on file edits",
+        "live mode needs a local dev server - use on development only"
+      ]
+    },
+    "emil-skills": {
+      "name": "Emil Kowalski skills",
+      "repo": "emilkowalski/skills",
+      "kind": "skill",
+      "license": "MIT",
+      "policy": "recommended",
+      "install": [
+        "npx skills@latest add emilkowalski/skills"
+      ],
+      "detect": {
+        "skills": [
+          "emil-design-eng",
+          "animate",
+          "review-animations",
+          "improve-animations",
+          "prototype",
+          "pick-ui-library",
+          "mobile-native",
+          "apple-design"
+        ]
+      },
+      "provides": "Animation craft (animate, review-animations, improve-animations), prototype, pick-ui-library, mobile-native feel.",
+      "risks": []
+    },
+    "open-code-review": {
+      "name": "Open Code Review (ocr)",
+      "repo": "alibaba/open-code-review",
+      "kind": "cli",
+      "license": "Apache-2.0",
+      "policy": "opt-in",
+      "install": [
+        "npm install -g @alibaba-group/open-code-review"
+      ],
+      "detect": {
+        "binaries": [
+          "ocr"
+        ]
+      },
+      "provides": "CLI that reviews git diffs with an LLM agent and emits line-level comments. 'Delegation mode' lets the calling agent do the LLM work.",
+      "risks": [
+        "normal mode needs an LLM provider key and sends changed file contents to that provider - prefer delegation mode for private code"
+      ]
+    },
+    "karpathy-skills": {
+      "name": "Karpathy-inspired coding guidelines",
+      "repo": "multica-ai/andrej-karpathy-skills",
+      "kind": "guidelines",
+      "license": "MIT",
+      "policy": "recommended",
+      "install": [
+        "/plugin marketplace add forrestchang/andrej-karpathy-skills   (the page cited this id - confirm which repo is canonical before installing)"
+      ],
+      "detect": {
+        "skills": [
+          "karpathy-guidelines",
+          "andrej-karpathy-skills"
+        ]
+      },
+      "provides": "Four rules: think before coding, simplicity first, surgical changes, goal-driven execution. Largely overlaps HyperSkill's own non-negotiable rules.",
+      "risks": [
+        "provenance: URL given and install id name different owners - verify the repo before installing"
+      ]
+    },
+    "gstack": {
+      "name": "gstack",
+      "repo": "garrytan/gstack",
+      "kind": "skill-suite",
+      "license": "MIT",
+      "policy": "opt-in",
+      "install": [
+        "git clone --single-branch --depth 1 https://github.com/garrytan/gstack.git ~/.claude/skills/gstack && cd ~/.claude/skills/gstack && ./setup   (read ./setup first)"
+      ],
+      "detect": {
+        "skills": [
+          "gstack",
+          "office-hours",
+          "plan-eng-review",
+          "plan-ceo-review",
+          "plan-design-review",
+          "autoplan",
+          "qa",
+          "cso",
+          "ship",
+          "land-and-deploy",
+          "canary",
+          "retro",
+          "investigate",
+          "browse"
+        ]
+      },
+      "provides": "23 role-based skills forming Think -> Plan -> Build -> Review -> Test -> Ship -> Reflect: /office-hours, /plan-*-review, /review, /qa, /cso, /ship, /land-and-deploy, /canary, /retro, /browse, /investigate.",
+      "risks": [
+        "is itself a competing orchestrator - never run two conductors on one project",
+        "registers hooks (auto-update, timeline)",
+        "optional telemetry (off by default) and egress log",
+        "needs API key for some features",
+        "builds a ~500 MB Chromium and creates ~/.gstack"
+      ]
+    },
+    "chrome-devtools-agents": {
+      "name": "Chrome DevTools for agents",
+      "repo": "developer.chrome.com/docs/devtools/agents",
+      "kind": "mcp+cli+skills",
+      "license": "see docs",
+      "policy": "recommended",
+      "install": [
+        "see https://developer.chrome.com/docs/devtools/agents/get-started"
+      ],
+      "detect": {
+        "mcp": [
+          "chrome-devtools"
+        ],
+        "skills": [
+          "chrome-devtools"
+        ]
+      },
+      "provides": "MCP server + CLI + agentic skills: drive a live browser, record performance traces, debug accessibility/performance.",
+      "risks": [
+        "acts with the privileges of the browser session - use a clean, unauthenticated profile, never your personal signed-in browser"
+      ]
+    },
+    "whatships": {
+      "name": "whatships.com",
+      "kind": "site",
+      "license": "unknown",
+      "policy": "unreviewed",
+      "provides": "Could not be read (blocked by the network proxy). Unreviewed."
+    },
+    "shared-google-doc": {
+      "name": "Shared Google Doc from the reading list",
+      "kind": "site",
+      "license": "unknown",
+      "policy": "unreviewed",
+      "provides": "Could not be read (blocked by the network proxy). Unreviewed."
+    }
+  },
+  "slots": {
+    "deep-research": {
+      "providers": [
+        "claude-deep-research"
+      ],
+      "fallback": "hs-researcher agents in parallel"
+    },
+    "product-interrogation": {
+      "providers": [
+        "gstack"
+      ],
+      "fallback": "hs-plan requirements interview"
+    },
+    "plan-review": {
+      "providers": [
+        "gstack"
+      ],
+      "fallback": "hs-reviewer skeptical design review"
+    },
+    "coding-discipline": {
+      "providers": [
+        "karpathy-skills"
+      ],
+      "fallback": "non-negotiable rules in hyperskill/SKILL.md"
+    },
+    "ui-library-choice": {
+      "providers": [
+        "emil-skills"
+      ],
+      "fallback": "ask the owner; recommend with trade-offs"
+    },
+    "code-review": {
+      "providers": [
+        "claude-code-review",
+        "open-code-review",
+        "gstack"
+      ],
+      "fallback": "hs-reviewer agent"
+    },
+    "design-direction": {
+      "providers": [
+        "taste-skill"
+      ],
+      "fallback": "hs-product/references/design-system.md"
+    },
+    "animation": {
+      "providers": [
+        "emil-skills"
+      ],
+      "fallback": "motion section of hs-product/references/design-system.md"
+    },
+    "design-critique": {
+      "providers": [
+        "impeccable"
+      ],
+      "fallback": "screen checklist in hs-product/references/design-system.md"
+    },
+    "browser-verify": {
+      "providers": [
+        "chrome-devtools-agents",
+        "claude-run"
+      ],
+      "fallback": "Playwright from the project's own e2e setup"
+    },
+    "a11y-audit": {
+      "providers": [
+        "chrome-devtools-agents",
+        "impeccable"
+      ],
+      "fallback": "axe in the test suite"
+    },
+    "qa-browser": {
+      "providers": [
+        "chrome-devtools-agents",
+        "gstack"
+      ],
+      "fallback": "Playwright e2e per docs/testing.md"
+    },
+    "release": {
+      "providers": [
+        "gstack"
+      ],
+      "fallback": "hs-ship CD steps"
+    },
+    "security-audit": {
+      "providers": [
+        "cloudflare-security-audit",
+        "claude-security-review",
+        "gstack"
+      ],
+      "fallback": "hs-harden/references/security-review.md via hs-reviewer"
+    },
+    "canary": {
+      "providers": [
+        "gstack"
+      ],
+      "fallback": "hs-operate monitoring plan and post-deploy checks"
+    },
+    "performance-audit": {
+      "providers": [
+        "chrome-devtools-agents"
+      ],
+      "fallback": "Lighthouse and k6"
+    },
+    "parallel-terminals": {
+      "providers": [
+        "herdr"
+      ],
+      "fallback": "sequential work or Claude subagents"
+    },
+    "retro": {
+      "providers": [
+        "gstack"
+      ],
+      "fallback": "short retro written into docs/decisions"
+    },
+    "video": {
+      "providers": [
+        "hyperframes"
+      ],
+      "fallback": "storyboard only; ask the owner to install HyperFrames"
+    },
+    "video-continuous": {
+      "providers": [
+        "onetake"
+      ],
+      "fallback": "video slot"
+    },
+    "video-captions": {
+      "providers": [
+        "hyperframes"
+      ],
+      "fallback": "none"
+    },
+    "video-overlay": {
+      "providers": [
+        "hyperframes"
+      ],
+      "fallback": "none"
+    },
+    "video-analysis": {
+      "providers": [
+        "watch"
+      ],
+      "fallback": "ffprobe + extracted frames inspected by hand"
+    }
+  }
+}

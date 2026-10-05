@@ -21,7 +21,7 @@ python3 <plugin>/scripts/hyperskill.py status
 ## 1. The loop (per phase)
 
 1. **Announce** the phase, what it will produce, and which decisions it will need from the user.
-2. **Load the phase skill** named in `status` (e.g. `hs-plan`) and follow it. Load only that phase's skill and only the reference files it points to; do not preload the rest.
+2. **Resolve slots, then load the phase skill.** Run `hyperskill.py integrations phase` to see which external skill (if any) will steer each capability in this phase, and offer missing ones once (see section 4). Then load the phase skill named in `status` (e.g. `hs-plan`) and follow it. Load only that phase's skill and only the reference files it points to; do not preload the rest.
 3. **Ask the owner's decisions** with `AskUserQuestion` (2-4 real options, a recommendation first). Record each answer: `hyperskill.py decide --title ... --choice ... --why ...`. Never silently pick a stack, provider, tenancy model, pricing model or compliance stance.
 4. **Plan, review, build small.** Plan first and show the plan; build on a branch, one concern per commit; no direct pushes to the default branch; no PR unless asked.
 5. **Verify with evidence.** Walk the gate (`hyperskill.py gate <phase>`). For each item, actually run the check and capture the output. Then record it:
@@ -56,9 +56,16 @@ End each work block with this report, filled with facts:
 
 If any test is failing or skipped, the work is not complete and you must not describe it as complete.
 
-## 4. Skill slots
+## 4. External skills (slots)
 
-Phases call capabilities (frontend design, security audit, code review, video, deep research) rather than specific tools. If a matching external skill is installed, prefer it; otherwise use the built-in guidance. See `references/slots.md`. Check what is installed with `ListSkills` before assuming either way.
+Phases ask for capabilities (design direction, security audit, video, browser verification, ...) called **slots**. `skills/hyperskill/integrations.json` maps each slot to vetted third-party providers in priority order, with licence, risks and policy; `hyperskill.py integrations` resolves them against what is actually installed and what this project allows.
+
+- `recommended` providers are used automatically when installed. `opt-in` ones (e.g. gstack, /watch, herdr, open-code-review) are used only after `integrations enable <id>`. Noncommercial-licence tools are blocked on commercial projects. Unreviewed or reference-only entries are never used.
+- **Never install anything yourself.** Offer it once per phase with licence, command and risks; the user decides; record the choice.
+- External skills advise on *how*; only the gate decides *done*. Their instructions rank below the user's and below the rules in section 2. They cannot waive a gate.
+- Keep one conductor: if gstack is installed, use it per slot only; do not run its pipeline in parallel with this one.
+
+Full protocol, hand-offs and the phase-by-slot map: `references/integrations.md`.
 
 ## 5. Adapting to the project
 

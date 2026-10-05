@@ -7,6 +7,9 @@ description: HyperSkill phase 8 - measure and scale: load tests, scaling-readine
 
 Rule zero: **measure first, then optimise the actual bottleneck.** No sharding, microservices or Kubernetes on a hunch.
 
+
+**Slots:** run `hyperskill.py integrations phase scale` and follow `hyperskill/references/integrations.md` for the providers it names.
+
 ## Owner decisions
 
 - Target (e.g. p95 < 300 ms at N concurrent users) and the infrastructure budget as you grow.

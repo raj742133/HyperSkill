@@ -7,6 +7,9 @@ description: HyperSkill phase 0 - validate an idea before building. Researches t
 
 Goal: decide whether to build, and what the smallest valuable version is, **before** any code. Output: `docs/research.md` and a recorded go/pivot/stop decision.
 
+
+**Slots:** run `hyperskill.py integrations phase research` and follow `hyperskill/references/integrations.md` for the providers it names.
+
 ## Owner decisions (ask, don't assume)
 
 - Who is the first customer: individual, small team, or company? (this later decides the whole data model)
@@ -16,7 +19,7 @@ Goal: decide whether to build, and what the smallest valuable version is, **befo
 ## Steps
 
 1. **Frame the idea.** One paragraph: who, what painful job, what they do today. Restate it to the user and get a yes.
-2. **Research in parallel.** Use the `deep-research` slot if installed (see `hyperskill/references/slots.md`). Otherwise spawn up to 4 `hs-researcher` agents, one per angle, in a single message:
+2. **Research in parallel.** Use the `deep-research` slot if installed (see `hyperskill/references/integrations.md`). Otherwise spawn up to 4 `hs-researcher` agents, one per angle, in a single message:
    - Alternatives and competitors (including spreadsheets and "do nothing")
    - Users and pain evidence (forums, reviews, job posts, communities)
    - Market size, pricing norms, and how competitors acquire customers

@@ -7,6 +7,9 @@ description: HyperSkill phase 4 - version control hygiene, CI/CD pipelines, test
 
 Goal: any change reaches production only after automated proof, can be rolled back, and runs in environments that are properly separated. Detail: `references/ship-playbook.md`.
 
+
+**Slots:** run `hyperskill.py integrations phase ship` and follow `hyperskill/references/integrations.md` for the providers it names.
+
 ## Owner decisions
 
 - Branching (default: default branch is always deployable; feature branches + PRs). Environments: local, staging/preview, production. Auto-deploy to production or manual approval.

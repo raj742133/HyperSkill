@@ -7,6 +7,9 @@ description: HyperSkill phase 6 - structured logging, error tracking, health che
 
 Goal: know the product is unhealthy **before** users tell you, and know what to do about it. Detail: `references/operate-playbook.md`.
 
+
+**Slots:** run `hyperskill.py integrations phase operate` and follow `hyperskill/references/integrations.md` for the providers it names.
+
 ## Owner decisions
 
 - Error-tracking tool (Sentry, Rollbar, Highlight, ...), log destination and retention.

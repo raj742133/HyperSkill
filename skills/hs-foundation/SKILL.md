@@ -7,6 +7,9 @@ description: HyperSkill phase 2 - build the data layer, authentication, authoris
 
 Goal: a backend where **tenant isolation, authorisation and validation are structural**, not remembered per endpoint. Read `references/foundation-playbook.md` for the layer-by-layer detail.
 
+
+**Slots:** run `hyperskill.py integrations phase foundation` and follow `hyperskill/references/integrations.md` for the providers it names.
+
 ## Owner decisions
 
 - Database and host (default: Postgres, managed). Backup and retention policy. What is deleted when an account is deleted.

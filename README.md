@@ -24,7 +24,11 @@ research -> plan -> foundation -> product -> ship -> harden -> operate -> launch
 - **Gates with evidence.** `scripts/hyperskill.py gate <phase> --pass id --evidence "..."`; `advance` refuses while any item is open. Items can be waived only with a written reason.
 - **Decisions are yours.** Stack, tenancy, providers and limits are asked, then recorded as `docs/decisions/NNNN-*.md`.
 - **Fresh-eyes reviews.** Security and test-quality reviews run in the read-only `hs-reviewer` agent.
-- **Skill slots.** Phases ask for capabilities (design, security audit, video, research); installed external skills are used when present, with built-in fallbacks otherwise. See `skills/hyperskill/references/slots.md`.
+- **Skill slots and a vetted registry.** Phases ask for capabilities (design direction, animation, design critique, security audit, browser verification, video, ...). `skills/hyperskill/integrations.json` maps each slot to vetted third-party skills with licence, risks and policy; `scripts/hyperskill.py integrations` resolves what to use given what's installed. Recommended providers are used when present, opt-in ones only after `integrations enable <id>`, noncommercial-licence tools are blocked on commercial projects, and everything has a built-in fallback. Nothing is installed without asking. See `skills/hyperskill/references/integrations.md` and `docs/integrations-review.md`.
+
+## External skills it can orchestrate
+
+HyperFrames (video) - taste-skill, impeccable, emilkowalski/skills (design chain) - Chrome DevTools for agents (browser, a11y, performance) - Cloudflare security-audit (sandboxed) - karpathy guidelines - and, opt-in: /watch, herdr, open-code-review, gstack. `onetake` is blocked for commercial use (PolyForm Noncommercial). Phase-by-slot map: `skills/hyperskill/references/integrations.md`.
 
 ## Install
 

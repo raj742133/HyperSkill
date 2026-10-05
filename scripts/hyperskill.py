@@ -11,21 +11,31 @@ Usage:
   hyperskill.py gate PHASE                          show gate items and their state
   hyperskill.py gate PHASE --pass ID[,ID] --evidence TEXT
   hyperskill.py gate PHASE --waive ID[,ID] --reason TEXT
+  hyperskill.py gate PHASE --run ID --cmd COMMAND   run a command; pass only if it exits 0
   hyperskill.py advance                             move to the next phase if the gate is clear
   hyperskill.py skip PHASE --reason TEXT            skip a whole phase (recorded)
   hyperskill.py decide --title T --choice C --why W [--phase PHASE]
   hyperskill.py log TEXT
+  hyperskill.py integrations [list] [--json]        vetted external skills and what is installed
+  hyperskill.py integrations resolve SLOT [--json]  which provider to use for a capability slot
+  hyperskill.py integrations phase [PHASE]          resolve every slot of a phase
+  hyperskill.py integrations enable|disable ID      opt a provider in / out for this project
 
 Use --root DIR to point at the project (default: current directory).
 """
 import argparse
 import datetime
+import glob
 import json
 import os
 import re
+import shutil
+import subprocess
 import sys
 
-GATES_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "skills", "hyperskill", "gates.json")
+_HERE = os.path.dirname(os.path.abspath(__file__))
+GATES_PATH = os.path.join(_HERE, "..", "skills", "hyperskill", "gates.json")
+INTEGRATIONS_PATH = os.path.join(_HERE, "..", "skills", "hyperskill", "integrations.json")
 
 
 def now():
@@ -46,7 +56,10 @@ def load_state(root):
     if not os.path.exists(path):
         die("no HyperSkill state here. Run: hyperskill.py init")
     with open(path, encoding="utf-8") as f:
-        return json.load(f)
+        st = json.load(f)
+    st.setdefault("commercial", True)
+    st.setdefault("integrations", {"enabled": [], "disabled": []})
+    return st
 
 
 def save_state(root, st):
@@ -92,13 +105,16 @@ def cmd_init(args):
         "name": args.name or os.path.basename(os.path.abspath(args.root)),
         "created": now(),
         "current": phases[0]["id"],
+        "commercial": not args.noncommercial,
+        "integrations": {"enabled": [], "disabled": []},
         "phases": {p["id"]: {"status": "pending", "gate": {}} for p in phases},
         "decisions": [],
         "log": [],
     }
     st["phases"][phases[0]["id"]]["status"] = "active"
     save_state(args.root, st)
-    print("initialised %s; current phase: %s" % (st["name"], st["current"]))
+    print("initialised %s (%s); current phase: %s"
+          % (st["name"], "commercial" if st["commercial"] else "non-commercial", st["current"]))
 
 
 def cmd_status(args):
@@ -137,6 +153,22 @@ def cmd_gate(args):
     ph = phase_def(phases, args.phase)
     rec = st["phases"][ph["id"]]["gate"]
     valid = {i["id"] for i in ph["gate"]}
+    if args.run_id:
+        if not args.cmd:
+            die("--run needs --cmd COMMAND.")
+        if args.run_id not in valid:
+            die("'%s' is not a gate item of phase %s" % (args.run_id, ph["id"]))
+        try:
+            r = subprocess.run(args.cmd, shell=True, cwd=args.root, capture_output=True, text=True, timeout=args.timeout)
+        except subprocess.TimeoutExpired:
+            die("command timed out after %ss; nothing recorded." % args.timeout)
+        tail = ((r.stdout or "") + (r.stderr or "")).strip()[-400:]
+        if r.returncode != 0:
+            print(tail)
+            die("command exited %d; '%s' stays open." % (r.returncode, args.run_id))
+        rec[args.run_id] = {"state": "passed", "evidence": "ran `%s` -> exit 0. Output tail: %s" % (args.cmd, tail or "(none)"),
+                            "at": now(), "ran": True}
+        save_state(args.root, st)
     if args.pass_ids:
         if not args.evidence or not args.evidence.strip():
             die("--pass needs --evidence (what was run / seen). No evidence, no pass.")
@@ -242,6 +274,149 @@ def cmd_log(args):
     print("logged")
 
 
+# ---------------------------------------------------------------- integrations
+
+def load_integrations():
+    with open(INTEGRATIONS_PATH, encoding="utf-8") as f:
+        return json.load(f)
+
+
+def skill_roots(root):
+    home = os.path.expanduser("~")
+    return [os.path.join(home, ".claude", "skills"), os.path.join(root, ".claude", "skills"),
+            os.path.join(home, ".agents", "skills")]
+
+
+def installed_skill_names(root):
+    """Directory names and frontmatter names of every skill we can see on disk."""
+    names = set()
+    dirs = []
+    for r in skill_roots(root):
+        dirs += glob.glob(os.path.join(r, "*", "SKILL.md"))
+    home = os.path.expanduser("~")
+    dirs += glob.glob(os.path.join(home, ".claude", "plugins", "**", "skills", "*", "SKILL.md"), recursive=True)
+    dirs += glob.glob(os.path.join(root, ".claude", "plugins", "**", "skills", "*", "SKILL.md"), recursive=True)
+    for path in dirs:
+        names.add(os.path.basename(os.path.dirname(path)))
+        try:
+            with open(path, encoding="utf-8") as f:
+                m = re.search(r"^name:\s*(.+)$", f.read(2000), re.M)
+            if m:
+                names.add(m.group(1).strip().strip("\"'"))
+        except OSError:
+            pass
+    return names
+
+
+def provider_state(pid, prov, st, names):
+    """Return (installed, allowed, reason)."""
+    det = prov.get("detect", {})
+    if prov.get("builtin"):
+        installed = True
+    else:
+        installed = any(n in names for n in det.get("skills", [])) or \
+            any(shutil.which(b) for b in det.get("binaries", []))
+    enabled = pid in st["integrations"]["enabled"]
+    disabled = pid in st["integrations"]["disabled"]
+    policy = prov.get("policy", "unreviewed")
+    if disabled:
+        return installed, False, "disabled for this project"
+    if prov.get("noncommercial") and st["commercial"]:
+        return installed, False, "licence %s forbids commercial use (project is commercial)" % prov.get("license")
+    if policy in ("reference-only", "unreviewed"):
+        return installed, False, policy
+    if policy == "opt-in" and not enabled:
+        return installed, False, "opt-in: run `integrations enable %s` after reading its risks" % pid
+    return installed, True, "ok"
+
+
+def resolve_slot(slot, st, names, reg):
+    sd = reg["slots"].get(slot)
+    if sd is None:
+        die("unknown slot '%s'. Valid: %s" % (slot, ", ".join(sorted(reg["slots"]))))
+    rows, use, suggest = [], None, []
+    for pid in sd["providers"]:
+        prov = reg["providers"][pid]
+        inst, ok, why = provider_state(pid, prov, st, names)
+        rows.append({"id": pid, "installed": inst, "allowed": ok, "why": why})
+        if inst and ok and use is None:
+            use = pid
+        if ok and not inst and not prov.get("builtin"):
+            suggest.append({"id": pid, "install": prov.get("install", []), "license": prov.get("license"),
+                            "risks": prov.get("risks", [])})
+    return {"slot": slot, "use": use, "providers": rows, "suggest_install": suggest, "fallback": sd["fallback"]}
+
+
+def cmd_integrations(args):
+    reg = load_integrations()
+    st = load_state(args.root)
+    names = installed_skill_names(args.root)
+    action = args.action or "list"
+    if action in ("enable", "disable"):
+        if not args.target or args.target not in reg["providers"]:
+            die("give a provider id. Valid: %s" % ", ".join(reg["providers"]))
+        lst_in, lst_out = ("enabled", "disabled") if action == "enable" else ("disabled", "enabled")
+        if args.target not in st["integrations"][lst_in]:
+            st["integrations"][lst_in].append(args.target)
+        if args.target in st["integrations"][lst_out]:
+            st["integrations"][lst_out].remove(args.target)
+        save_state(args.root, st)
+        print("%sd %s" % (action, args.target))
+        return
+    if action == "resolve":
+        if not args.target:
+            die("give a slot name.")
+        out = resolve_slot(args.target, st, names, reg)
+        if args.json:
+            print(json.dumps(out, indent=2))
+        else:
+            print_resolution(out)
+        return
+    if action == "phase":
+        phases = load_gates()
+        pid = args.target or st["current"]
+        if not pid:
+            die("pipeline complete; name a phase.")
+        ph = phase_def(phases, pid)
+        outs = [resolve_slot(s, st, names, reg) for s in ph.get("slots", [])]
+        if args.json:
+            print(json.dumps(outs, indent=2))
+        else:
+            print("phase %s slots:" % ph["id"])
+            for o in outs:
+                print_resolution(o, short=True)
+        return
+    # list
+    rows = []
+    for pid, prov in reg["providers"].items():
+        inst, ok, why = provider_state(pid, prov, st, names)
+        rows.append({"id": pid, "kind": prov.get("kind"), "license": prov.get("license"),
+                     "policy": prov.get("policy"), "installed": inst, "allowed": ok, "why": why})
+    if args.json:
+        print(json.dumps(rows, indent=2))
+        return
+    print("%-26s %-14s %-12s %-9s %-7s %s" % ("id", "kind", "policy", "installed", "allowed", "note"))
+    for r in rows:
+        print("%-26s %-14s %-12s %-9s %-7s %s" % (r["id"], r["kind"], r["policy"], "yes" if r["installed"] else "no",
+                                                  "yes" if r["allowed"] else "no", "" if r["allowed"] else r["why"]))
+
+
+def print_resolution(o, short=False):
+    head = "%-22s -> %s" % (o["slot"], o["use"] or "fallback: " + o["fallback"])
+    print(head)
+    if short:
+        for s in o["suggest_install"]:
+            print("    could install %s (%s): %s" % (s["id"], s["license"], s["install"][0] if s["install"] else "see docs"))
+        return
+    for r in o["providers"]:
+        print("    %-26s installed=%-5s allowed=%-5s %s" % (r["id"], r["installed"], r["allowed"], r["why"]))
+    for s in o["suggest_install"]:
+        print("    could install %s (%s): %s" % (s["id"], s["license"], "; ".join(s["install"]) or "see docs"))
+        for risk in s["risks"]:
+            print("       risk: " + risk)
+    print("    fallback: " + o["fallback"])
+
+
 def build_parser():
     ap = argparse.ArgumentParser(description="HyperSkill state and gate tracker")
     ap.add_argument("--root", default=os.getcwd())
@@ -250,6 +425,7 @@ def build_parser():
     p = sub.add_parser("init")
     p.add_argument("--name")
     p.add_argument("--force", action="store_true")
+    p.add_argument("--noncommercial", action="store_true", help="project is not commercial (unlocks noncommercial-licence tools)")
     p.set_defaults(fn=cmd_init)
 
     p = sub.add_parser("status")
@@ -262,6 +438,9 @@ def build_parser():
     p.add_argument("--evidence")
     p.add_argument("--waive", dest="waive_ids")
     p.add_argument("--reason")
+    p.add_argument("--run", dest="run_id")
+    p.add_argument("--cmd")
+    p.add_argument("--timeout", type=int, default=600)
     p.set_defaults(fn=cmd_gate)
 
     p = sub.add_parser("advance")
@@ -282,6 +461,12 @@ def build_parser():
     p = sub.add_parser("log")
     p.add_argument("text")
     p.set_defaults(fn=cmd_log)
+
+    p = sub.add_parser("integrations")
+    p.add_argument("action", nargs="?", choices=["list", "resolve", "phase", "enable", "disable"])
+    p.add_argument("target", nargs="?")
+    p.add_argument("--json", action="store_true")
+    p.set_defaults(fn=cmd_integrations)
     return ap
 
 

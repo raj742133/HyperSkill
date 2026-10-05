@@ -9,6 +9,9 @@ Goal: agree **what** is being built and **how it is shaped** before features exi
 
 Read `references/plan-playbook.md` for the detailed prompts and traps for each step.
 
+
+**Slots:** run `hyperskill.py integrations phase plan` and follow `hyperskill/references/integrations.md` for the providers it names.
+
 ## Owner decisions
 
 - Customer type: individual / team / organisation (decides tenancy and the data model).

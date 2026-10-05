@@ -7,6 +7,9 @@ description: HyperSkill phase 5 - threat modelling, independent security review,
 
 Goal: assume the code was written by someone who built exactly what was asked and never thought like an attacker. Find what that missed. Detail: `references/harden-playbook.md` and `references/security-review.md`.
 
+
+**Slots:** run `hyperskill.py integrations phase harden` and follow `hyperskill/references/integrations.md` for the providers it names.
+
 ## Owner decisions
 
 - What data is sensitive and how it is protected; compliance obligations for the target market.
@@ -17,7 +20,7 @@ Goal: assume the code was written by someone who built exactly what was asked an
 ## Steps
 
 1. **Threat model** -> `docs/security/threat-model.md`: assets (data, accounts, payments), every entry point (endpoint, upload, webhook, form), relevant OWASP Top 10 threats per entry point, likelihood x impact, mitigations present vs missing.
-2. **Independent security review.** Use the `security-audit` slot if installed; in all cases run it through `hs-reviewer` (fresh context) using `references/security-review.md`. Output: findings with file, line, severity, exploit scenario, fix - **no fixes yet**. Triage with the user, then fix by severity, one concern per commit, with a regression test per fix.
+2. **Independent security review.** Run it through `hs-reviewer` (fresh context). If the `security-audit` slot resolves to an external audit skill, have the reviewer load it, but run it **only in a sandbox with networking off** (it builds and executes project code) and save its structured output to `docs/security/`. Always also apply `references/security-review.md`; the built-in `security-review` skill is a second opinion, not a replacement. Output: findings with file, line, severity, exploit scenario, fix - **no fixes yet**. Triage with the user, then fix by severity, one concern per commit, with a regression test per fix.
 3. **Dependencies.** Audit; list vulnerable packages with severity and whether the vulnerable path is used; upgrade what's safe; explain what can't be; set up Dependabot/Renovate; run the audit in CI.
 4. **Data protection.** Encrypt listed sensitive fields at rest; redact passwords/tokens/PII from all logs; account deletion that removes or anonymises data; user data export.
 5. **Rate limiting** with a **shared store** (Redis/Upstash), never in-memory counters. Tiers: login/signup/reset strictest (per IP and per email), expensive endpoints per org, general API per user, public per IP. Return 429 with `Retry-After` in the standard error format; limits configurable per plan; tests that exceed each limit.
