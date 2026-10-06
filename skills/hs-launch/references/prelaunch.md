@@ -29,4 +29,4 @@ Tick only with evidence. Anything unticked is fixed or waived (with reason) via 
 - [ ] Terms of service and privacy policy published and linked
 - [ ] Cookie/consent handling appropriate to target regions
 - [ ] Marketing claims match real behaviour
-- [ ] Licences recorded for fonts, music, sound effects, stock/footage, AI-generated media
+- [ ] Licences recorded for fonts, icon collection, music, sound effects, stock/footage, AI-generated media and synthetic voices (with consent for any cloned voice)

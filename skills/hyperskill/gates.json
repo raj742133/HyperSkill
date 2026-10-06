@@ -132,7 +132,8 @@
       ],
       "slots": [
         "coding-discipline",
-        "code-review"
+        "code-review",
+        "implementation-discipline"
       ]
     },
     {
@@ -167,6 +168,10 @@
         {
           "id": "no-client-secrets",
           "text": "Client bundle was searched for keys, secrets and private URLs; none found"
+        },
+        {
+          "id": "icon-set-licence",
+          "text": "One icon collection is used throughout and its licence is recorded as compatible with this project (attribution added if required)"
         }
       ],
       "slots": [
@@ -174,7 +179,11 @@
         "animation",
         "design-critique",
         "browser-verify",
-        "a11y-audit"
+        "a11y-audit",
+        "design-reference",
+        "design-system-generation",
+        "icons",
+        "implementation-discipline"
       ]
     },
     {
@@ -231,7 +240,8 @@
         "code-review",
         "qa-browser",
         "release",
-        "browser-verify"
+        "browser-verify",
+        "implementation-discipline"
       ]
     },
     {
@@ -358,7 +368,8 @@
         "video",
         "video-analysis",
         "video-captions",
-        "video-overlay"
+        "video-overlay",
+        "voiceover"
       ]
     },
     {
@@ -386,7 +397,8 @@
       "slots": [
         "performance-audit",
         "parallel-terminals",
-        "retro"
+        "retro",
+        "task-agents"
       ]
     }
   ]

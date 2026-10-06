@@ -284,7 +284,7 @@ def load_integrations():
 def skill_roots(root):
     home = os.path.expanduser("~")
     return [os.path.join(home, ".claude", "skills"), os.path.join(root, ".claude", "skills"),
-            os.path.join(home, ".agents", "skills")]
+            os.path.join(home, ".agents", "skills"), os.path.join(root, ".agents", "skills")]
 
 
 def installed_skill_names(root):

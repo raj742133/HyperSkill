@@ -28,7 +28,7 @@ Details and prompt patterns: `references/video-hyperframes.md`. Style presets: `
 3. **Script and storyboard** in `launch/storyboard.md`: hook in the first 2 seconds, one idea per screen, show the result before explaining it, end on CTA. Get the user's approval before rendering.
 4. **Build** with HyperFrames' skills, following the brief pattern in `references/video-hyperframes.md` (fonts local, one style, safe margins, nothing important outside the safe area).
 5. **Render and inspect.** Render to `renders/`, then actually check the output (`ffprobe`, extracted frames at key timestamps, viewed) before reporting done. If the `video-analysis` slot resolves (`/watch`, opt-in), use it to watch your own render and compare what it sees and hears with the storyboard. Ask the user to watch it end to end.
-6. **Sound (optional).** Quiet ticks/chimes only; keep effects under any voice; check licences of any music/sfx used.
+6. **Sound (optional).** Quiet ticks/chimes only; keep effects under any voice; check licences of any music/sfx used. For voiceover use the `voiceover` slot (Qwen3-TTS, opt-in) or the owner's own recording: get written consent before cloning any voice, and say in the video description that the voice is synthetic.
 7. **Variants.** Re-render other aspect ratios/frame rates/transparent overlays only as requested.
 
 ## Pitfalls

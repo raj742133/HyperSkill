@@ -28,7 +28,7 @@ research -> plan -> foundation -> product -> ship -> harden -> operate -> launch
 
 ## External skills it can orchestrate
 
-HyperFrames (video) - taste-skill, impeccable, emilkowalski/skills (design chain) - Chrome DevTools for agents (browser, a11y, performance) - Cloudflare security-audit (sandboxed) - karpathy guidelines - and, opt-in: /watch, herdr, open-code-review, gstack. `onetake` is blocked for commercial use (PolyForm Noncommercial). Phase-by-slot map: `skills/hyperskill/references/integrations.md`.
+HyperFrames (video) - taste-skill or UI UX Pro Max, impeccable, emilkowalski/skills (design chain; one direction voice per project) - `npx skills` installer - Chrome DevTools for agents (browser, a11y, performance) - Cloudflare security-audit (sandboxed) - karpathy guidelines - and, opt-in: /watch, herdr, open-code-review, gstack, Superpowers, better-icons, Uizze, Vercel Web Interface Guidelines, Symphony, Qwen3-TTS. MiroFish and the rest of the LOOT guide are reference-only. `onetake` is blocked for commercial use (PolyForm Noncommercial). Phase-by-slot map: `skills/hyperskill/references/integrations.md`.
 
 ## Install
 

@@ -101,7 +101,7 @@ if __name__ == "__main__":
     unittest.main()
 
 
-class IntegrationTests(unittest.TestCase):
+class IntegrationBase(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.p = self.tmp.name
@@ -130,6 +130,8 @@ class IntegrationTests(unittest.TestCase):
         with open(os.path.join(d, "SKILL.md"), "w", encoding="utf-8") as f:
             f.write("---\nname: %s\ndescription: fake\n---\n" % name)
 
+
+class IntegrationTests(IntegrationBase):
     def test_missing_provider_falls_back_and_suggests_install(self):
         out = self.resolve("design-direction")
         self.assertIsNone(out["use"])
@@ -214,3 +216,33 @@ class RunGateTests(unittest.TestCase):
     def test_run_needs_cmd_and_valid_item(self):
         self.assertNotEqual(run(self.p, "gate", "research", "--run", "problem-statement").returncode, 0)
         self.assertNotEqual(run(self.p, "gate", "research", "--run", "nope", "--cmd", "true").returncode, 0)
+
+
+class NewProviderTests(IntegrationBase):
+    def test_reference_only_is_never_used(self):
+        out = json.loads(self.irun("integrations", "list", "--json").stdout)
+        row = [r for r in out if r["id"] == "mirofish"][0]
+        self.assertFalse(row["allowed"])
+
+    def test_superpowers_needs_enable_even_if_installed(self):
+        self.install_fake_skill("test-driven-development")
+        self.assertIsNone(self.resolve("implementation-discipline")["use"])
+        self.irun("integrations", "enable", "superpowers")
+        self.assertEqual(self.resolve("implementation-discipline")["use"], "superpowers")
+
+    def test_project_level_agents_dir_is_detected(self):
+        d = os.path.join(self.proj, ".agents", "skills", "ui-ux-pro-max")
+        os.makedirs(d)
+        with open(os.path.join(d, "SKILL.md"), "w", encoding="utf-8") as f:
+            f.write("---\nname: ui-ux-pro-max\ndescription: x\n---\n")
+        self.assertEqual(self.resolve("design-system-generation")["use"], "ui-ux-pro-max")
+
+    def test_hosted_and_remote_fetching_providers_are_opt_in(self):
+        out = {r["id"]: r for r in json.loads(self.irun("integrations", "list", "--json").stdout)}
+        for pid in ("uizze", "vercel-web-interface-guidelines", "better-icons", "symphony", "qwen3-tts"):
+            self.assertEqual(out[pid]["policy"], "opt-in", pid)
+            self.assertFalse(out[pid]["allowed"], pid)
+
+    def test_product_gate_has_icon_licence_item(self):
+        ids = [i["id"] for ph in gates() if ph["id"] == "product" for i in ph["gate"]]
+        self.assertIn("icon-set-licence", ids)

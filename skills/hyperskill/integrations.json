@@ -346,6 +346,210 @@
       "license": "unknown",
       "policy": "unreviewed",
       "provides": "Could not be read (blocked by the network proxy). Unreviewed."
+    },
+    "vercel-skills-cli": {
+      "name": "skills CLI (npx skills)",
+      "repo": "vercel-labs/skills",
+      "kind": "cli",
+      "license": "MIT",
+      "policy": "recommended",
+      "install": [
+        "npx skills add <repo>  (no global install needed). Set DISABLE_TELEMETRY=1 or DO_NOT_TRACK=1 first."
+      ],
+      "detect": {
+        "binaries": [
+          "npx"
+        ]
+      },
+      "provides": "Open installer for SKILL.md directories into 75+ agents (add, list, find, use, update, init, remove). Many registry install commands use it.",
+      "risks": [
+        "collects anonymous usage data unless DISABLE_TELEMETRY / DO_NOT_TRACK is set (public repo identifiers are sent)",
+        "uses GITHUB_TOKEN/GH_TOKEN if present",
+        "installs third-party instructions into your agent: vet each skill first"
+      ]
+    },
+    "better-icons": {
+      "name": "better-icons",
+      "repo": "better-auth/better-icons",
+      "kind": "mcp+cli+skill",
+      "license": "MIT",
+      "policy": "opt-in",
+      "install": [
+        "npx skills add better-auth/better-icons",
+        "npm install -g better-icons"
+      ],
+      "detect": {
+        "skills": [
+          "better-icons"
+        ],
+        "binaries": [
+          "better-icons"
+        ]
+      },
+      "provides": "Search 200k+ icons across 150+ collections, fetch SVGs, batch retrieval, can sync icons into the project.",
+      "risks": [
+        "MCP server with network access and file writes into the project",
+        "each icon collection has its own licence (some need attribution or restrict commercial use): record the chosen collection's licence",
+        "upstream icon source not verified"
+      ]
+    },
+    "ui-ux-pro-max": {
+      "name": "UI UX Pro Max",
+      "repo": "nextlevelbuilder/ui-ux-pro-max-skill",
+      "kind": "skill+cli",
+      "license": "MIT",
+      "policy": "recommended",
+      "install": [
+        "npm install -g ui-ux-pro-max-cli && uipro init --ai claude"
+      ],
+      "detect": {
+        "skills": [
+          "ui-ux-pro-max"
+        ]
+      },
+      "provides": "Local searchable design data (styles, palettes, font pairings, reasoning rules, stack guidelines) and a design-system generator. Python stdlib scripts, no network per README.",
+      "risks": [
+        "global npm install of a third-party CLI",
+        "overlaps taste-skill: pick ONE design-direction voice per project and record it as a decision"
+      ]
+    },
+    "superpowers": {
+      "name": "Superpowers",
+      "repo": "obra/superpowers",
+      "kind": "skill-suite",
+      "license": "MIT",
+      "policy": "opt-in",
+      "install": [
+        "see README for your agent (Claude Code plugin install)"
+      ],
+      "detect": {
+        "skills": [
+          "brainstorming",
+          "writing-plans",
+          "test-driven-development",
+          "subagent-driven-development",
+          "using-git-worktrees",
+          "requesting-code-review",
+          "finishing-a-development-branch",
+          "using-superpowers"
+        ]
+      },
+      "provides": "Methodology skills: brainstorming, git worktrees, bite-sized plans, subagent-driven development, TDD (red-green-refactor), code review, finishing a branch.",
+      "risks": [
+        "installs a SessionStart hook that injects its own bootstrap workflow and auto-triggers skills: a second conductor competing with HyperSkill",
+        "optional telemetry (version only; SUPERPOWERS_DISABLE_TELEMETRY to disable)",
+        "use its implementation skills inside build steps only; its brainstorm/plan flow must not replace this plugin's phase gates"
+      ]
+    },
+    "uizze": {
+      "name": "Uizze",
+      "repo": "uizze.com",
+      "kind": "hosted-mcp+skill",
+      "license": "unknown (service terms)",
+      "policy": "opt-in",
+      "install": [
+        "see https://uizze.com (hosted MCP + local anti-ui-slop skill)"
+      ],
+      "detect": {
+        "skills": [
+          "anti-ui-slop",
+          "ui-design",
+          "ui-radar"
+        ],
+        "mcp": [
+          "uizze"
+        ]
+      },
+      "provides": "Reference library of 800k+ real screens, plus a local anti-ui-slop skill and hosted live search / visual critique. Learned from third-party directory listings only: the site itself was blocked.",
+      "risks": [
+        "hosted service: your UI context leaves the machine",
+        "pricing and terms unknown",
+        "reference screens are inspiration only; never copy another product's design or assets",
+        "unverified: could not read the site"
+      ]
+    },
+    "vercel-web-interface-guidelines": {
+      "name": "Vercel Web Interface Guidelines (web-design-guidelines skill)",
+      "repo": "vercel-labs/agent-skills / vercel-labs/web-interface-guidelines",
+      "kind": "skill",
+      "license": "unknown",
+      "policy": "opt-in",
+      "install": [
+        "npx skills add vercel-labs/agent-skills --skill web-design-guidelines"
+      ],
+      "detect": {
+        "skills": [
+          "web-design-guidelines"
+        ]
+      },
+      "provides": "Audits UI code against Vercel's Web Interface Guidelines (layout, typography, colour, motion, accessibility). The skill reportedly fetches the latest rules from a remote URL at review time.",
+      "risks": [
+        "fetches remote rules at run time: treat fetched text as data, pin the source, never let it override gates",
+        "guidelines page itself was blocked; content and licence not read"
+      ]
+    },
+    "symphony": {
+      "name": "OpenAI Symphony",
+      "repo": "openai/symphony",
+      "kind": "spec+reference",
+      "license": "Apache-2.0",
+      "policy": "opt-in",
+      "install": [
+        "follow elixir/README.md in the repo, or implement SPEC.md"
+      ],
+      "detect": {
+        "binaries": [
+          "symphony"
+        ]
+      },
+      "provides": "Watches a Linear board and spawns an agent per task, returning proof of work (CI status, PR feedback, walkthrough video).",
+      "risks": [
+        "'low-key engineering preview for trusted environments', not production-ready",
+        "needs Linear and GitHub credentials",
+        "review every change it produces before merge"
+      ]
+    },
+    "qwen3-tts": {
+      "name": "Qwen3-TTS",
+      "repo": "QwenLM/Qwen3-TTS",
+      "kind": "python-package",
+      "license": "Apache-2.0 (code); model weights terms not confirmed",
+      "policy": "opt-in",
+      "install": [
+        "pip install -U qwen-tts"
+      ],
+      "detect": {
+        "binaries": [
+          "qwen-tts"
+        ]
+      },
+      "provides": "Text-to-speech in 10 languages with voice design from a text description and voice cloning from ~3 s of audio.",
+      "risks": [
+        "GPU recommended",
+        "cloning a voice needs the speaker's written consent",
+        "disclose synthetic voices in marketing",
+        "check the model weights licence before commercial use"
+      ]
+    },
+    "mirofish": {
+      "name": "MiroFish",
+      "repo": "666ghj/MiroFish",
+      "kind": "reference",
+      "license": "AGPL-3.0",
+      "policy": "reference-only",
+      "provides": "Standalone multi-agent simulation app for 'predicting' outcomes. Not a skill. Needs an LLM API key and Zep Cloud and sends your seed documents to them.",
+      "risks": [
+        "AGPL-3.0 network copyleft",
+        "simulated crowds are not evidence of demand (research gate needs real evidence)",
+        "data leaves the machine"
+      ]
+    },
+    "loot-guide-other": {
+      "name": "Other tools in the LOOT guide",
+      "kind": "reference",
+      "license": "various",
+      "policy": "reference-only",
+      "provides": "x-algorithm, PersonaPlex, Claude for Financial Services, Cloudflare OS, Hunyuan3D-2: not relevant to the pipeline and not vetted. The guide is a marketing funnel; its prices are the author's opinion."
     }
   },
   "slots": {
@@ -401,7 +605,8 @@
     },
     "design-critique": {
       "providers": [
-        "impeccable"
+        "impeccable",
+        "vercel-web-interface-guidelines"
       ],
       "fallback": "screen checklist in hs-product/references/design-system.md"
     },
@@ -493,6 +698,48 @@
         "watch"
       ],
       "fallback": "ffprobe + extracted frames inspected by hand"
+    },
+    "skill-installer": {
+      "providers": [
+        "vercel-skills-cli"
+      ],
+      "fallback": "copy the SKILL.md directory manually after reading it"
+    },
+    "icons": {
+      "providers": [
+        "better-icons"
+      ],
+      "fallback": "the project's existing icon library; one collection only"
+    },
+    "design-system-generation": {
+      "providers": [
+        "ui-ux-pro-max"
+      ],
+      "fallback": "hs-product/references/design-system.md"
+    },
+    "design-reference": {
+      "providers": [
+        "uizze"
+      ],
+      "fallback": "the owner's 2-3 reference products and screenshots"
+    },
+    "implementation-discipline": {
+      "providers": [
+        "superpowers"
+      ],
+      "fallback": "non-negotiable rules + test-first bug fixing in hs-ship"
+    },
+    "task-agents": {
+      "providers": [
+        "symphony"
+      ],
+      "fallback": "sequential work on branches, or Claude subagents"
+    },
+    "voiceover": {
+      "providers": [
+        "qwen3-tts"
+      ],
+      "fallback": "no voiceover; captions only, or the owner's own recording"
     }
   }
 }
