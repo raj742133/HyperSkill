@@ -67,6 +67,10 @@ Phases ask for capabilities (design direction, security audit, video, browser ve
 
 Full protocol, hand-offs and the phase-by-slot map: `references/integrations.md`.
 
+## 4b. Working loop
+
+Every build task follows `references/working-loop.md`: read project files, plan, one small task or vertical slice, test, review, commit, then update `TASKS.md` and `MEMORY.md` (current state) and log permanent choices with `decide`. For a small learning project use its lite profile (fewer documents, same gates).
+
 ## 5. Adapting to the project
 
 - Not a SaaS (CLI, library, mobile app, static site)? Skip phases that do not apply with `hyperskill.py skip <phase> --reason ...` and say why. Never skip security or testing.

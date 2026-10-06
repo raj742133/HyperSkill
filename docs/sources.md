@@ -8,6 +8,8 @@
 
 4. **Further links supplied later** (`LOOT_Guide.pdf`, vercel-labs/skills, MiroFish, better-icons, ui-ux-pro-max-skill, Superpowers, Uizze, Vercel design guidelines). Read on 2026-10-05/06 at README level; Uizze and the Vercel guidelines page were blocked, so their entries rest on third-party listings and are marked unverified. See `docs/integrations-review.md`.
 
+5. **"Vibe Coding: A Complete Beginner-to-Production Guide"** (text pasted by the owner; it appeared to be the shared Google Doc from the reading list, but the paste was cut off at step 40 and the link itself could not be opened). Source of `skills/hyperskill/references/working-loop.md` (TASKS/MEMORY/decisions split, vertical slices, structured task and debug prompts, lite profile). Reworded; authorship and licence unknown.
+
 ## Open licensing items (action needed before making this repo public)
 
 - Neither the playbook PDF nor the starter kit states a licence in the files reviewed (the kit's `fonts/` folder carries an OFL text; the rest does not). Because HyperSkill's reference material is derived from them, get the authors' permission or replace derived passages with original text before publishing.
