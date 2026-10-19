@@ -1,0 +1,14 @@
+{
+  "name": "chaser",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "description": "Chaser v1: a no-accounts page that writes payment-reminder messages (an experiment, see docs/research.md)",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "dev": "NODE_ENV=development node --watch src/server.js",
+    "start": "node src/server.js",
+    "test": "node --test tests/*.test.js",
+    "lint": "for f in $(find src public tests -name '*.js'); do node --check \"$f\" || exit 1; done"
+  }
+}
