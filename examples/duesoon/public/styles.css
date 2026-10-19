@@ -119,6 +119,7 @@ input[aria-invalid="true"] { border-color: var(--negative); }
 .danger-zone { margin-top: 40px; color: var(--muted); font-size: 13px; }
 .danger-zone .text-btn { color: var(--muted); font-size: 13px; }
 .danger-zone .danger { color: var(--negative); }
+.danger-zone input { height: 36px; margin: 0 8px; width: 200px; max-width: 100%; }
 
 /* states */
 .skel { height: 52px; border-top: 1px solid var(--rule); display: grid; grid-template-columns: 44px 1fr 96px; align-items: center; padding-right: 20px; }

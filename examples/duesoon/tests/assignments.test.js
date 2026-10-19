@@ -72,6 +72,15 @@ test("list is ordered not-done first then by due date, and paginates without gap
   assert.equal(seen.at(-1).id, ids[1]);
 });
 
+test("order does not depend on id luck: twelve rows created newest-first come back oldest-first", async (t) => {
+  // Ids are random UUIDs, so a 5-row check could pass by chance if ordering broke (1 in 24). With 12 rows it is 1 in 479 million.
+  const ctx = await startApp(); t.after(() => ctx.close());
+  const { agent } = await signedUp(ctx);
+  for (let d = 12; d >= 1; d--) await agent.post("/api/assignments", { title: `D${d}`, dueDate: `2026-11-${String(d).padStart(2, "0")}` });
+  const r = await agent.get("/api/assignments?limit=50");
+  assert.deepEqual(r.json.items.map((x) => x.dueDate), Array.from({ length: 12 }, (_, i) => `2026-11-${String(i + 1).padStart(2, "0")}`));
+});
+
 test("bad cursor and bad limit are 400", async (t) => {
   const ctx = await startApp(); t.after(() => ctx.close());
   const { agent } = await signedUp(ctx);

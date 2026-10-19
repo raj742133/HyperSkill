@@ -315,16 +315,25 @@ $("addForm").addEventListener("submit", async (ev) => {
   }
 });
 
-$("deleteAccount").addEventListener("click", () => { $("deleteConfirm").hidden = false; $("deleteAccount").hidden = true; $("deleteNo").focus(); });
-$("deleteNo").addEventListener("click", () => { $("deleteConfirm").hidden = true; $("deleteAccount").hidden = false; $("deleteAccount").focus(); });
+function closeDeleteConfirm() {
+  $("deleteConfirm").hidden = true; $("deleteAccount").hidden = false;
+  $("deletePassword").value = ""; $("deletePassword").removeAttribute("aria-invalid");
+}
+$("deleteAccount").addEventListener("click", () => { $("deleteConfirm").hidden = false; $("deleteAccount").hidden = true; $("deletePassword").focus(); });
+$("deleteNo").addEventListener("click", () => { closeDeleteConfirm(); $("deleteAccount").focus(); });
 $("deleteYes").addEventListener("click", async () => {
+  const pw = $("deletePassword");
+  if (!pw.value) { say("Enter your password to delete the account.", true); pw.setAttribute("aria-invalid", "true"); pw.focus(); return; }
   try {
-    await api("DELETE", "/api/me");
+    await api("DELETE", "/api/me", { password: pw.value });
     state.user = null; state.items = [];
-    $("deleteConfirm").hidden = true; $("deleteAccount").hidden = false;
+    closeDeleteConfirm();
     show("auth"); setMode("signup");
     $("authError").hidden = true;
-  } catch (e) { say(e.message, true); }
+  } catch (e) {
+    if (e.code === "invalid_credentials") { say("That password is wrong. Your account was not deleted.", true); pw.setAttribute("aria-invalid", "true"); pw.focus(); }
+    else say(e.message, true);
+  }
 });
 
 /* ---------- boot ---------- */

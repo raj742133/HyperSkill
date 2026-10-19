@@ -32,7 +32,7 @@ async function signUp(page, mail = email()) {
   await page.goto("/");
   await page.getByRole("button", { name: "Create account" }).click();
   await page.getByLabel("Email").fill(mail);
-  await page.getByLabel("Password").fill(PASSWORD);
+  await page.getByLabel("Password", { exact: true }).fill(PASSWORD);
   await page.locator("#authSubmit").click();
   await page.getByRole("heading", { level: 1, name: "Due soon" }).waitFor();
   return mail;
@@ -78,7 +78,7 @@ test("sign-up, add, finish, edit, delete, log out and back in; data survives a r
   await page.getByRole("button", { name: "Log out" }).click();
   await page.getByRole("heading", { level: 1, name: "Sign in to DueSoon" }).waitFor();
   await page.getByLabel("Email").fill(mail);
-  await page.getByLabel("Password").fill(PASSWORD);
+  await page.getByLabel("Password", { exact: true }).fill(PASSWORD);
   await page.locator("#authSubmit").click();
   await page.getByRole("heading", { level: 1, name: "Due soon" }).waitFor();
   assert.deepEqual(problems, [], "no console errors or CSP violations");
@@ -89,7 +89,7 @@ test("wrong password shows one clear message and keeps the user on the sign-in c
   const { context, page } = await newPage();
   await page.goto("/");
   await page.getByLabel("Email").fill("nobody@campusmail.in");
-  await page.getByLabel("Password").fill("wrong-password-1");
+  await page.getByLabel("Password", { exact: true }).fill("wrong-password-1");
   await page.locator("#authSubmit").click();
   await page.getByText("Wrong email or password").waitFor();
   assert.equal(await page.locator("#pageTitle").innerText(), "Sign in to DueSoon");
@@ -217,6 +217,11 @@ test("deleting the account removes everything and returns to the sign-up card", 
   const mail = await signUp(page);
   await add(page, "Goodbye", addDays(localToday(), 1));
   await page.getByRole("button", { name: "Delete my account" }).click();
+  await page.locator("#deletePassword").fill("wrong-password-xx");
+  await page.getByRole("button", { name: "Delete everything" }).click();
+  await page.getByText("That password is wrong").waitFor();
+  assert.equal(ctx.db.prepare("SELECT COUNT(*) n FROM users WHERE email = ?").get(mail).n, 1);
+  await page.locator("#deletePassword").fill(PASSWORD);
   await page.getByRole("button", { name: "Delete everything" }).click();
   await page.getByRole("heading", { level: 1, name: "Create your DueSoon account" }).waitFor();
   assert.equal(ctx.db.prepare("SELECT COUNT(*) n FROM users WHERE email = ?").get(mail).n, 0);

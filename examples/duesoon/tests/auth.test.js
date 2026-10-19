@@ -17,7 +17,7 @@ test("signup creates an account, lower-cases the email and sets a secure-by-defa
 });
 
 test("cookie is Secure in production (behind a proxy)", async (t) => {
-  const ctx = await startApp({ env: { NODE_ENV: "production" } }); t.after(() => ctx.close());
+  const ctx = await startApp({ env: { NODE_ENV: "production", TRUST_PROXY: "1" } }); t.after(() => ctx.close());
   const r = await ctx.agent().post("/api/auth/signup", good, { headers: { "x-forwarded-proto": "https" } });
   assert.equal(r.status, 201);
   assert.match(r.setCookie[0], /Secure/i);
@@ -95,7 +95,7 @@ test("oversized body gives 413", async (t) => {
 });
 
 test("login is rate limited per ip+email and returns 429 with Retry-After", async (t) => {
-  const ctx = await startApp({ limits: { login: { windowMs: 60000, max: 3 }, signup: { windowMs: 60000, max: 100 } } });
+  const ctx = await startApp({ limits: { login: { windowMs: 60000, max: 3 }, loginIp: { windowMs: 60000, max: 1e6 }, signup: { windowMs: 60000, max: 100 } } });
   t.after(() => ctx.close());
   const a = ctx.agent();
   const codes = [];
@@ -109,7 +109,7 @@ test("login is rate limited per ip+email and returns 429 with Retry-After", asyn
 });
 
 test("signup is rate limited", async (t) => {
-  const ctx = await startApp({ limits: { login: { windowMs: 60000, max: 100 }, signup: { windowMs: 60000, max: 2 } } });
+  const ctx = await startApp({ limits: { login: { windowMs: 60000, max: 100 }, loginIp: { windowMs: 60000, max: 1e6 }, signup: { windowMs: 60000, max: 2 } } });
   t.after(() => ctx.close());
   const codes = [];
   for (let i = 0; i < 3; i++) codes.push((await ctx.agent().post("/api/auth/signup", { email: `u${i}@e.co`, password: "correct-horse-1" })).status);
@@ -133,7 +133,7 @@ test("deleting the account removes the user and every assignment they owned", as
   const { agent: keep } = await signedUp(ctx);
   await agent.post("/api/assignments", { title: "mine", dueDate: "2026-11-01" });
   await keep.post("/api/assignments", { title: "theirs", dueDate: "2026-11-01" });
-  assert.equal((await agent.del("/api/me")).status, 204);
+  assert.equal((await agent.del("/api/me", { password: "correct-horse-1" })).status, 204);
   assert.equal(ctx.db.prepare("SELECT COUNT(*) n FROM users").get().n, 1);
   assert.equal(ctx.db.prepare("SELECT COUNT(*) n FROM assignments").get().n, 1);
   assert.equal((await agent.get("/api/me")).status, 401);

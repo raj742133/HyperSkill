@@ -29,7 +29,10 @@ const destroy = (req) => new Promise((res, rej) => req.session.destroy((e) => (e
 export function apiRouter({ db, config, limits }) {
   const r = express.Router();
   const auth = requireAuth(db);
-  const loginLimiter = createLimiter({ ...limits.login, key: (req) => `${req.ip}|${String(req.body?.email ?? "").toLowerCase()}` });
+  // Key on the SAME normalised email the schema uses, so padding with spaces or changing case cannot get a fresh budget.
+  const normEmail = (req) => { const e = schemas.email.safeParse(req.body?.email); return e.success ? e.data : "invalid"; };
+  const loginLimiter = createLimiter({ ...limits.login, key: (req) => `${req.ip}|${normEmail(req)}` });
+  const loginIpLimiter = createLimiter({ ...limits.loginIp, key: (req) => req.ip });
   const signupLimiter = createLimiter({ ...limits.signup, key: (req) => req.ip });
 
   r.post("/auth/signup", signupLimiter, async (req, res) => {
@@ -40,9 +43,9 @@ export function apiRouter({ db, config, limits }) {
     res.status(201).json({ user });
   });
 
-  r.post("/auth/login", loginLimiter, async (req, res) => {
+  r.post("/auth/login", loginIpLimiter, loginLimiter, async (req, res) => {
     const input = parse(schemas.login, req.body);
-    const user = await users.authenticate(db, input);
+    const user = await users.authenticate(db, input, config.BCRYPT_ROUNDS);
     await regenerate(req); // new session id on login: prevents session fixation
     req.session.userId = user.id;
     res.json({ user });
@@ -61,6 +64,9 @@ export function apiRouter({ db, config, limits }) {
   });
   r.get("/me", auth, (req, res) => res.json({ user: req.user }));
   r.delete("/me", auth, async (req, res) => {
+    // Re-enter the password: a stolen or left-open session must not be able to erase the account.
+    const { password } = parse(schemas.deleteAccount, req.body);
+    await users.authenticate(db, { email: req.user.email, password }, config.BCRYPT_ROUNDS);
     users.deleteUser(db, req.user.id);
     await destroy(req);
     res.clearCookie("sid");

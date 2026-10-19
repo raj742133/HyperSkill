@@ -29,7 +29,7 @@ if (!empty) {
   }
 }
 const inner = createApp({ config, logger, db });
-const srv = inner.listen(0);
+const srv = inner.listen(0, "127.0.0.1"); // never all interfaces: the demo account has a known password
 const base = `http://127.0.0.1:${srv.address().port}`;
 const res = await fetch(base + "/api/auth/login", { method: "POST", headers: { "content-type": "application/json", "x-requested-by": "duesoon" }, body: JSON.stringify({ email, password }) });
 const sid = res.headers.getSetCookie()[0].split(";")[0];

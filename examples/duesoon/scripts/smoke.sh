@@ -2,7 +2,7 @@
 # Start the server on a free port, hit /api/health, stop it. Exit non-zero on any failure.
 set -euo pipefail
 cd "$(dirname "$0")/.."
-export SESSION_SECRET="${SESSION_SECRET:-$(openssl rand -hex 32)}" PORT="${PORT:-3199}" BCRYPT_ROUNDS=4
+export SESSION_SECRET="${SESSION_SECRET:-$(openssl rand -hex 32)}" PORT="${PORT:-3199}" BCRYPT_ROUNDS=4 NODE_ENV=development
 node --disable-warning=ExperimentalWarning src/server.js >/tmp/duesoon-smoke.log 2>&1 &
 pid=$!
 trap 'kill $pid 2>/dev/null || true' EXIT

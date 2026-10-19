@@ -8,6 +8,7 @@ const realDate = (s) => {
 export const email = z.string().trim().toLowerCase().pipe(z.email().max(254));
 const pw = z.string().min(10, "Password must be at least 10 characters").refine((s) => Buffer.byteLength(s) <= 72, "Password must be at most 72 bytes");
 export const signup = z.object({ email, password: pw }).strict();
+export const deleteAccount = z.object({ password: z.string().min(1).max(200) }).strict();
 export const login = z.object({ email, password: z.string().min(1).max(200) }).strict();
 
 const dueDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Use YYYY-MM-DD").refine(realDate, "Not a real date");

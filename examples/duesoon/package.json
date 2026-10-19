@@ -7,7 +7,7 @@
     "node": ">=22.5 <23"
   },
   "scripts": {
-    "dev": "node --disable-warning=ExperimentalWarning src/server.js",
+    "dev": "NODE_ENV=development node --disable-warning=ExperimentalWarning src/server.js",
     "start": "node --disable-warning=ExperimentalWarning src/server.js",
     "test": "node --disable-warning=ExperimentalWarning --test tests/*.test.js",
     "lint": "node --check src/server.js && node --check src/app.js && node --check src/routes/index.js && node --check src/services/assignments.js && node --check src/services/users.js && node --check src/middleware/security.js && node --check public/app.js && node --check public/due.js",

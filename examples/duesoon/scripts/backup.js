@@ -7,6 +7,7 @@ const src = process.env.DB_PATH;
 if (!src || src === ":memory:") { console.error("Set DB_PATH to the database file"); process.exit(1); }
 const out = process.argv[2] ?? `${src}.backup-${new Date().toISOString().replace(/[:.]/g, "-")}`;
 if (fs.existsSync(out)) { console.error(`Refusing to overwrite ${out}`); process.exit(1); }
+process.umask(0o077); // the backup holds emails and password hashes
 const db = new DatabaseSync(src);
 db.exec(`VACUUM INTO '${out.replace(/'/g, "''")}'`);
 db.close();

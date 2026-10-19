@@ -24,13 +24,22 @@ export function requireCsrfHeader(req, _res, next) {
 }
 
 /** In-memory fixed-window limiter. LIMIT: per process only; use a shared store before running several instances. */
-export function createLimiter({ windowMs, max, key }) {
+export function createLimiter({ windowMs, max, key, maxKeys = 10000 }) {
   const hits = new Map();
+  // Expired entries are dropped on a timer, keys are truncated (attacker-controlled text) and the map is capped,
+  // so an anonymous client cannot grow memory without bound.
+  const sweep = setInterval(() => { const now = Date.now(); for (const [k, e] of hits) if (e.reset <= now) hits.delete(k); }, Math.min(windowMs, 60000));
+  sweep.unref();
   return (req, res, next) => {
     const now = Date.now();
-    const k = key(req);
+    const k = String(key(req)).slice(0, 200);
     const e = hits.get(k);
-    if (!e || e.reset <= now) { hits.set(k, { count: 1, reset: now + windowMs }); return next(); }
+    if (!e || e.reset <= now) {
+      hits.delete(k);
+      if (hits.size >= maxKeys) hits.delete(hits.keys().next().value); // evict the oldest
+      hits.set(k, { count: 1, reset: now + windowMs });
+      return next();
+    }
     e.count += 1;
     if (e.count > max) {
       res.setHeader("Retry-After", String(Math.ceil((e.reset - now) / 1000)));

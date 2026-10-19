@@ -4,6 +4,7 @@ import { addDays } from "../public/due.js";
 import { localToday } from "../public/due.js";
 
 const base = process.env.BASE ?? "http://localhost:3000";
+if (!/^https?:\/\/(localhost|127\.0\.0\.1)(:|\/|$)/.test(base)) { console.error("seed-demo.js only talks to a local server: it creates an account with a known password"); process.exit(1); }
 const email = process.env.DEMO_EMAIL ?? "priya.nair@campusmail.in";
 const password = process.env.DEMO_PASSWORD ?? "demo-password-2026";
 const headers = { "content-type": "application/json", "x-requested-by": "duesoon" };

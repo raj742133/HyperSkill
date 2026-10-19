@@ -16,7 +16,7 @@ Node 22, Express 5, node:sqlite, zod, bcryptjs, express-session. Tests: node:tes
 - Ask before adding a dependency. One concern per commit.
 
 ## Commands
-- Dev: `SESSION_SECRET=$(openssl rand -hex 32) npm run dev`
+- Dev: `SESSION_SECRET=$(openssl rand -hex 32) npm run dev   (sets NODE_ENV=development; the default is production)`
 - Test: `npm test`
 - Lint: `npm run lint`
 

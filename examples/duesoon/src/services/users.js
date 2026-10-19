@@ -3,7 +3,9 @@ import { randomUUID } from "node:crypto";
 import { HttpError } from "../errors.js";
 
 // Compared against when the email is unknown, so "no such user" and "wrong password" take similar time.
-const DUMMY_HASH = bcrypt.hashSync("not-a-real-password", 10);
+// Built at the same cost as real hashes (cached per cost).
+const dummy = new Map();
+const dummyHash = (rounds) => { if (!dummy.has(rounds)) dummy.set(rounds, bcrypt.hashSync("not-a-real-password", rounds)); return dummy.get(rounds); };
 
 export async function createUser(db, { email, password }, rounds) {
   const hash = await bcrypt.hash(password, rounds);
@@ -19,9 +21,9 @@ export async function createUser(db, { email, password }, rounds) {
   return { id, email };
 }
 
-export async function authenticate(db, { email, password }) {
+export async function authenticate(db, { email, password }, rounds = 10) {
   const row = db.prepare("SELECT id, email, password_hash FROM users WHERE email = ?").get(email);
-  const ok = await bcrypt.compare(password, row ? row.password_hash : DUMMY_HASH);
+  const ok = await bcrypt.compare(password, row ? row.password_hash : dummyHash(rounds));
   if (!row || !ok) throw new HttpError(401, "invalid_credentials", "Wrong email or password");
   return { id: row.id, email: row.email };
 }

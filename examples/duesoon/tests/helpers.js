@@ -4,7 +4,7 @@ import { loadConfig } from "../src/config.js";
 import { openDb } from "../src/db/connection.js";
 
 export const SECRET = "x".repeat(40);
-const BIG = { login: { windowMs: 60000, max: 1e6 }, signup: { windowMs: 60000, max: 1e6 } };
+const BIG = { login: { windowMs: 60000, max: 1e6 }, loginIp: { windowMs: 60000, max: 1e6 }, signup: { windowMs: 60000, max: 1e6 } };
 
 /** Real app, real in-memory SQLite, real HTTP. Nothing of our own is mocked. */
 export async function startApp({ env = {}, limits = BIG, logs } = {}) {
@@ -41,7 +41,7 @@ export class Agent {
   get(p, o) { return this.req("GET", p, undefined, o); }
   post(p, b, o) { return this.req("POST", p, b, o); }
   patch(p, b, o) { return this.req("PATCH", p, b, o); }
-  del(p, o) { return this.req("DELETE", p, undefined, o); }
+  del(p, b, o) { return this.req("DELETE", p, b, o); }
 }
 
 let n = 0;

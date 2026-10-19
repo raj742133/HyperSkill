@@ -9,16 +9,17 @@ import { apiRouter } from "./routes/index.js";
 
 export { HttpError };
 const PUBLIC_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "public");
-const DEFAULT_LIMITS = {
-  login: { windowMs: 15 * 60 * 1000, max: 10 },
-  signup: { windowMs: 60 * 60 * 1000, max: 10 },
-};
+export const limitsFromConfig = (c) => ({
+  login: { windowMs: 15 * 60 * 1000, max: c.LOGIN_LIMIT_PER_15MIN },
+  loginIp: { windowMs: 15 * 60 * 1000, max: c.LOGIN_IP_LIMIT_PER_15MIN },
+  signup: { windowMs: 60 * 60 * 1000, max: c.SIGNUP_LIMIT_PER_HOUR },
+});
 
 /** Build the Express app. Dependencies are passed in so tests can use an in-memory database. */
-export function createApp({ config, logger, db, limits = DEFAULT_LIMITS }) {
+export function createApp({ config, logger, db, limits = limitsFromConfig(config) }) {
   const app = express();
   app.disable("x-powered-by"); app.set("etag", false); // no validators on private bodies
-  if (config.NODE_ENV === "production") app.set("trust proxy", 1);
+  if (config.TRUST_PROXY > 0) app.set("trust proxy", config.TRUST_PROXY); // only as many hops as the operator says are real proxies
 
   app.use((req, res, next) => {
     req.id = randomUUID();
@@ -59,6 +60,7 @@ export function createApp({ config, logger, db, limits = DEFAULT_LIMITS }) {
     if (err instanceof HttpError) ({ status, code, message, details } = err);
     else if (err.type === "entity.parse.failed") { status = 400; code = "invalid_json"; message = "Request body is not valid JSON"; }
     else if (err.type === "entity.too.large") { status = 413; code = "too_large"; message = "Request body too large"; }
+    else if (err.status >= 400 && err.status < 500) { status = err.status; code = "bad_request"; message = "Bad request"; }
     else logger.error("unhandled_error", { requestId: req.id, error: err.message, stack: err.stack });
     res.status(status).json({ error: { code, message, ...(details ? { details } : {}) } });
   });
