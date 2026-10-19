@@ -48,13 +48,13 @@ class GateTests(unittest.TestCase):
         self.assertNotEqual(r.returncode, 0)
 
     def test_unknown_item_rejected(self):
-        r = run(self.p, "gate", "research", "--pass", "nope", "--evidence", "x")
+        r = run(self.p, "gate", "research", "--pass", "nope", "--evidence", "docs/evidence.md: ran `make check`, 12 tests pass")
         self.assertNotEqual(r.returncode, 0)
 
     def test_full_walk_through_every_phase(self):
         for ph in gates():
             ids = ",".join(i["id"] for i in ph["gate"])
-            self.assertEqual(run(self.p, "gate", ph["id"], "--pass", ids, "--evidence", "ran it").returncode, 0)
+            self.assertEqual(run(self.p, "gate", ph["id"], "--pass", ids, "--evidence", "docs/evidence.md: ran `make check`, 12 tests pass").returncode, 0)
             r = run(self.p, "advance")
             self.assertEqual(r.returncode, 0, r.stderr)
         self.assertIsNone(self.state()["current"])
@@ -62,7 +62,7 @@ class GateTests(unittest.TestCase):
 
     def test_waived_items_clear_the_gate(self):
         ids = [i["id"] for i in gates()[0]["gate"]]
-        run(self.p, "gate", "research", "--pass", ",".join(ids[:-1]), "--evidence", "e")
+        run(self.p, "gate", "research", "--pass", ",".join(ids[:-1]), "--evidence", "docs/evidence.md: ran `make check`, 12 tests pass")
         run(self.p, "gate", "research", "--waive", ids[-1], "--reason", "n/a")
         self.assertEqual(run(self.p, "advance").returncode, 0)
         self.assertEqual(self.state()["current"], "plan")
@@ -72,7 +72,7 @@ class GateTests(unittest.TestCase):
         self.assertEqual(self.state()["current"], "plan")
         run(self.p, "skip", "foundation", "--reason", "static site")
         ids = ",".join(i["id"] for i in gates()[1]["gate"])
-        run(self.p, "gate", "plan", "--pass", ids, "--evidence", "e")
+        run(self.p, "gate", "plan", "--pass", ids, "--evidence", "docs/evidence.md: ran `make check`, 12 tests pass")
         run(self.p, "advance")
         self.assertEqual(self.state()["current"], "product")
 
@@ -99,6 +99,119 @@ class DataTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class DogfoodFixTests(unittest.TestCase):
+    """Fixes that came out of running HyperSkill on a real project (examples/duesoon/docs/dogfood/REPORT.md)."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.p = self.tmp.name
+
+    def tearDown(self):
+        self.tmp.cleanup()
+
+    def state(self):
+        with open(os.path.join(self.p, ".hyperskill", "state.json"), encoding="utf-8") as f:
+            return json.load(f)
+
+    def test_vague_evidence_is_refused_but_concrete_evidence_passes(self):
+        run(self.p, "init")
+        for vague in ("done", "looks fine to me, all good here", "e"):
+            r = run(self.p, "gate", "research", "--pass", "problem-statement", "--evidence", vague)
+            self.assertNotEqual(r.returncode, 0, vague)
+            self.assertIn("checkable", r.stderr)
+        self.assertNotIn("problem-statement", self.state()["phases"]["research"]["gate"])
+        for good in ("docs/research.md section 1", "ran `npm test`: all green", "41 tests passed in the suite"):
+            r = run(self.p, "gate", "research", "--pass", "problem-statement", "--evidence", good)
+            self.assertEqual(r.returncode, 0, good + r.stderr)
+
+    def test_negated_grep_without_a_guard_is_refused(self):
+        run(self.p, "init")
+        r = run(self.p, "gate", "research", "--run", "problem-statement", "--cmd", "! grep -rn TODO nonexistent-dir")
+        self.assertNotEqual(r.returncode, 0)
+        self.assertIn("positive guard", r.stderr)
+        self.assertNotIn("problem-statement", self.state()["phases"]["research"]["gate"])
+
+    def test_negated_grep_with_a_guard_runs(self):
+        run(self.p, "init")
+        os.makedirs(os.path.join(self.p, "src"))
+        ok = run(self.p, "gate", "research", "--run", "problem-statement", "--cmd", "test -d src && ! grep -rn TODO src")
+        self.assertEqual(ok.returncode, 0, ok.stderr)
+        # and a guard on a missing directory fails instead of passing vacuously
+        bad = run(self.p, "gate", "research", "--run", "alternatives-mapped", "--cmd", "test -d nope && ! grep -rn TODO nope")
+        self.assertNotEqual(bad.returncode, 0)
+
+    def test_acting_on_one_item_prints_only_that_item(self):
+        run(self.p, "init")
+        out = run(self.p, "gate", "research", "--pass", "problem-statement", "--evidence", "docs/research.md section 1").stdout
+        self.assertIn("problem-statement", out)
+        self.assertNotIn("alternatives-mapped", out)
+        full = run(self.p, "gate", "research").stdout
+        self.assertIn("alternatives-mapped", full)
+
+    def test_user_tenancy_marks_org_items_not_applicable_and_swaps_wording(self):
+        run(self.p, "init", "--tenancy", "user")
+        out = run(self.p, "gate", "harden").stdout
+        self.assertIn("[n/a]", out)
+        self.assertIn("cache-two-org-test", out)
+        self.assertIn("per-user cache key includes user_id", out)
+        self.assertNotIn("organization_id", run(self.p, "gate", "foundation").stdout.split("tenant-scoping")[1].split("\n")[0])
+        # the n/a item does not block the gate
+        ids = [i["id"] for i in gates()[5]["gate"] if i["id"] != "cache-two-org-test"]
+        self.assertEqual(gates()[5]["id"], "harden")
+        r = run(self.p, "gate", "harden", "--pass", ",".join(ids), "--evidence", "docs/security/audit.md: 10 findings fixed")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        status = run(self.p, "status").stdout
+        self.assertIn("harden", status)
+        self.assertIn("gate 9/9", status)
+
+    def test_default_tenancy_is_organization_and_nothing_is_not_applicable(self):
+        run(self.p, "init")
+        self.assertEqual(self.state()["tenancy"], "organization")
+        self.assertNotIn("[n/a]", run(self.p, "gate", "harden").stdout)
+
+    def test_existing_state_without_new_fields_still_loads(self):
+        run(self.p, "init")
+        st = self.state()
+        del st["tenancy"], st["unavailable"]
+        with open(os.path.join(self.p, ".hyperskill", "state.json"), "w", encoding="utf-8") as f:
+            json.dump(st, f)
+        self.assertEqual(run(self.p, "status").returncode, 0)
+
+    def test_waive_unavailable_records_each_waiver_with_its_reason(self):
+        run(self.p, "init", "--unavailable", "host,provider")
+        r = run(self.p, "gate", "ship", "--waive-unavailable")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        rec = self.state()["phases"]["ship"]["gate"]
+        self.assertEqual(sorted(rec), ["backups-and-billing", "ci-blocks", "env-separation", "preview-and-staging", "rollback-practised"])
+        for v in rec.values():
+            self.assertEqual(v["state"], "waived")
+            self.assertIn("host", v["reason"])
+        self.assertNotIn("e2e-critical", r.stdout)
+
+    def test_waive_unavailable_needs_something_marked_unavailable(self):
+        run(self.p, "init")
+        self.assertNotEqual(run(self.p, "gate", "ship", "--waive-unavailable").returncode, 0)
+
+    def test_config_changes_and_validates(self):
+        run(self.p, "init")
+        self.assertEqual(run(self.p, "config", "--tenancy", "none", "--unavailable", "device").returncode, 0)
+        self.assertEqual((self.state()["tenancy"], self.state()["unavailable"]), ("none", ["device"]))
+        self.assertNotEqual(run(self.p, "config", "--unavailable", "moon").returncode, 0)
+        self.assertNotEqual(run(self.p, "config", "--tenancy", "team").returncode, 0)
+        run(self.p, "config", "--unavailable", "none")
+        self.assertEqual(self.state()["unavailable"], [])
+
+    def test_every_needs_and_tenancy_value_in_gates_json_is_known(self):
+        for ph in gates():
+            for g in ph["gate"]:
+                for n in g.get("needs", []):
+                    self.assertIn(n, ("host", "provider", "device", "human"), g["id"])
+                for t in g.get("tenancy", []):
+                    self.assertIn(t, ("organization", "user", "none"), g["id"])
+                for t in g.get("text_by_tenancy", {}):
+                    self.assertIn(t, ("organization", "user", "none"), g["id"])
 
 
 class IntegrationBase(unittest.TestCase):

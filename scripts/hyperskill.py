@@ -6,12 +6,15 @@ resume. A phase may only be advanced once every gate item is either passed
 (with evidence) or waived (with a reason). Standard library only.
 
 Usage:
-  hyperskill.py init [--name NAME] [--force]
+  hyperskill.py init [--name NAME] [--force] [--noncommercial] [--tenancy organization|user|none] [--unavailable LIST]
+  hyperskill.py config [--tenancy T] [--unavailable LIST|none]   change tenancy / what this environment lacks
   hyperskill.py status [--json]
   hyperskill.py gate PHASE                          show gate items and their state
   hyperskill.py gate PHASE --pass ID[,ID] --evidence TEXT
   hyperskill.py gate PHASE --waive ID[,ID] --reason TEXT
   hyperskill.py gate PHASE --run ID --cmd COMMAND   run a command; pass only if it exits 0
+  hyperskill.py gate PHASE --waive-unavailable      waive, in one recorded step, every open item that needs
+                                                    something this environment lacks (host, provider, device, human)
   hyperskill.py advance                             move to the next phase if the gate is clear
   hyperskill.py skip PHASE --reason TEXT            skip a whole phase (recorded)
   hyperskill.py decide --title T --choice C --why W [--phase PHASE]
@@ -58,6 +61,8 @@ def load_state(root):
     with open(path, encoding="utf-8") as f:
         st = json.load(f)
     st.setdefault("commercial", True)
+    st.setdefault("tenancy", "organization")
+    st.setdefault("unavailable", [])
     st.setdefault("integrations", {"enabled": [], "disabled": []})
     return st
 
@@ -88,12 +93,63 @@ def csv(value):
     return [v.strip() for v in value.split(",") if v.strip()]
 
 
+TENANCIES = ("organization", "user", "none")
+NEEDS = ("host", "provider", "device", "human")
+
+
+def applies(st, item):
+    """An item with a tenancy list only applies to projects of that tenancy (default: organization)."""
+    t = item.get("tenancy")
+    return not t or st.get("tenancy", "organization") in t
+
+
+def item_text(st, item):
+    return item.get("text_by_tenancy", {}).get(st.get("tenancy", "organization"), item["text"])
+
+
 def gate_summary(st, phase):
-    """Return (open_ids, done_count, total) for a phase."""
-    items = phase["gate"]
+    """Return (open_ids, done_count, total) for a phase. Items that do not apply to this tenancy are not counted."""
+    items = [i for i in phase["gate"] if applies(st, i)]
     recorded = st["phases"][phase["id"]]["gate"]
     open_ids = [i["id"] for i in items if i["id"] not in recorded]
     return open_ids, len(items) - len(open_ids), len(items)
+
+
+def parse_unavailable(value):
+    if value is None:
+        return None
+    if value.strip().lower() in ("", "none"):
+        return []
+    vals = csv(value)
+    bad = [v for v in vals if v not in NEEDS]
+    if bad:
+        die("unknown --unavailable value(s): %s. Valid: %s" % (", ".join(bad), ", ".join(NEEDS)))
+    return vals
+
+
+def check_tenancy(value):
+    if value is not None and value not in TENANCIES:
+        die("--tenancy must be one of: %s" % ", ".join(TENANCIES))
+    return value
+
+
+EVIDENCE_HINT = ("evidence must point at something checkable: a file path (docs/x.md), a backticked command, "
+                 "or a count with a unit (12 tests, 40 ms). 'done' or 'looks fine' is not evidence.")
+
+
+def evidence_is_concrete(text):
+    t = text.strip()
+    if len(t) < 20:
+        return False
+    return bool(re.search(r"`[^`]+`|[\w.-]+/[\w./-]+|\b[\w-]+\.(md|js|ts|py|json|yml|yaml|html|css|sh|sql|txt|png|jpg|pdf)\b"
+                          r"|\b\d+(\.\d+)?\s*(tests?|requests?|ms|s|%|checks?|files?|findings?|pass(ed)?|fail(ed)?)\b", t))
+
+
+def vacuous_negated_check(cmd):
+    """`! grep ...` passes when the file does not exist. Require a positive existence guard next to it."""
+    negated = re.search(r"(^|[;&|(]|&&)\s*!\s*(\w+\s+)*?(grep|rg|egrep|fgrep)\b", cmd)
+    guarded = re.search(r"\btest\s+-[edfs]\b|\[\s+-[edfs]\s", cmd)
+    return bool(negated and not guarded)
 
 
 def cmd_init(args):
@@ -106,6 +162,8 @@ def cmd_init(args):
         "created": now(),
         "current": phases[0]["id"],
         "commercial": not args.noncommercial,
+        "tenancy": check_tenancy(args.tenancy) or "organization",
+        "unavailable": parse_unavailable(args.unavailable) or [],
         "integrations": {"enabled": [], "disabled": []},
         "phases": {p["id"]: {"status": "pending", "gate": {}} for p in phases},
         "decisions": [],
@@ -113,8 +171,23 @@ def cmd_init(args):
     }
     st["phases"][phases[0]["id"]]["status"] = "active"
     save_state(args.root, st)
-    print("initialised %s (%s); current phase: %s"
-          % (st["name"], "commercial" if st["commercial"] else "non-commercial", st["current"]))
+    print("initialised %s (%s, tenancy: %s%s); current phase: %s"
+          % (st["name"], "commercial" if st["commercial"] else "non-commercial", st["tenancy"],
+             ", unavailable: " + ",".join(st["unavailable"]) if st["unavailable"] else "", st["current"]))
+
+
+def cmd_config(args):
+    st = load_state(args.root)
+    if args.tenancy is None and args.unavailable is None:
+        print("tenancy: %s\nunavailable: %s" % (st["tenancy"], ", ".join(st["unavailable"]) or "(nothing)"))
+        return
+    if args.tenancy is not None:
+        st["tenancy"] = check_tenancy(args.tenancy)
+    un = parse_unavailable(args.unavailable)
+    if un is not None:
+        st["unavailable"] = un
+    save_state(args.root, st)
+    print("tenancy: %s; unavailable: %s" % (st["tenancy"], ", ".join(st["unavailable"]) or "(nothing)"))
 
 
 def cmd_status(args):
@@ -135,6 +208,7 @@ def cmd_status(args):
             extra = "  skipped: " + ps.get("reason", "")
         print("%s %-10s %-34s gate %d/%d%s" % (marker, p["id"], p["title"], done, total, extra))
     print("decisions recorded: %d" % len(st["decisions"]))
+    print("tenancy: %s; unavailable here: %s" % (st["tenancy"], ", ".join(st["unavailable"]) or "(nothing)"))
     if st["current"]:
         cur = phase_def(phases, st["current"])
         open_ids, _, _ = gate_summary(st, cur)
@@ -153,11 +227,15 @@ def cmd_gate(args):
     ph = phase_def(phases, args.phase)
     rec = st["phases"][ph["id"]]["gate"]
     valid = {i["id"] for i in ph["gate"]}
+    touched = []
     if args.run_id:
         if not args.cmd:
             die("--run needs --cmd COMMAND.")
         if args.run_id not in valid:
             die("'%s' is not a gate item of phase %s" % (args.run_id, ph["id"]))
+        if vacuous_negated_check(args.cmd):
+            die("this check negates a grep (`! grep ...`), which also passes when the file or directory does not exist. "
+                "Add a positive guard, e.g. `test -d src && ! grep -rn PATTERN src`. Nothing recorded.")
         try:
             r = subprocess.run(args.cmd, shell=True, cwd=args.root, capture_output=True, text=True, timeout=args.timeout)
         except subprocess.TimeoutExpired:
@@ -168,14 +246,17 @@ def cmd_gate(args):
             die("command exited %d; '%s' stays open." % (r.returncode, args.run_id))
         rec[args.run_id] = {"state": "passed", "evidence": "ran `%s` -> exit 0. Output tail: %s" % (args.cmd, tail or "(none)"),
                             "at": now(), "ran": True}
-        save_state(args.root, st)
+        touched.append(args.run_id)
     if args.pass_ids:
         if not args.evidence or not args.evidence.strip():
             die("--pass needs --evidence (what was run / seen). No evidence, no pass.")
+        if not evidence_is_concrete(args.evidence):
+            die("--pass: " + EVIDENCE_HINT + " If you cannot point at anything, waive the item with a reason instead.")
         for gid in csv(args.pass_ids):
             if gid not in valid:
                 die("'%s' is not a gate item of phase %s" % (gid, ph["id"]))
             rec[gid] = {"state": "passed", "evidence": args.evidence.strip(), "at": now()}
+            touched.append(gid)
     if args.waive_ids:
         if not args.reason or not args.reason.strip():
             die("--waive needs --reason.")
@@ -183,14 +264,35 @@ def cmd_gate(args):
             if gid not in valid:
                 die("'%s' is not a gate item of phase %s" % (gid, ph["id"]))
             rec[gid] = {"state": "waived", "reason": args.reason.strip(), "at": now()}
-    if args.pass_ids or args.waive_ids:
+            touched.append(gid)
+    if args.waive_unavailable:
+        if not st["unavailable"]:
+            die("nothing is marked unavailable. Set it with: hyperskill.py config --unavailable host,provider,device,human")
+        for item in ph["gate"]:
+            lacking = [n for n in item.get("needs", []) if n in st["unavailable"]]
+            if applies(st, item) and item["id"] not in rec and lacking:
+                rec[item["id"]] = {"state": "waived", "at": now(), "unavailable": lacking,
+                                   "reason": "needs %s, which this environment does not have. Revisit before a real launch." % "+".join(lacking)}
+                touched.append(item["id"])
+        if not touched:
+            print("(no open item in %s needs something unavailable)" % ph["id"])
+    if touched:
         save_state(args.root, st)
+    # Acting on items prints only those items; asking (no action flags) prints the whole gate.
     for item in ph["gate"]:
         r = rec.get(item["id"])
-        tag = {"passed": "[x]", "waived": "[~]"}.get(r["state"], "[ ]") if r else "[ ]"
-        print("%s %-22s %s" % (tag, item["id"], item["text"]))
+        if touched and item["id"] not in touched:
+            continue
+        if not applies(st, item):
+            tag, r = "[n/a]", None
+        else:
+            tag = {"passed": "[x]", "waived": "[~]"}.get(r["state"], "[ ]") if r else "[ ]"
+        need = "  (needs: %s)" % ",".join(item["needs"]) if item.get("needs") and not r else ""
+        print("%s %-22s %s%s" % (tag, item["id"], item_text(st, item), need))
         if r:
             print("      %s: %s" % (r["state"], r.get("evidence") or r.get("reason")))
+        elif tag == "[n/a]":
+            print("      not applicable for tenancy '%s'" % st["tenancy"])
 
 
 def cmd_advance(args):
@@ -426,7 +528,14 @@ def build_parser():
     p.add_argument("--name")
     p.add_argument("--force", action="store_true")
     p.add_argument("--noncommercial", action="store_true", help="project is not commercial (unlocks noncommercial-licence tools)")
+    p.add_argument("--tenancy", choices=TENANCIES, help="who owns data: organization (default), user, or none")
+    p.add_argument("--unavailable", help="comma list of what this environment lacks: host,provider,device,human")
     p.set_defaults(fn=cmd_init)
+
+    p = sub.add_parser("config", help="show or change tenancy and what this environment lacks")
+    p.add_argument("--tenancy", choices=TENANCIES)
+    p.add_argument("--unavailable", help="comma list: host,provider,device,human (or 'none')")
+    p.set_defaults(fn=cmd_config)
 
     p = sub.add_parser("status")
     p.add_argument("--json", action="store_true")
@@ -441,6 +550,8 @@ def build_parser():
     p.add_argument("--run", dest="run_id")
     p.add_argument("--cmd")
     p.add_argument("--timeout", type=int, default=600)
+    p.add_argument("--waive-unavailable", dest="waive_unavailable", action="store_true",
+                   help="waive every open item that needs something marked unavailable (recorded with the reason)")
     p.set_defaults(fn=cmd_gate)
 
     p = sub.add_parser("advance")

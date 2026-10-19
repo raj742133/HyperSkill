@@ -5,7 +5,7 @@ window.HS = {
   "gateItems": 72,
   "slots": 31,
   "providers": 32,
-  "tests": 43
+  "tests": 54
  },
  "policyCounts": {
   "recommended": 11,
@@ -907,12 +907,12 @@ window.HS = {
  "demo": [
   {
    "cmd": "hyperskill init --name studentdash",
-   "out": "initialised studentdash (commercial); current phase: research",
+   "out": "initialised studentdash (commercial, tenancy: organization); current phase: research",
    "ok": true
   },
   {
    "cmd": "hyperskill gate research --pass problem-statement",
-   "out": "[x] problem-statement      Problem, target user and the job they hire the product for are written down in docs/research.md\n      passed: docs/research.md section 1 read and confirmed by owner\n[ ] alternatives-mapped    At least 3 existing alternatives (including 'do nothing' / spreadsheets) compared, with sources\n[ ] user-evidence          At least one piece of evidence of real demand (quotes, threads, search volume, interviews), not just reasoning\n[ ] risks-listed           Top risks and unknowns listed, each with a cheap way to test it\n[ ] go-no-go               A go / pivot / stop recommendation is recorded and the user has confirmed it",
+   "out": "[x] problem-statement      Problem, target user and the job they hire the product for are written down in docs/research.md\n      passed: docs/research.md section 1 read and confirmed by owner",
    "ok": true
   },
   {

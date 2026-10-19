@@ -26,7 +26,9 @@ python3 <plugin>/scripts/hyperskill.py status
 4. **Plan, review, build small.** Plan first and show the plan; build on a branch, one concern per commit; no direct pushes to the default branch; no PR unless asked.
 5. **Verify with evidence.** Walk the gate (`hyperskill.py gate <phase>`). For each item, actually run the check and capture the output. Then record it:
    `hyperskill.py gate <phase> --pass id1,id2 --evidence "<command run + what it showed>"`.
+   Evidence must point at something checkable (a file path, a backticked command, a count with a unit); `hyperskill.py` refuses "done" or "looks fine". Prefer `--run id --cmd "..."`, which records the real output. A `! grep` check must carry a positive guard (`test -d src && ! grep -rn X src`), or it passes when the path does not exist.
    Waive only with a real reason and the user's agreement: `--waive id --reason "..."`.
+   **Set the project's shape once, at the start** (`hyperskill.py init --tenancy user|organization|none --unavailable host,provider,device,human`, or `hyperskill.py config` later): `tenancy` makes organization-only items not apply (and rewords the rest); `unavailable` names what this environment lacks (a deploy target, a third-party account, real hardware, a person to confirm) so `hyperskill.py gate <phase> --waive-unavailable` can record those waivers in one step, each with its reason, instead of one by one. Items waived this way are the launch to-do list; list them to the owner before calling anything launch-ready.
 6. **Advance** with `hyperskill.py advance`. If it refuses, the gate is not clear; go fix, don't argue with it.
 7. **Update memory.** Keep `CLAUDE.md` (stack, rules, commands, decision pointers) and `docs/` current. Every session starts from zero without them.
 

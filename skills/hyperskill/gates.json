@@ -15,7 +15,10 @@
         },
         {
           "id": "user-evidence",
-          "text": "At least one piece of evidence of real demand (quotes, threads, search volume, interviews), not just reasoning"
+          "text": "At least one piece of evidence of real demand (quotes, threads, search volume, interviews), not just reasoning",
+          "needs": [
+            "human"
+          ]
         },
         {
           "id": "risks-listed",
@@ -23,7 +26,10 @@
         },
         {
           "id": "go-no-go",
-          "text": "A go / pivot / stop recommendation is recorded and the user has confirmed it"
+          "text": "A go / pivot / stop recommendation is recorded and the user has confirmed it",
+          "needs": [
+            "human"
+          ]
         }
       ],
       "slots": [
@@ -39,7 +45,10 @@
       "gate": [
         {
           "id": "system-design-read",
-          "text": "docs/system-design.md exists and the user has read every line"
+          "text": "docs/system-design.md exists and the user has read every line",
+          "needs": [
+            "human"
+          ]
         },
         {
           "id": "tenancy-explicit",
@@ -55,7 +64,10 @@
         },
         {
           "id": "architecture-explained",
-          "text": "Every box in the architecture diagram can be explained by the user"
+          "text": "Every box in the architecture diagram can be explained by the user",
+          "needs": [
+            "human"
+          ]
         },
         {
           "id": "deps-justified",
@@ -91,11 +103,25 @@
         },
         {
           "id": "tenant-scoping",
-          "text": "Every tenant-owned table carries organization_id and every query on it is scoped"
+          "text": "Every tenant-owned table carries organization_id and every query on it is scoped",
+          "tenancy": [
+            "organization",
+            "user"
+          ],
+          "text_by_tenancy": {
+            "user": "Every user-owned table carries user_id and every query on it is scoped to the signed-in user"
+          }
         },
         {
           "id": "cross-tenant-blocked",
-          "text": "A user of Org A requesting an Org B resource by ID is refused (404) - shown by test output"
+          "text": "A user of Org A requesting an Org B resource by ID is refused (404) - shown by test output",
+          "tenancy": [
+            "organization",
+            "user"
+          ],
+          "text_by_tenancy": {
+            "user": "User A requesting user B's resource by ID is refused (404) - shown by test output"
+          }
         },
         {
           "id": "files-private",
@@ -202,11 +228,17 @@
         },
         {
           "id": "ci-blocks",
-          "text": "A PR with a deliberately failing test is blocked by CI"
+          "text": "A PR with a deliberately failing test is blocked by CI",
+          "needs": [
+            "host"
+          ]
         },
         {
           "id": "preview-and-staging",
-          "text": "PRs get previews; main deploys to staging; production needs approval"
+          "text": "PRs get previews; main deploys to staging; production needs approval",
+          "needs": [
+            "host"
+          ]
         },
         {
           "id": "migrations-in-deploy",
@@ -214,7 +246,10 @@
         },
         {
           "id": "rollback-practised",
-          "text": "A rollback was performed once on purpose and documented"
+          "text": "A rollback was performed once on purpose and documented",
+          "needs": [
+            "host"
+          ]
         },
         {
           "id": "e2e-critical",
@@ -230,7 +265,10 @@
         },
         {
           "id": "env-separation",
-          "text": "Staging and production use different databases and API keys"
+          "text": "Staging and production use different databases and API keys",
+          "needs": [
+            "host"
+          ]
         },
         {
           "id": "env-validation",
@@ -238,7 +276,10 @@
         },
         {
           "id": "backups-and-billing",
-          "text": "Production backups are enabled and billing alerts are set on every provider"
+          "text": "Production backups are enabled and billing alerts are set on every provider",
+          "needs": [
+            "host"
+          ]
         }
       ],
       "slots": [
@@ -288,11 +329,21 @@
         },
         {
           "id": "cache-tenant-safe",
-          "text": "Every tenant-data cache key includes organization_id; authenticated responses are never cached at a shared layer"
+          "text": "Every tenant-data cache key includes organization_id; authenticated responses are never cached at a shared layer",
+          "tenancy": [
+            "organization",
+            "user"
+          ],
+          "text_by_tenancy": {
+            "user": "Every per-user cache key includes user_id; authenticated responses are never cached at a shared layer"
+          }
         },
         {
           "id": "cache-two-org-test",
-          "text": "Test proves two orgs never receive each other's cached data and writes invalidate the cache"
+          "text": "Test proves two orgs never receive each other's cached data and writes invalidate the cache",
+          "tenancy": [
+            "organization"
+          ]
         }
       ],
       "slots": [
@@ -307,7 +358,16 @@
       "gate": [
         {
           "id": "structured-logs",
-          "text": "Structured JSON logs with request ID, user_id and organization_id; one request traceable end to end"
+          "text": "Structured JSON logs with request ID, user_id and organization_id; one request traceable end to end",
+          "tenancy": [
+            "organization",
+            "user",
+            "none"
+          ],
+          "text_by_tenancy": {
+            "user": "Structured JSON logs with request ID and user_id; one request traceable end to end",
+            "none": "Structured JSON logs with request ID; one request traceable end to end"
+          }
         },
         {
           "id": "redaction",
@@ -315,7 +375,10 @@
         },
         {
           "id": "error-tracker",
-          "text": "A staging error appears in the tracker with a readable stack trace within a minute"
+          "text": "A staging error appears in the tracker with a readable stack trace within a minute",
+          "needs": [
+            "provider"
+          ]
         },
         {
           "id": "no-silent-catch",
@@ -327,7 +390,11 @@
         },
         {
           "id": "alert-fires",
-          "text": "Stopping the staging database produces an alert within the defined time"
+          "text": "Stopping the staging database produces an alert within the defined time",
+          "needs": [
+            "provider",
+            "host"
+          ]
         },
         {
           "id": "runbook-per-alert",
@@ -358,7 +425,10 @@
         },
         {
           "id": "promo-rendered",
-          "text": "Promo video(s) rendered and played back end to end by the user"
+          "text": "Promo video(s) rendered and played back end to end by the user",
+          "needs": [
+            "human"
+          ]
         },
         {
           "id": "asset-licences",
@@ -407,5 +477,9 @@
         "task-agents"
       ]
     }
-  ]
+  ],
+  "_notes": {
+    "needs": "host = a deployment target/account, provider = a third-party account (tracker, alerting, billing), device = real hardware, human = a person must read or confirm. `config --unavailable ...` + `gate PHASE --waive-unavailable` records these as waived in one step.",
+    "tenancy": "Item applies only for the listed tenancies (organization | user | none). Others show as n/a and do not block. text_by_tenancy swaps the wording."
+  }
 }

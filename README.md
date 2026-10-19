@@ -21,7 +21,7 @@ research -> plan -> foundation -> product -> ship -> harden -> operate -> launch
 ## How it works
 
 - **State in files.** `.hyperskill/state.json` plus `CLAUDE.md` and `docs/` let any new session resume.
-- **Gates with evidence.** `scripts/hyperskill.py gate <phase> --pass id --evidence "..."`; `advance` refuses while any item is open. Items can be waived only with a written reason.
+- **Gates with evidence.** `scripts/hyperskill.py gate <phase> --pass id --evidence "..."`; `advance` refuses while any item is open. Evidence must be checkable (a path, a command, a count); items can be waived only with a written reason. `init --tenancy user|organization|none --unavailable host,provider,device,human` adapts the gates to the project and records environment-limited waivers in one step.
 - **Decisions are yours.** Stack, tenancy, providers and limits are asked, then recorded as `docs/decisions/NNNN-*.md`.
 - **Fresh-eyes reviews.** Security and test-quality reviews run in the read-only `hs-reviewer` agent.
 - **Skill slots and a vetted registry.** Phases ask for capabilities (design direction, animation, design critique, security audit, browser verification, video, ...). `skills/hyperskill/integrations.json` maps each slot to vetted third-party skills with licence, risks and policy; `scripts/hyperskill.py integrations` resolves what to use given what's installed. Recommended providers are used when present, opt-in ones only after `integrations enable <id>`, noncommercial-licence tools are blocked on commercial projects, and everything has a built-in fallback. Nothing is installed without asking. See `skills/hyperskill/references/integrations.md` and `docs/integrations-review.md`.
