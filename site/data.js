@@ -5,7 +5,7 @@ window.HS = {
   "gateItems": 72,
   "slots": 31,
   "providers": 32,
-  "tests": 41
+  "tests": 43
  },
  "policyCounts": {
   "recommended": 11,
@@ -595,7 +595,7 @@ window.HS = {
     "coding-discipline"
    ],
    "risks": [
-    "provenance: URL given and install id name different owners - verify the repo before installing"
+    "provenance: multica-ai/andrej-karpathy-skills and forrestchang/andrej-karpathy-skills both expose an identical 'karpathy-guidelines' skill; installed from multica-ai (the link supplied), canonical repo still unconfirmed"
    ]
   },
   {
@@ -817,13 +817,14 @@ window.HS = {
    "name": "Hypit",
    "repo": "hypit-ai/hypit",
    "kind": "skill+executable",
-   "license": "Hypit Open Source License ('Apache 2.0 with conditions' per badge; text not read)",
+   "license": "Modified Apache-2.0 (LICENSE read 2026-10-19)",
    "policy": "opt-in",
    "slots": [
     "video"
    ],
    "risks": [
-    "licence has unread conditions: read the LICENSE file before commercial use",
+    "commercial use for your own organisation and your clients is allowed, but running it as a hosted/multi-tenant service for other parties or reselling it needs a commercial licence from Hypit.AI",
+    "you must not remove or alter the Hypit name, logo or copyright shown in its CLI and run reports",
     "model generation calls go to external services (HypiHub or your own keys) and cost money",
     "cloning existing videos can infringe copyright: only recreate your own material",
     "needs Node 22.15+ and pnpm"

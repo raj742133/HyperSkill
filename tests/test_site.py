@@ -44,5 +44,24 @@ class SiteTests(unittest.TestCase):
             self.assertNotIn(banned, html)
 
 
+class InstallScriptTests(unittest.TestCase):
+    def test_script_parses_and_every_added_repo_is_in_the_registry(self):
+        path = os.path.join(ROOT, "scripts", "install-skills.sh")
+        self.assertEqual(subprocess.run(["bash", "-n", path]).returncode, 0)
+        with open(path, encoding="utf-8") as f:
+            repos = re.findall(r"^add (\S+)", f.read(), re.M)
+        with open(os.path.join(ROOT, "skills", "hyperskill", "integrations.json"), encoding="utf-8") as f:
+            known = " ".join(p.get("repo", "") for p in json.load(f)["providers"].values())
+        for r in repos:
+            owner_repo = r if r != "vercel-labs/agent-skills" else "vercel-labs/agent-skills"
+            self.assertIn(owner_repo, known, r)
+
+    def test_script_never_installs_blocked_or_reference_only_tools(self):
+        with open(os.path.join(ROOT, "scripts", "install-skills.sh"), encoding="utf-8") as f:
+            body = "\n".join(l for l in f.read().splitlines() if l.startswith("add "))
+        for banned in ("onetake", "gstack", "MiroFish", "openui", "morluto/rea", "api-anything"):
+            self.assertNotIn(banned, body)
+
+
 if __name__ == "__main__":
     unittest.main()

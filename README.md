@@ -40,6 +40,10 @@ Then in a project: `/hyperskill "a short description of your idea"`. Other comma
 
 Requires Python 3 (standard library only) for the state tracker. The launch phase additionally needs Node 22+, FFmpeg and (for speech-timed work) whisper-cpp.
 
+## Installing the tools it orchestrates
+
+HyperSkill never installs anything itself. `bash scripts/install-skills.sh --dry-run` prints the exact commands to install the recommended and opt-in skills (design chain, security audit, discipline, video) on your machine; remove `--dry-run` to run them, then restart your agent and run `python3 scripts/hyperskill.py integrations`. Blocked, reference-only and heavyweight tools are deliberately left out (the script says which and why). Installed skills run with your agent's permissions: read them first.
+
 ## Launch site
 
 `site/` is a static page (no build step, no tracking) that shows the pipeline, the vetted tool registry and a real run of the tracker. Its data comes from the repository files: `python3 scripts/build_site.py` regenerates `site/data.js`, and a test fails if it is stale.
