@@ -3,12 +3,107 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Chaser</title>
+  <title>Chaser: write the payment reminder you keep putting off</title>
+  <meta name="description" content="Enter an unpaid invoice and get three ready-to-send reminders for WhatsApp and email: polite, firm and final. Nothing you type leaves your browser.">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-  <main>
-    <h1>Chaser</h1>
-    <p>Scaffold only. The message generator is not built yet.</p>
-  </main>
+<a class="skip" href="#form">Skip to the form</a>
+<header class="top">
+  <div class="wrap">
+    <p class="brand">Chaser</p>
+  </div>
+</header>
+<main class="wrap">
+  <section class="intro" aria-labelledby="title">
+    <h1 id="title">Write the payment reminder you keep putting off.</h1>
+    <p class="lede">Fill in one unpaid invoice. Get three messages you can send yourself, polite, firm and final, for WhatsApp and email.</p>
+    <p class="privacy"><strong>We never receive what you type here.</strong> When you tap WhatsApp or email, that app receives the message, because that is how sending works. Message only people you already work with.</p>
+  </section>
+
+  <form id="form" class="card" novalidate autocomplete="off" aria-labelledby="form-h">
+    <h2 id="form-h">The unpaid invoice</h2>
+    <div id="errors" class="error-summary" role="alert" tabindex="-1" hidden></div>
+    <div class="grid">
+      <div class="field">
+        <label for="me">Your name</label>
+        <input id="me" name="me" type="text" autocomplete="name" maxlength="60" required aria-describedby="me-err">
+        <p class="err" id="me-err"></p>
+      </div>
+      <div class="field">
+        <label for="client">Client's name</label>
+        <input id="client" name="client" type="text" autocomplete="off" maxlength="60" required aria-describedby="client-err">
+        <p class="err" id="client-err"></p>
+      </div>
+      <div class="field">
+        <label for="amount">Amount (Rs)</label>
+        <input id="amount" name="amount" type="text" inputmode="decimal" autocomplete="off" required aria-describedby="amount-hint amount-err">
+        <p class="hint" id="amount-hint">For example 25000 or 1,25,000.50. Type the amount still owed.</p>
+        <p class="err" id="amount-err"></p>
+      </div>
+      <div class="field">
+        <label for="invoice">Invoice number <span class="opt">(optional)</span></label>
+        <input id="invoice" name="invoice" type="text" autocomplete="off" maxlength="30" aria-describedby="invoice-err">
+        <p class="err" id="invoice-err"></p>
+      </div>
+      <div class="field">
+        <label for="due">Due date</label>
+        <input id="due" name="due" type="date" required aria-describedby="due-err">
+        <p class="err" id="due-err"></p>
+      </div>
+      <div class="field">
+        <label for="deadline">Pay-by date for the final message</label>
+        <input id="deadline" name="deadline" type="date" required aria-describedby="deadline-hint deadline-err">
+        <p class="hint" id="deadline-hint">The date you want to be paid by. Today or later.</p>
+        <p class="err" id="deadline-err"></p>
+      </div>
+      <div class="field wide">
+        <label for="pay">Your UPI ID or payment link <span class="opt">(optional)</span></label>
+        <input id="pay" name="pay" type="text" autocomplete="off" maxlength="120" aria-describedby="pay-hint pay-err">
+        <p class="hint" id="pay-hint">For example name@bank or an https link. You will see it again before you send.</p>
+        <p class="err" id="pay-err"></p>
+      </div>
+    </div>
+    <div class="actions"><button type="submit" class="primary">Write my messages</button></div>
+  </form>
+
+  <section id="results" class="results" aria-labelledby="results-h" tabindex="-1" hidden>
+    <h2 id="results-h">Your messages</h2>
+    <p id="summary" class="summary"></p>
+    <div class="check card" aria-labelledby="check-h">
+      <h3 id="check-h">Check before you send</h3>
+      <dl id="check"></dl>
+      <p class="hint">A wrong amount or UPI ID sends your client's money to the wrong place. Read these twice.</p>
+    </div>
+    <div id="messages"></div>
+    <p id="live" class="sr-only" role="status" aria-live="polite"></p>
+
+    <aside id="door" class="card door" aria-labelledby="door-h">
+      <h3 id="door-h">Coming soon: sent for you automatically</h3>
+      <p>Chaser does not send anything yet. We are finding out if a tool that schedules these reminders for you is worth building: <strong id="price">Rs 149 a month</strong>.</p>
+      <button type="button" id="pay-intent" class="secondary">I would pay for this</button>
+      <div id="door-2" hidden>
+        <p id="door-thanks"></p>
+        <form id="wl" novalidate autocomplete="off" hidden>
+          <div class="field">
+            <label for="email">Your email, to hear when it is ready</label>
+            <input id="email" name="email" type="email" autocomplete="email" maxlength="254" aria-describedby="wl-notice wl-err">
+            <p class="err" id="wl-err"></p>
+          </div>
+          <div class="hp" aria-hidden="true"><label>Website <input name="website" type="text" tabindex="-1" autocomplete="off"></label></div>
+          <p class="hint" id="wl-notice"></p>
+          <button type="submit" class="primary">Tell me when it is ready</button>
+        </form>
+        <p id="wl-done" role="status" hidden></p>
+      </div>
+    </aside>
+  </section>
+</main>
+<footer class="wrap foot">
+  <p>Chaser is an experiment, not legal advice. You are responsible for what you send. Nothing here threatens, and nothing should.</p>
+  <p id="operator"></p>
+</footer>
+<script type="module" src="/app.js"></script>
 </body>
 </html>
