@@ -48,7 +48,7 @@ HyperSkill never installs anything itself. `bash scripts/install-skills.sh --dry
 
 `site/` is a static page (no build step, no tracking) that shows the pipeline, the vetted tool registry and a real run of the tracker. Its data comes from the repository files: `python3 scripts/build_site.py` regenerates `site/data.js`, and a test fails if it is stale.
 
-Deploy on Vercel by importing this repository: `vercel.json` already sets `outputDirectory` to `site`, no build or install command, and a strict Content-Security-Policy. Or from a terminal with your own account: `npx vercel --prod`. Preview locally with `python3 -m http.server -d site 8000`.
+Deploy on Vercel by importing this repository: `vercel.json` already sets `outputDirectory` to `site`, no build or install command, and a strict Content-Security-Policy. The default and production branch is `main`. Or from a terminal with your own account: `npx vercel --prod`. Preview locally with `python3 -m http.server -d site 8000`.
 
 ## Develop
 
