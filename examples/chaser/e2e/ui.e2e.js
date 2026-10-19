@@ -68,6 +68,35 @@ test("happy path: three messages with the right amount, dates and working send l
   await context.close();
 });
 
+test("results: the suggested message is marked, every message is fully visible, only the suggested one has the green button", async () => {
+  const { context, page } = await newPage();
+  await generate(page, { due: shift(-18) }); // 18 days late
+  await page.locator("#results").waitFor();
+  assert.match(await page.locator("#summary").innerText(), /Suggested: start with Firm/);
+  const cards = page.locator("article.msg");
+  assert.equal(await cards.nth(1).getAttribute("class"), "card msg suggested");
+  assert.equal(await cards.nth(1).locator(".tag").innerText(), "Suggested");
+  assert.equal(await page.locator(".tag").count(), 1);
+  assert.equal(await page.locator("article.msg a.btn:not(.quiet)").count() >= 1, true);
+  assert.equal(await cards.nth(0).getByRole("link", { name: "Open in WhatsApp" }).getAttribute("class"), "btn quiet");
+  for (const id of ["wa-polite", "wa-firm", "wa-final"]) {
+    const clipped = await page.locator("#" + id).evaluate((t) => t.scrollHeight > t.clientHeight + 2);
+    assert.equal(clipped, false, `${id} is cut off`);
+  }
+  assert.match(await page.locator("#check").innerText(), /Client\s*Ravi Traders/);
+  for (const [days, want] of [[2, "Polite"], [10, "Firm"], [30, "Final"]]) {
+    await page.locator("#due").fill(shift(-days)); await page.getByRole("button", { name: "Write my messages" }).click();
+    assert.match(await page.locator("#summary").innerText(), new RegExp(`start with ${want}`), `${days} days`);
+  }
+  await context.close();
+});
+
+test("the pay-by date starts a week from today", async () => {
+  const { context, page } = await newPage();
+  assert.equal(await page.locator("#deadline").inputValue(), shift(7));
+  await context.close();
+});
+
 test("editing a message updates its WhatsApp link", async () => {
   const { context, page } = await newPage();
   await generate(page);
@@ -83,8 +112,8 @@ test("validation: an error summary takes focus, fields are marked invalid, links
   const summary = page.locator("#errors");
   await summary.waitFor();
   assert.equal(await summary.evaluate((n) => n === document.activeElement), true, "focus moves to the error summary");
-  assert.match(await summary.innerText(), /5 things need fixing/);
-  for (const f of ["me", "client", "amount", "due", "deadline"]) assert.equal(await page.locator("#" + f).getAttribute("aria-invalid"), "true", f);
+  assert.match(await summary.innerText(), /4 things need fixing/); // the pay-by date starts filled in
+  for (const f of ["me", "client", "amount", "due"]) assert.equal(await page.locator("#" + f).getAttribute("aria-invalid"), "true", f);
   await summary.getByRole("link", { name: /name/i }).first().click();
   assert.equal(await page.locator("#me").evaluate((n) => n === document.activeElement), true);
   assert.equal(await page.locator("#results").isHidden(), true);

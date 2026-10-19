@@ -4,22 +4,19 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Chaser: write the payment reminder you keep putting off</title>
-  <meta name="description" content="Enter an unpaid invoice and get three ready-to-send reminders for WhatsApp and email: polite, firm and final. Nothing you type leaves your browser.">
+  <meta name="description" content="Enter an unpaid invoice and get three ready-to-send reminders for WhatsApp and email: polite, firm and final. Our server never sees the invoice details you enter.">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
 <a class="skip" href="#form">Skip to the form</a>
-<header class="top">
-  <div class="wrap">
-    <p class="brand">Chaser</p>
-  </div>
-</header>
 <main class="wrap">
   <section class="intro" aria-labelledby="title">
+    <p class="brand">Chaser</p>
     <h1 id="title">Write the payment reminder you keep putting off.</h1>
     <p class="lede">Fill in one unpaid invoice. Get three messages you can send yourself, polite, firm and final, for WhatsApp and email.</p>
-    <p class="privacy"><strong>We never receive what you type here.</strong> When you tap WhatsApp or email, that app receives the message, because that is how sending works. Message only people you already work with.</p>
+    <p class="sample" aria-label="Example of the first message">&ldquo;Hi Ravi, hope you&rsquo;re doing well. A quick reminder that invoice INV-12 for Rs 25,000, which was due on 1 Oct 2026, is still showing as unpaid on my side&hellip;&rdquo;</p>
+    <p class="privacy"><strong>Our server never sees the invoice details you enter.</strong> The messages are written in your browser, and you send them yourself.</p>
   </section>
 
   <form id="form" class="card" novalidate autocomplete="off" aria-labelledby="form-h">
@@ -74,10 +71,11 @@
     <div class="check card" aria-labelledby="check-h">
       <h3 id="check-h">Check before you send</h3>
       <dl id="check"></dl>
-      <p class="hint">A wrong amount or UPI ID sends your client's money to the wrong place. Read these twice.</p>
+      <p class="note">Check the amount and UPI ID match your invoice. If you edit a message below, this summary does not change.</p>
     </div>
     <div id="messages"></div>
     <p id="live" class="sr-only" role="status" aria-live="polite"></p>
+    <p class="hint after">WhatsApp will ask you to pick the contact. Message only people you already work with.</p>
 
     <aside id="door" class="card door" aria-labelledby="door-h">
       <h3 id="door-h">Coming soon: sent for you automatically</h3>
@@ -101,7 +99,7 @@
   </section>
 </main>
 <footer class="wrap foot">
-  <p>Chaser is an experiment, not legal advice. You are responsible for what you send. Nothing here threatens, and nothing should.</p>
+  <p>Chaser is an experiment, not legal advice. You are responsible for what you send.</p>
   <p id="operator"></p>
 </footer>
 <script type="module" src="/app.js"></script>

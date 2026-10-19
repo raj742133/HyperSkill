@@ -1,5 +1,6 @@
 // Break one promise at a time and confirm a test notices. Usage: CHROME_PATH=... node scripts/mutation-check.js
-// Each mutant is a one-line change to a source file; the check fails if the named test command still passes.
+// Each mutant is a small change to one source file; the check fails if the named test command still passes.
+// Every edit must match exactly once, so a pattern that also appears in a comment cannot silently mutate the wrong text.
 import fs from "node:fs";
 import { spawnSync } from "node:child_process";
 
@@ -17,8 +18,8 @@ const mutants = [
   { name: "the waitlist opens without operator details", file: "src/config.js", from: "Boolean(cfg.OPERATOR_NAME && cfg.OPERATOR_CONTACT && cfg.TEST_END_DATE)", to: "true", cmd: UNIT },
   { name: "the honeypot is ignored", file: "src/http/routes.js", from: "if (typeof body.website === \"string\" && body.website !== \"\") return json(res, 202, { ok: true });", to: "", cmd: UNIT },
   { name: "static files can be read outside public/", file: "src/http/static.js", from: "if (file !== root && !file.startsWith(root + path.sep)) return false;", to: "", cmd: UNIT },
-  { name: "the CSP allows other sites to be contacted", file: "src/http/headers.js", from: "connect-src 'self'", to: "connect-src *", cmd: UNIT },
-  { name: "a trusted-proxy header is believed when no proxy is configured", file: "src/http/limits.js", from: "if (trustProxy > 0) {", to: "if (true) {", cmd: UNIT },
+  { name: "the CSP allows other sites to be contacted", file: "src/http/headers.js", from: "img-src 'self'; connect-src 'self'", to: "img-src 'self'; connect-src *", cmd: UNIT },
+  { name: "a forwarded-for header is believed when no proxy is configured", file: "src/http/limits.js", edits: [["if (trustProxy > 0) {", "if (true) {"], ["const ip = parts[parts.length - trustProxy];", "const ip = parts[0];"]], cmd: UNIT },
   { name: "amounts above Rs 100 crore are accepted", file: "src/core/format.js", from: "paise > MAX_RUPEES * 100", to: "false", cmd: UNIT },
   { name: "a not-yet-due invoice is called overdue", file: "src/core/messages.js", from: "const overdue = days > 0;", to: "const overdue = true;", cmd: UNIT },
   { name: "the UPI ID is not previewed or checked", file: "src/core/validate.js", from: "!UPI_ID.test(value.pay) && !HTTPS_LINK.test(value.pay)", to: "false", cmd: UNIT },
@@ -27,8 +28,12 @@ const mutants = [
 let bad = 0;
 for (const m of mutants) {
   const original = fs.readFileSync(m.file, "utf8");
-  if (!original.includes(m.from)) { console.log(`MISSING  ${m.name} (pattern not found in ${m.file})`); bad++; continue; }
-  fs.writeFileSync(m.file, original.replace(m.from, m.to));
+  const edits = m.edits ?? [[m.from, m.to]];
+  const counts = edits.map(([from]) => original.split(from).length - 1);
+  if (counts.some((n) => n !== 1)) { console.log(`MISSING   ${m.name} (each pattern must match exactly once in ${m.file}; matches: ${counts})`); bad++; continue; }
+  let mutated = original;
+  for (const [from, to] of edits) mutated = mutated.replace(from, () => to);
+  fs.writeFileSync(m.file, mutated);
   const r = spawnSync("sh", ["-c", m.cmd], { encoding: "utf8", env: process.env });
   fs.writeFileSync(m.file, original);
   const killed = r.status !== 0;

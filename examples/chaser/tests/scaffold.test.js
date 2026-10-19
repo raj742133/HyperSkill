@@ -29,7 +29,7 @@ test("health endpoints answer, the page is served, unknown paths are 404", async
   assert.deepEqual(await health.json(), { status: "ok", checks: { config: "ok" } });
   const page = await fetch(s.base + "/");
   assert.equal(page.status, 200);
-  assert.match(await page.text(), /<h1>Chaser<\/h1>/);
+  assert.match(await page.text(), /<h1 id="title">Write the payment reminder you keep putting off\.<\/h1>/);
   assert.equal((await fetch(s.base + "/nope")).status, 404);
 });
 

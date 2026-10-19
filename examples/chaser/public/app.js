@@ -4,6 +4,8 @@ const $ = (id) => document.getElementById(id);
 const params = new URLSearchParams(location.search);
 const src = params.get("src") ?? undefined;
 const FIELDS = ["me", "client", "amount", "invoice", "due", "deadline", "pay"];
+/** Which message fits today: a few days late, about two weeks late, or well past that. Only a suggestion. */
+const suggest = (days) => (days <= 0 ? "polite" : days <= 7 ? "polite" : days <= 21 ? "firm" : "final");
 const WHEN = {
   polite: "A few days late",
   firm: "About two weeks late",
@@ -87,24 +89,27 @@ function el(tag, props = {}, ...kids) {
 
 function render(v, today) {
   const out = generateMessages(v, today);
+  const best = suggest(out.days);
+  const label = out.messages.find((m) => m.tone === best).label;
   $("summary").textContent = out.overdue
-    ? `This invoice is ${out.days} day${out.days === 1 ? "" : "s"} overdue (counted from today's date on your device).`
+    ? `This invoice is ${out.days} day${out.days === 1 ? "" : "s"} overdue (counted from today's date on your device). Suggested: start with ${label}.`
     : "This invoice is not overdue yet, so the polite message fits best. Keep the firm and final ones for later.";
   const check = $("check"); check.textContent = "";
-  const rows = [["Amount", formatRupees(v.paise)], ["Due date", formatDate(v.due)], ["Pay-by date (final message)", formatDate(v.deadline)], ["Pay to", v.pay || "No payment details added"]];
+  const rows = [["Client", v.client], ["Amount", formatRupees(v.paise)], ["Due date", formatDate(v.due)], ["Pay-by date (final message)", formatDate(v.deadline)], ["Pay to", v.pay || "No payment details added"]];
   for (const [k, val] of rows) check.append(el("dt", { text: k }), el("dd", { text: val }));
 
   const box = $("messages"); box.textContent = "";
-  for (const m of out.messages) box.append(messageCard(m));
+  for (const m of out.messages) box.append(messageCard(m, m.tone === best));
   const results = $("results"); results.hidden = false;
   results.focus(); results.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
 }
 
-function messageCard(m) {
+function messageCard(m, suggested) {
+  const grow = (t) => { t.style.height = "auto"; t.style.height = t.scrollHeight + 2 + "px"; };
   const ta = el("textarea", { id: `wa-${m.tone}`, "aria-label": `${m.label} message for WhatsApp, you can edit it`, spellcheck: "true" });
   ta.value = m.whatsapp;
-  const wa = el("a", { class: "btn", href: whatsappLink(m.whatsapp), target: "_blank", rel: "noopener noreferrer", text: "Open in WhatsApp" });
-  ta.addEventListener("input", () => { wa.href = whatsappLink(ta.value); });
+  const wa = el("a", { class: suggested ? "btn" : "btn quiet", href: whatsappLink(m.whatsapp), target: "_blank", rel: "noopener noreferrer", text: "Open in WhatsApp" });
+  ta.addEventListener("input", () => { wa.href = whatsappLink(ta.value); grow(ta); });
   const copy = el("button", { type: "button", class: "secondary", text: "Copy text" });
   const asked = el("p", { class: "sent", hidden: "" });
   const askSent = () => {
@@ -130,9 +135,11 @@ function messageCard(m) {
     el("p", {}, el("strong", { text: "Subject: " }), m.email.subject),
     el("pre", { text: m.email.body }),
     mail);
-  return el("article", { class: "card msg" },
-    el("h3", {}, m.label, el("span", { class: "when", text: WHEN[m.tone] })),
+  const card = el("article", { class: suggested ? "card msg suggested" : "card msg" },
+    el("h3", {}, m.label, suggested ? el("span", { class: "tag", text: "Suggested" }) : "", el("span", { class: "when", text: WHEN[m.tone] })),
     ta, el("div", { class: "row" }, wa, copy), details, asked);
+  queueMicrotask(() => grow(ta)); // size the box to its text once it is in the page
+  return card;
 }
 
 /* ---------- the paid-plan question (a fake door: nothing is sold) ---------- */
@@ -141,12 +148,12 @@ $("pay-intent").addEventListener("click", () => {
   $("pay-intent").hidden = true;
   $("door-2").hidden = false;
   if (config.waitlistEnabled) {
-    $("door-thanks").textContent = "Thanks. That tells us this is worth building. It does not exist yet and nothing will be charged.";
+    $("door-thanks").textContent = "Thanks, noted. It does not exist yet and nothing will be charged.";
     const end = formatDate(config.endDate);
     $("wl-notice").textContent = `We use your email only to tell you if this gets built. Run by ${config.operatorName} (${config.operatorContact}). We keep your email until ${end}, then delete it; write to that address to have it removed sooner. This site's host also logs visitors' IP addresses.`;
-    $("wl").hidden = false; $("email").focus();
+    $("wl").hidden = false;
   } else {
-    $("door-thanks").textContent = "Thanks. That tells us this is worth building. It does not exist yet, and the email list is not open.";
+    $("door-thanks").textContent = "Thanks, noted. It does not exist yet, and the email list is not open.";
   }
 });
 
@@ -169,6 +176,7 @@ $("wl").addEventListener("submit", async (e) => {
 
 /* ---------- start ---------- */
 $("deadline").min = todayLocal();
+{ const d = new Date(); d.setDate(d.getDate() + 7); const p = (n) => String(n).padStart(2, "0"); $("deadline").value = `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`; } // a week from today unless the visitor changes it
 fetch("/api/config").then((r) => r.json()).then((c) => {
   config = c;
   $("price").textContent = `Rs ${c.priceInr} a month`;
