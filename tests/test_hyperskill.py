@@ -246,3 +246,28 @@ class NewProviderTests(IntegrationBase):
     def test_product_gate_has_icon_licence_item(self):
         ids = [i["id"] for ph in gates() if ph["id"] == "product" for i in ph["gate"]]
         self.assertIn("icon-set-licence", ids)
+
+
+class SixMoreProviderTests(IntegrationBase):
+    def test_reference_only_entries_are_refused(self):
+        out = {r["id"]: r for r in json.loads(self.irun("integrations", "list", "--json").stdout)}
+        for pid in ("openui", "rea", "api-anything", "mirofish"):
+            self.assertFalse(out[pid]["allowed"], pid)
+
+    def test_hypit_and_ponytail_are_opt_in(self):
+        out = {r["id"]: r for r in json.loads(self.irun("integrations", "list", "--json").stdout)}
+        for pid in ("hypit", "ponytail"):
+            self.assertEqual(out[pid]["policy"], "opt-in")
+            self.assertFalse(out[pid]["allowed"])
+
+    def test_copy_review_resolves_to_slopmonster_when_installed(self):
+        self.assertIsNone(self.resolve("copy-review")["use"])
+        self.install_fake_skill("slopmonster")
+        self.assertEqual(self.resolve("copy-review")["use"], "slopmonster")
+
+    def test_video_prefers_hyperframes_over_hypit(self):
+        self.install_fake_skill("hypit")
+        self.irun("integrations", "enable", "hypit")
+        self.assertEqual(self.resolve("video")["use"], "hypit")
+        self.install_fake_skill("hyperframes")
+        self.assertEqual(self.resolve("video")["use"], "hyperframes")

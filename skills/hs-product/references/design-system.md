@@ -31,3 +31,12 @@ Tab through the whole app; use a screen reader on the main flow; zoom to 200%; t
 
 ## Secrets check
 Build, then search the output directory and client sources for key patterns (`sk_`, `AKIA`, `secret`, `token`, private hostnames) and for env vars exposed with the framework's public prefix. List what's found, fix it, and re-run.
+
+## The designer pass (run on the *running* site, after screens exist)
+Four focused passes, then a loop. Each one removes or clarifies; none adds features.
+1. **Hierarchy.** Audit type, spacing, scale, alignment and CTA prominence. Make the most important thing look most important: one dominant headline, one primary action, quiet secondary elements.
+2. **Remove the generic look.** Strip default gradients, piles of identical cards, decorative pills/badges and predictable section order. Replace with a deliberate visual system (type pairing, one accent, a distinctive layout idea).
+3. **The 5-second test.** Above the fold, a stranger must learn what it is, who it is for, why it matters and what to do next. Explain the product before decorating it.
+4. **Review loop.** Open the running site, list the 10 highest-impact design problems, fix them, reopen, review again (build -> review -> refine). Prefer asking "what should be removed?" to "what should be added?".
+
+Honesty rule: example mock-ups often show stats such as "50+ projects" or "98% satisfaction". Never ship numbers, logos or testimonials that are not real; use clearly marked placeholders until real data exists.

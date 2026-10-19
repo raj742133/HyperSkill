@@ -166,6 +166,10 @@
           "text": "The app was opened on a real phone (or 375px emulation) and works"
         },
         {
+          "id": "designer-pass",
+          "text": "Designer pass done on the running site: hierarchy, generic-look removal, 5-second test and a 10-problem review loop, with before/after screenshots and no invented stats or logos"
+        },
+        {
           "id": "no-client-secrets",
           "text": "Client bundle was searched for keys, secrets and private URLs; none found"
         },
@@ -183,7 +187,8 @@
         "design-reference",
         "design-system-generation",
         "icons",
-        "implementation-discipline"
+        "implementation-discipline",
+        "copy-review"
       ]
     },
     {
@@ -369,7 +374,8 @@
         "video-analysis",
         "video-captions",
         "video-overlay",
-        "voiceover"
+        "voiceover",
+        "copy-review"
       ]
     },
     {

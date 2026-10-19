@@ -10,6 +10,10 @@
 
 5. **"Vibe Coding: A Complete Beginner-to-Production Guide"** (text pasted by the owner; it appeared to be the shared Google Doc from the reading list, but the paste was cut off at step 40 and the link itself could not be opened). Source of `skills/hyperskill/references/working-loop.md` (TASKS/MEMORY/decisions split, vertical slices, structured task and debug prompts, lite profile). Reworded; authorship and licence unknown.
 
+6. **Instagram carousel of four design-pass prompts** (@web_pros, screenshots supplied by the owner). Source of the designer pass in `skills/hs-product/references/design-system.md`. Reworded; not copied.
+
+7. **Six more repositories** (hypit, openui, ponytail, SlopMonster, rea, api-anything), read at README level on 2026-10-19. See `docs/integrations-review.md`.
+
 ## Open licensing items (action needed before making this repo public)
 
 - Neither the playbook PDF nor the starter kit states a licence in the files reviewed (the kit's `fonts/` folder carries an OFL text; the rest does not). Because HyperSkill's reference material is derived from them, get the authors' permission or replace derived passages with original text before publishing.

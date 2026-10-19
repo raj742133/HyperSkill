@@ -23,7 +23,8 @@ Goal: a UI that looks designed rather than templated, handles every state, is ac
 3. **Build each screen** on the design system and the real API. Every data-driven view handles four states: **loading** (skeletons), **empty** (helpful text + primary action), **error** (message + retry), **success**. Forms: client validation that mirrors the server rules, submit disabled while pending, inline field errors, success feedback. Works at 375px and desktop.
 4. **Verify in a real browser.** Use the `browser-verify` slot (Chrome DevTools for agents, `run` skill, or Playwright; use a clean browser profile, never the owner's signed-in one) to drive the screens, take screenshots at 375px and desktop, and exercise the empty/error states by faking responses. Look at the screenshots yourself and fix visible defects.
 5. **Accessibility pass (WCAG 2.1 AA).** Labels on all inputs, keyboard navigation, visible focus, contrast, alt text, heading order, ARIA only where native elements can't do the job. Add an automated check (axe) to the test suite.
-6. **Secrets check.** Search the built bundle and client code for API keys, tokens and private URLs. Only variables intended to be public may reach the browser.
+6. **Designer pass.** Run the four passes in `references/design-system.md` (hierarchy, remove the generic look, 5-second test, 10-problem review loop) on the running site, with screenshots before and after, and apply no invented stats or logos.
+7. **Secrets check.** Search the built bundle and client code for API keys, tokens and private URLs. Only variables intended to be public may reach the browser.
 
 ## Pitfalls
 

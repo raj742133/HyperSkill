@@ -550,6 +550,109 @@
       "license": "various",
       "policy": "reference-only",
       "provides": "x-algorithm, PersonaPlex, Claude for Financial Services, Cloudflare OS, Hunyuan3D-2: not relevant to the pipeline and not vetted. The guide is a marketing funnel; its prices are the author's opinion."
+    },
+    "hypit": {
+      "name": "Hypit",
+      "repo": "hypit-ai/hypit",
+      "kind": "skill+executable",
+      "license": "Hypit Open Source License ('Apache 2.0 with conditions' per badge; text not read)",
+      "policy": "opt-in",
+      "install": [
+        "npx skills add hypit-ai/hypit -g"
+      ],
+      "detect": {
+        "skills": [
+          "hypit"
+        ]
+      },
+      "provides": "Lets an agent build (and clone) videos using its own markup language (SVML), a compiler, ffmpeg and headless Chromium. Invoked as /hypit.",
+      "risks": [
+        "licence has unread conditions: read the LICENSE file before commercial use",
+        "model generation calls go to external services (HypiHub or your own keys) and cost money",
+        "cloning existing videos can infringe copyright: only recreate your own material",
+        "needs Node 22.15+ and pnpm"
+      ]
+    },
+    "openui": {
+      "name": "OpenUI (W&B)",
+      "repo": "wandb/openui",
+      "kind": "reference",
+      "license": "Apache-2.0",
+      "policy": "reference-only",
+      "provides": "Standalone web app: describe a UI, see it rendered live, convert HTML to React/Svelte/Web Components. Needs your own LLM provider keys. Not a skill.",
+      "risks": [
+        "not agent-integrable as a skill",
+        "prompt-to-UI output tends toward the generic look the designer pass removes",
+        "sends prompts to whichever LLM provider you configure"
+      ]
+    },
+    "ponytail": {
+      "name": "Ponytail",
+      "repo": "DietrichGebert/ponytail",
+      "kind": "plugin",
+      "license": "MIT",
+      "policy": "opt-in",
+      "install": [
+        "/plugin marketplace add DietrichGebert/ponytail",
+        "/plugin install ponytail@ponytail"
+      ],
+      "detect": {
+        "skills": [
+          "ponytail"
+        ]
+      },
+      "provides": "One prompt that pushes agents to write less code (lite/full/ultra levels), plus /ponytail-review, /ponytail-audit, /ponytail-debt and a status band. Its benchmark figures are the project's own and unverified.",
+      "risks": [
+        "registers hooks and a UI band; optional import reads your past Claude Code session data (kept local per README)",
+        "'less code' must never mean less testing, validation, error/empty states or accessibility: HyperSkill gates win",
+        "overlaps karpathy-skills (simplicity first): use one"
+      ]
+    },
+    "slopmonster": {
+      "name": "SlopMonster",
+      "repo": "ItsssssJack/SlopMonster",
+      "kind": "skill+script",
+      "license": "MIT",
+      "policy": "recommended",
+      "install": [
+        "clone and copy the folder to ~/.claude/skills/slopmonster/"
+      ],
+      "detect": {
+        "skills": [
+          "slopmonster"
+        ]
+      },
+      "provides": "tools/deslop.py: local checker that flags common AI-writing patterns in README/landing/email/script text and scores it out of 5; an optional second-model rewrite step.",
+      "risks": [
+        "use only the local checker by default: tools/cleanse.sh sends your text to another AI CLI/provider (opt in per use)",
+        "a score is a hint, not proof of quality or originality"
+      ]
+    },
+    "rea": {
+      "name": "REA (Reverse Engineer Anything)",
+      "repo": "morluto/rea",
+      "kind": "mcp+cli+skill",
+      "license": "MIT (third-party engines licensed separately)",
+      "policy": "reference-only",
+      "provides": "Reverse-engineering MCP server for binaries, APKs, .NET, Electron apps, sites, pcaps. Needs Hopper/Ghidra/IDA for native work.",
+      "risks": [
+        "dual-use security tool outside this pipeline's scope",
+        "reverse engineering software you do not own can breach licences or law",
+        "runtime capture executes the target with your privileges"
+      ]
+    },
+    "api-anything": {
+      "name": "API Anything",
+      "repo": "goodnight000/api-anything",
+      "kind": "cli+mcp+skill",
+      "license": "MIT",
+      "policy": "reference-only",
+      "provides": "Records a website's own requests and replays them as callable 'operations' over HTTP/MCP. Not on npm yet.",
+      "risks": [
+        "can import cookies from local browser profiles and stores credentials under ~/.api-anything",
+        "automating sites you do not own can breach their terms of service",
+        "not needed by any phase: prefer official APIs"
+      ]
     }
   },
   "slots": {
@@ -573,7 +676,8 @@
     },
     "coding-discipline": {
       "providers": [
-        "karpathy-skills"
+        "karpathy-skills",
+        "ponytail"
       ],
       "fallback": "non-negotiable rules in hyperskill/SKILL.md"
     },
@@ -671,7 +775,8 @@
     },
     "video": {
       "providers": [
-        "hyperframes"
+        "hyperframes",
+        "hypit"
       ],
       "fallback": "storyboard only; ask the owner to install HyperFrames"
     },
@@ -740,6 +845,12 @@
         "qwen3-tts"
       ],
       "fallback": "no voiceover; captions only, or the owner's own recording"
+    },
+    "copy-review": {
+      "providers": [
+        "slopmonster"
+      ],
+      "fallback": "re-read the copy for filler, vague claims and AI tells; keep every claim traceable to a real feature"
     }
   }
 }

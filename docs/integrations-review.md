@@ -27,6 +27,12 @@ Method: each link from the supplied reading list was fetched and summarised from
 | QwenLM/Qwen3-TTS | TTS, voice design, 3 s voice cloning, 10 languages | Apache-2.0 (code); weights terms unconfirmed | pip package | opt-in (`voiceover`) | Consent for cloned voices; disclose synthetic audio; GPU |
 | 666ghj/MiroFish | Multi-agent "prediction" simulation web app | AGPL-3.0 | **not a skill** | reference only | AGPL; needs LLM + Zep Cloud keys; simulations are not demand evidence |
 | LOOT guide (other 5 tools) | Marketing funnel PDF listing 7 tools to resell | n/a | - | reference only | x-algorithm, PersonaPlex, Claude for Financial Services, Cloudflare OS, Hunyuan3D-2 not relevant; not vetted |
+| hypit-ai/hypit | Agent skill + executable for building/cloning videos (own markup language, ffmpeg, Chromium) | "Hypit Open Source License" / "Apache 2.0 with conditions" (text unread) | skill | opt-in (`video`, 2nd) | Unread licence conditions; paid model calls to external services; do not clone others' videos |
+| wandb/openui | Prompt-to-UI web app, HTML to React/Svelte conversion | Apache-2.0 | **not a skill** | reference only | Needs LLM keys; generic-look output |
+| DietrichGebert/ponytail | "Write less code" prompt, review/audit/debt commands, status band | MIT | plugin | opt-in (`coding-discipline`) | Hooks/band; benchmarks unverified; must not cut tests/validation/states; overlaps karpathy |
+| ItsssssJack/SlopMonster | Local AI-writing-pattern checker + skill; optional second-model rewrite | MIT | skill + script | recommended (`copy-review`, local checker only) | `cleanse.sh` sends text to another AI provider |
+| morluto/rea | Reverse-engineering MCP server/CLI/skill | MIT | MCP + skill | reference only | Dual-use; legal risk; off-pipeline |
+| goodnight000/api-anything | Turns websites into callable operations; imports browser cookies | MIT | CLI + MCP + skill | reference only | Cookie import, ToS risk, not on npm |
 | whatships.com | - | - | - | unreviewed | Blocked by the network proxy |
 | Shared Google Doc | - | - | - | unreviewed | Blocked by the network proxy |
 
