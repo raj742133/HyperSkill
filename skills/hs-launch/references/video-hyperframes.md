@@ -1,74 +1,92 @@
-# Making videos with HyperFrames
+# Promo video with HyperFrames
 
-HyperFrames renders HTML/CSS/JS compositions to video. The CLI commands below are the ones documented in the starter kit the plugin author supplied; run `npx hyperframes --help` and `npx hyperframes doctor` to confirm what your installed version supports before relying on any flag.
+HyperFrames turns an HTML composition into a rendered video. This file is the HyperSkill wrapper: what to prepare, what to hand over, what to check. HyperFrames' own skills do the building. Where they disagree with this file on mechanics, they win; where they disagree on honesty or evidence, the launch gate wins.
 
-## Setup (once per machine)
-1. Node.js 22+, FFmpeg, and (only for speech-timed work) whisper-cpp.
-2. `npx hyperframes skills` installs the HyperFrames skills for Claude Code; restart the session afterwards.
-3. `npx hyperframes doctor`; ignore items it marks optional (Docker, TTS, music generation).
-Mac: Homebrew. Windows: winget, and the whisper.cpp release from its GitHub page added to PATH. Anything needing a password or admin rights is the user's to run - give the exact command.
+**Verification status.** Every command below was checked by reading the HyperFrames skill documentation installed locally (`hyperframes`, `hyperframes-cli`, `hyperframes-core`, `media-use`, `motion-graphics`, `hyperframes-studio`). None were executed. Items the documentation does not confirm carry `(unverified)` and are collected at the end. Run `npx hyperframes --help` on the installed version before trusting any flag.
 
-## Per project
-- New empty folder per video. Copy fonts into `fonts/` (local files, never rely on a CDN at render time). Put real screenshots in `screenshots/`, and optionally a sound folder `sfx/`.
-- State size and fps explicitly in the brief: 1920x1080 @30 (landscape), 1080x1920 @30 (vertical).
-- Render into `renders/<name>.mp4`.
+## 1. Pick the workflow
 
-## Brief pattern (works for every deliverable)
-Write the brief to `launch/brief.md` first, then give HyperFrames' skill:
-1. **Format:** duration, size, fps, output path.
-2. **Material:** exact script text (do not let it rewrite your words), exact screenshots, exact numbers.
-3. **Structure:** timecoded beats (0-2s hook, then one idea per screen, end card with CTA).
-4. **Style:** one preset from `styles.md` (or brand colours/fonts) - never mix.
-5. **Constraints:** safe margins, minimum time on screen, things to avoid.
-
-## Deliverable recipes
-
-**Text-only explainer (vertical, ~15 s).** One sentence per screen, big enough for a phone, all text inside the middle ~80% of the width, long sentences wrapped over 2-3 lines on the same screen, each screen held long enough to read. Use the user's exact script.
-
-**Product launch (landscape, ~12 s).** 0-2 s name/logo reveal; 2-9 s three feature moments, each *showing* the product doing the thing (real screenshot or HTML rebuild), not a sentence; 9-12 s end card: name, one line, CTA. Use `product.png` if provided, else build the product UI in HTML/CSS.
-
-**SaaS promo (landscape, up to ~60 s).** Look at every screenshot first and write down what each shows. Open with a short hook; for each screen zoom into the part that matters (the number, the chart, the button) with a one-line customer benefit; use screenshots **as they are** (don't redraw); steady-beat cuts; end on logo + line + CTA.
-
-**Motion graphics over your own footage.** Keep the clip untouched (size, fps, audio, cut). Transcribe with `npx hyperframes transcribe` and check word timings against the audio; decide which moments matter; at each, add an animation fitted to what is being said (a number -> counter, a list -> checklist, before/after -> comparison) that starts on the exact word. One style throughout. Nothing in the first 3 seconds. Keep graphics off the face, out of the bottom third (captions), and away from the left/right 10%. Stop and ask the user to install whisper if it's missing.
-
-**Targeted fix.** "At the words '...', show these 5 screenshots one after another in order, synced to the voice. Keep everything else identical and re-render."
-
-**Sound effects.** Use the `sfx/` files: tick for list items/checks, a counter sound while numbers roll, a chime on the last card; none for slides/exits; quiet under voice; confirm licence of each file.
-
-**Transparent overlay.** Make the background transparent, then export a ProRes 4444 `.mov` and a PNG sequence for Premiere/After Effects. MOV/PNG are only transparent if the composition background is.
-
-## Export cheat sheet (from the kit; verify flags)
-```
-npx hyperframes render . -o renders/video.mp4
-npx hyperframes render . --fps 60 -o renders/video-60fps.mp4
-npx hyperframes render . --resolution 4k -o renders/video-4k.mp4
-npx hyperframes render . --format mov -o renders/video.mov
-npx hyperframes render . --format png-sequence -o renders/frames
-npx hyperframes render . --crf 23 -o renders/smaller.mp4
-```
-
-## Verify every render (do not skip)
-```
-ffprobe -v error -show_entries stream=width,height,r_frame_rate,duration -of default=nw=1 renders/<name>.mp4
-ffmpeg -v error -ss <t> -i renders/<name>.mp4 -frames:v 1 frames/<t>.png     # grab frames at key beats
-```
-Look at the frames: text readable and inside safe margins, nothing overlapping a face, correct fonts, CTA visible on the last frame. Fix and re-render before reporting.
-
-## Working method (from the kit's PDF guide, reworded)
-- **Base first, then one spot.** Get a base video you like, tweak it until nothing bothers you, then change one moment at a time. State the moment in words ("when I say 40 a week"), not seconds; the tool finds it in the audio. End every tweak with "keep everything else the same and render again to <path>".
-- **Give it the real thing.** Real numbers and real screenshots, otherwise it invents example ones (which conflicts with our honesty rule). Name the product image `product.png`.
-- **Vocabulary that works by name:** rise, pop, count-up, checklist tick, typewriter, slide-in, blur-in, punch-in (fast zoom for the line people should remember), reframe (footage shrinks into a card), bar fill.
-- **Knobs to turn after a render:** surface (glass vs solid), colour (give hex values), type (swap font, resize), motion (bouncier, overshoot), timing (appear at 2 s), layout (move, scale).
-
-## When something looks wrong
-| Symptom | Say / do |
+| Deliverable | HyperFrames skill |
 |---|---|
-| Wrong or fallback font | "Use the font file in the fonts folder." Keep fonts local. |
-| Text cut off on phones | "Keep all text inside the middle 80% of the width." |
-| A card covers captions | "Move every card above the caption area." |
-| A card is early or late | Speech-to-text can be up to ~1 s off on some clips. Name the word: "appear when I say 'sales'". |
-| File is huge | Film grain and 4K inflate size (a 15 s grain test was 124 MB). Re-render with `--crf 23` (about 69 MB in that test). |
-| Overlay has a solid background | Make the background transparent first, then export MOV/PNG. Frosted/blurred cards lose their blur with nothing behind them, so use a **solid** card for overlays. |
-| Still off | Describe what you see in plain words; it works better than technical terms. |
+| Promo, feature reveal or tour from a URL or product brief | `/product-launch-video` |
+| Explainer from text, no product capture | `/faceless-explainer` |
+| Short unnarrated animation (title, stat, chart, lower-third), roughly under 10 s | `/motion-graphics` |
+| Designed graphics over your own talking-head clip | `/talking-head-recut` |
+| Captions only, on existing footage | `/embedded-captions` |
+| Anything else, or longer multi-scene pieces | `/general-video` |
 
-Kit-reported measurements (author's Mac, not re-run here): the author's 90 s reel renders in under 2 minutes; tested on macOS, Windows not tested by the author.
+Start from `/hyperframes`: it interviews the owner, writes its own `BRIEF.md` at the project root, and routes. Our `launch/brief.md` (section 3) is input to that interview, not a replacement for it.
+
+## 2. Machine and project setup
+
+- Needs Node.js 22+ and FFmpeg/FFprobe. `npx hyperframes doctor` reports what is missing (`--json` for scripts; it always exits 0, so read its `ok` field). Docker matters only for `render --docker`; ignore other optional warnings.
+- Chrome missing: `npx hyperframes browser ensure`. FFmpeg installed off `PATH`: set `HYPERFRAMES_FFMPEG_PATH` and `HYPERFRAMES_FFPROBE_PATH`.
+- `npx hyperframes skills` installs the HyperFrames skill pack. Anything needing admin rights is the owner's to run; give the exact command.
+- New project: `npx hyperframes init <name> --resolution landscape` (or `portrait`, `square`; 4K variants exist). `init` also accepts `--video` and `--audio`. From a live site: `npx hyperframes capture <url>`; treat a non-zero exit, `ok: false` or a `BLOCKED.md` as a stop.
+- Expect this layout: `index.html`, `compositions/`, `assets/`, `renders/`, `hyperframes.json`, plus `BRIEF.md`, `STORYBOARD.md` and a design spec (`frame.md`, else `design.md`).
+- Fonts: ship the file and declare it with `@font-face`. A handful of families are pre-bundled; others are fetched at build time, which can fail in cloud renders.
+
+## 3. Brief pattern
+
+Write `launch/brief.md` before any build, in five parts:
+
+1. **Output:** length, canvas, fps, destination file.
+2. **Verbatim material:** script text, screenshot files, numbers. State that none of it may be reworded or invented.
+3. **Beats:** a time-coded outline, one idea per screen, a hook at the start, an end card with the call to action.
+4. **Look:** one style from `styles.md`, or the owner's brand values. One only.
+5. **Limits:** safe areas, minimum reading time, anything banned.
+
+Safe areas follow Studio's own guides: keep everything visible inside the central 90% of the frame, and captions and key text inside the central 80%.
+
+## 4. Recipes by deliverable
+
+- **Text-led vertical explainer (about 15 s).** One sentence per screen, large enough for a phone, held long enough to read twice. Wrap long sentences rather than shrinking them.
+- **Product reveal (landscape, about 12 s).** Name first, then three moments where the real product does something, then an end card. Use real screenshots or a faithful HTML rebuild of the real UI.
+- **Longer SaaS promo (up to about a minute).** Describe each screenshot in writing first. Zoom to the one region that matters, pair it with one customer-benefit line, leave screenshots unaltered.
+- **Graphics on your own footage.** Leave the clip as it is. Transcribe with `npx hyperframes transcribe clip.mp4 --model small.en`; always pass `--model`, and for non-English audio use `--model small --language <code>`, because the `.en` models translate. Add a graphic only where it earns its place, anchored to a spoken word, clear of faces and the caption band.
+- **Single-moment fix.** Name the words ("when I say ..."), say what to show, say "everything else unchanged", re-check, re-render.
+- **Transparent overlay.** Make the composition background transparent, then render `--format webm` or `--format mov`; `--format png-sequence` writes RGBA frames. Use solid cards: a blurred-glass card has nothing to blur on a transparent canvas (our reasoning, `(unverified)`).
+
+## 5. Sound
+
+Use `/media-use` rather than hand-collected files: `npx hyperframes media-use resolve --type sfx --intent "<what>" --project <dir>`. SFX search returns only CC0 or CC BY sounds; CC BY ones are credited in a `CREDITS.md` beside the files, and those credits travel with the video wherever it is published. Music search (`--type bgm`) needs the `heygen` CLI. Keep effects well under any voice. Voice: `--type voice` or `npx hyperframes tts`, with the consent and disclosure rules in `SKILL.md`.
+
+## 6. Check, review, render
+
+```
+npx hyperframes lint                       # quick feedback while editing
+npx hyperframes check --snapshots          # final gate: lint, runtime, layout, contrast; writes frames
+npx hyperframes snapshot --at 1,5,9        # stills at chosen seconds
+npx hyperframes preview --background       # Studio URL for the owner to review
+npx hyperframes render --quality draft -o renders/draft.mp4
+npx hyperframes render --quality delivery -o renders/final.mp4
+```
+
+Render only after the owner has reviewed the preview. Other documented flags: `--fps 24|30|60`, `--resolution` (for example `landscape-4k`), `--format mp4|webm|mov|gif|png-sequence|hls`, `--crf 0-51`, `--video-bitrate`, `--docker` for reproducible output. The render prints a summary; read its second line (capture path, GPU mode). If your tooling kills long commands, start the render detached with `HYPERFRAMES_RENDER_DETACHED=1`.
+
+## 7. Prove the output
+
+1. `test -s renders/final.mp4`, then `ffprobe -v error -show_format -show_streams renders/final.mp4`; compare duration and fps with the brief.
+2. Pull stills at the opening, each key beat and the last second with plain FFmpeg: `ffmpeg -v error -ss <seconds> -i renders/final.mp4 -frames:v 1 frames/<name>.png` `(unverified)`.
+3. Look at them: text readable and inside the 80% box, correct fonts, nothing over a face, CTA visible at the end, every claim backed by the real product.
+4. Record each font, track, sound and footage item in `launch/licences.md` with source, licence and whether credit is required. Then the owner plays the whole film.
+
+## 8. When it looks wrong
+
+| Symptom | Move |
+|---|---|
+| Fallback font | Add the `@font-face` for a shipped file, rerun `check`. |
+| Text clipped or crowded | Move it inside the 80% box; wrap rather than shrink. |
+| Graphic late or early | Re-anchor to the spoken word; compare transcript timing with the audio. |
+| Contrast or overlap findings | Read the `check` output and its crops before tuning by eye. |
+| Render slow or heavy | `--quality draft` while iterating; lower fps or resolution; `--crf` for file size. |
+| Render fails | `npx hyperframes doctor`, then `browser ensure`. |
+
+`npx hyperframes feedback` posts to a public channel: keep product names and absolute paths out, or disable reporting with `npx hyperframes telemetry disable`.
+
+## Unverified in this file
+
+- The blurred-card-on-transparent explanation.
+- The exact ProRes profile of `--format mov` (docs say ProRes for render, naming no profile).
+- The `ffmpeg -ss ... -frames:v 1` frame grab (standard FFmpeg, absent from the HyperFrames docs; section 7).
+- No timings, file sizes or render speeds are claimed; figures from the earlier source were dropped.
