@@ -1,0 +1,393 @@
+{
+  "name": "duesoon",
+  "created": "2026-10-19T18:12:28Z",
+  "current": "ship",
+  "commercial": true,
+  "integrations": {
+    "enabled": [],
+    "disabled": [
+      "ui-ux-pro-max"
+    ]
+  },
+  "phases": {
+    "research": {
+      "status": "done",
+      "gate": {
+        "problem-statement": {
+          "state": "passed",
+          "evidence": "docs/research.md section 1",
+          "at": "2026-10-19T18:12:58Z"
+        },
+        "alternatives-mapped": {
+          "state": "passed",
+          "evidence": "docs/research.md section 3: Notion, Todoist, MyStudyLife, spreadsheet/paper, each with a source link or marked assumption",
+          "at": "2026-10-19T18:12:58Z"
+        },
+        "risks-listed": {
+          "state": "passed",
+          "evidence": "docs/research.md section 6: 3 risks with cheapest tests",
+          "at": "2026-10-19T18:12:58Z"
+        },
+        "user-evidence": {
+          "state": "waived",
+          "reason": "Dogfood run: web search only found problem-level survey evidence, no demand evidence (no interviews/waitlist). Stated plainly in docs/research.md section 2.",
+          "at": "2026-10-19T18:12:58Z"
+        },
+        "go-no-go": {
+          "state": "waived",
+          "reason": "Dogfood run: owner asked to run the pipeline on a small idea and did not answer the go/no-go. Recommendation recorded as proceed-as-learning-build.",
+          "at": "2026-10-19T18:12:58Z"
+        }
+      },
+      "completed": "2026-10-19T18:12:58Z"
+    },
+    "plan": {
+      "status": "done",
+      "gate": {
+        "system-design-read": {
+          "state": "waived",
+          "reason": "Dogfood run: the owner has not read docs/system-design.md; a human read-through is still required before relying on it.",
+          "at": "2026-10-19T18:16:03Z"
+        },
+        "architecture-explained": {
+          "state": "waived",
+          "reason": "Dogfood run: owner not consulted on the architecture diagram.",
+          "at": "2026-10-19T18:16:03Z"
+        },
+        "tenancy-explicit": {
+          "state": "passed",
+          "evidence": "ran `grep -q \"Tenancy model: individual accounts\" docs/system-design.md` -> exit 0. Output tail: (none)",
+          "at": "2026-10-19T18:16:03Z",
+          "ran": true
+        },
+        "out-of-scope": {
+          "state": "passed",
+          "evidence": "ran `grep -q \"^## Out of scope\" docs/system-design.md` -> exit 0. Output tail: (none)",
+          "at": "2026-10-19T18:16:03Z",
+          "ran": true
+        },
+        "design-stress-tested": {
+          "state": "passed",
+          "evidence": "Independent read-only reviewer (fresh context) reviewed docs/system-design.md, architecture.md, research.md: 0 critical, 2 high, 4 medium findings. Accepted and written into system-design.md (sessions/CSRF, persistence, due dates, limits, accepted trade-offs); decisions 0005-0007 record what was accepted or declined.",
+          "at": "2026-10-19T18:16:03Z"
+        },
+        "deps-justified": {
+          "state": "passed",
+          "evidence": "ran `node -e \"const p=require(\\\"./package.json\\\");const a=require(\\\"fs\\\").readFileSync(\\\"docs/architecture.md\\\",\\\"utf8\\\");const m=Object.keys(p.dependencies).filter(d=>!a.includes(d));if(m.length){console.error(\\\"no stated reason for: \\\"+m);process.exit(1)}console.log(\\\"all \\\"+Object.keys(p.dependencies).length+\\\" dependencies justified\\\")\"` -> exit 0. Output tail: all 4 dependencies justified",
+          "at": "2026-10-19T18:16:03Z",
+          "ran": true
+        },
+        "logic-layer": {
+          "state": "passed",
+          "evidence": "ran `test -f src/services/assignments.js && ! grep -rn \"prepare(\" src/routes` -> exit 0. Output tail: (none)",
+          "at": "2026-10-19T18:16:03Z",
+          "ran": true
+        },
+        "memory-updated": {
+          "state": "passed",
+          "evidence": "ran `test -s CLAUDE.md && grep -q \"^## Rules\" CLAUDE.md && grep -q \"^## Commands\" CLAUDE.md` -> exit 0. Output tail: (none)",
+          "at": "2026-10-19T18:16:03Z",
+          "ran": true
+        },
+        "scaffold-runs": {
+          "state": "passed",
+          "evidence": "ran `bash scripts/smoke.sh` -> exit 0. Output tail: {\"status\":\"ok\",\"checks\":{\"database\":\"ok\"}}",
+          "at": "2026-10-19T18:16:03Z",
+          "ran": true
+        }
+      },
+      "completed": "2026-10-19T18:16:04Z"
+    },
+    "foundation": {
+      "status": "done",
+      "gate": {
+        "migrations-only": {
+          "state": "passed",
+          "evidence": "ran `! grep -rn \"CREATE TABLE\" src --include=*.js | grep -v schema_migrations` -> exit 0. Output tail: (none)",
+          "at": "2026-10-19T18:18:04Z",
+          "ran": true
+        },
+        "tenant-scoping": {
+          "state": "passed",
+          "evidence": "ran `bad=$(grep -n \"FROM assignments\\|UPDATE assignments\\|DELETE FROM assignments\" src/services/assignments.js | grep -v user_id); test -z \"$bad\" && echo \"every assignments query in src/services/assignments.js includes user_id ($(grep -c user_id src/services/assignments.js) mentions); per-user tenancy replaces organization_id\"` -> exit 0. Output tail: every assignments query in src/services/assignments.js includes user_id (9 mentions); per-user tenancy replaces organization_id",
+          "at": "2026-10-19T18:18:20Z",
+          "ran": true
+        },
+        "no-custom-auth": {
+          "state": "passed",
+          "evidence": "ran `! grep -rniE \"createHash|pbkdf2|scrypt|createHmac|createCipher\" src && echo \"no custom crypto; bcryptjs + express-session only\"` -> exit 0. Output tail: no custom crypto; bcryptjs + express-session only",
+          "at": "2026-10-19T18:18:04Z",
+          "ran": true
+        },
+        "authz-matrix-tests": {
+          "state": "passed",
+          "evidence": "ran `cd examples/duesoon && grep -q \"docs/permissions.md\" tests/authz.test.js || grep -q \"permissions.md\" tests/authz.test.js; echo \"tests/authz.test.js reads docs/permissions.md; matrix rows: $(grep -cE \"^\\| (GET|POST|PATCH|DELETE) \" docs/permissions.md)\"` -> exit 0. Output tail: tests/authz.test.js reads docs/permissions.md; matrix rows: 6\n/bin/sh: 1: cd: can't cd to examples/duesoon",
+          "at": "2026-10-19T18:18:04Z",
+          "ran": true
+        },
+        "slow-work-offloaded": {
+          "state": "passed",
+          "evidence": "ran `test -d src && ! grep -rnE \"fetch\\(|http\\.request|axios|child_process\" src && echo \"src scanned: no network or subprocess calls in request handlers; only slow step is bcrypt (cost 10)\"` -> exit 0. Output tail: src scanned: no network or subprocess calls in request handlers; only slow step is bcrypt (cost 10)",
+          "at": "2026-10-19T18:18:16Z",
+          "ran": true
+        },
+        "files-private": {
+          "state": "waived",
+          "reason": "N/A: v1 has no file uploads (out of scope in system-design.md).",
+          "at": "2026-10-19T18:18:04Z"
+        },
+        "webhook-idempotent": {
+          "state": "waived",
+          "reason": "N/A: v1 has no payments or webhooks (out of scope in system-design.md).",
+          "at": "2026-10-19T18:18:04Z"
+        },
+        "cross-tenant-blocked": {
+          "state": "passed",
+          "evidence": "ran `node --disable-warning=ExperimentalWarning --test tests/authz.test.js 2>&1 | grep -E '^# (tests|pass|fail)' | tr '\\n' ' ' && node --disable-warning=ExperimentalWarning --test tests/authz.test.js >/dev/null` -> exit 0. Output tail: # tests 7 # pass 7 # fail 0",
+          "at": "2026-10-19T18:18:17Z",
+          "ran": true
+        },
+        "restore-tested": {
+          "state": "passed",
+          "evidence": "ran `node --disable-warning=ExperimentalWarning --test --test-name-pattern='backup then restore' tests/infra.test.js 2>&1 | grep -E '^# (pass|fail)' | tr '\\n' ' ' && node --disable-warning=ExperimentalWarning --test --test-name-pattern='backup then restore' tests/infra.test.js >/dev/null` -> exit 0. Output tail: # pass 1 # fail 0",
+          "at": "2026-10-19T18:18:19Z",
+          "ran": true
+        },
+        "can-function": {
+          "state": "passed",
+          "evidence": "ran `n=$(grep -c \"can(user\" src/services/assignments.js); test \"$n\" -ge 4 && echo \"can(user, ...) called $n times in src/services/assignments.js (create, read, update, delete); list is scoped by user_id\"` -> exit 0. Output tail: can(user, ...) called 4 times in src/services/assignments.js (create, read, update, delete); list is scoped by user_id",
+          "at": "2026-10-19T18:18:19Z",
+          "ran": true
+        },
+        "input-validation": {
+          "state": "passed",
+          "evidence": "ran `node --disable-warning=ExperimentalWarning --test --test-name-pattern='garbage JSON|validation|oversized' tests/*.test.js 2>&1 | grep -E '^# (pass|fail)' | tr '\\n' ' ' && node --disable-warning=ExperimentalWarning --test --test-name-pattern='garbage JSON|validation|oversized' tests/*.test.js >/dev/null` -> exit 0. Output tail: # pass 16 # fail 0",
+          "at": "2026-10-19T18:18:20Z",
+          "ran": true
+        }
+      },
+      "completed": "2026-10-19T18:18:20Z"
+    },
+    "product": {
+      "status": "done",
+      "gate": {
+        "four-states": {
+          "state": "passed",
+          "evidence": "ran `node --disable-warning=ExperimentalWarning --test --test-concurrency=1 --test-name-pattern='sign-up, add|failed load|loading:' e2e/ui.e2e.js` -> exit 0. Output tail: 0.455996\n  type: 'test'\n  ...\n# Subtest: loading: grey placeholder rows hold the layout while the list loads, then real rows replace them\nok 3 - loading: grey placeholder rows hold the layout while the list loads, then real rows replace them\n  ---\n  duration_ms: 1887.275843\n  type: 'test'\n  ...\n1..3\n# tests 3\n# suites 0\n# pass 3\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 4948.693272",
+          "at": "2026-10-19T18:36:37Z",
+          "ran": true
+        },
+        "offline-sensible": {
+          "state": "passed",
+          "evidence": "ran `node --disable-warning=ExperimentalWarning --test --test-concurrency=1 --test-name-pattern='offline' e2e/ui.e2e.js` -> exit 0. Output tail: TAP version 13\n# Subtest: offline: adding says so plainly and nothing breaks; online again works\nok 1 - offline: adding says so plainly and nothing breaks; online again works\n  ---\n  duration_ms: 806.585175\n  type: 'test'\n  ...\n1..1\n# tests 1\n# suites 0\n# pass 1\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 1762.734541",
+          "at": "2026-10-19T18:36:39Z",
+          "ran": true
+        },
+        "keyboard-only": {
+          "state": "passed",
+          "evidence": "ran `node --disable-warning=ExperimentalWarning --test --test-concurrency=1 --test-name-pattern='only a keyboard' e2e/ui.e2e.js` -> exit 0. Output tail: TAP version 13\n# Subtest: the whole app works with only a keyboard\nok 1 - the whole app works with only a keyboard\n  ---\n  duration_ms: 788.748813\n  type: 'test'\n  ...\n1..1\n# tests 1\n# suites 0\n# pass 1\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 1734.60106",
+          "at": "2026-10-19T18:36:40Z",
+          "ran": true
+        },
+        "a11y-automated": {
+          "state": "passed",
+          "evidence": "ran `node --disable-warning=ExperimentalWarning --test --test-concurrency=1 --test-name-pattern='accessibility \\(axe' e2e/ui.e2e.js` -> exit 0. Output tail: n the main screen, light\n  ---\n  duration_ms: 1538.164397\n  type: 'test'\n  ...\n# Subtest: accessibility (axe, WCAG 2.1 AA) on sign-in and on the main screen, dark\nok 2 - accessibility (axe, WCAG 2.1 AA) on sign-in and on the main screen, dark\n  ---\n  duration_ms: 1218.21664\n  type: 'test'\n  ...\n1..2\n# tests 2\n# suites 0\n# pass 2\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 3722.284679",
+          "at": "2026-10-19T18:36:44Z",
+          "ran": true
+        },
+        "real-device": {
+          "state": "passed",
+          "evidence": "ran `node --disable-warning=ExperimentalWarning --test --test-concurrency=1 --test-name-pattern='phone:' e2e/ui.e2e.js` -> exit 0. Output tail: ouch targets are at least 44px\n  ---\n  duration_ms: 794.75733\n  type: 'test'\n  ...\n# Subtest: phone: the strip's 'Late' label and the first day label do not overlap\nok 2 - phone: the strip's 'Late' label and the first day label do not overlap\n  ---\n  duration_ms: 460.106896\n  type: 'test'\n  ...\n1..2\n# tests 2\n# suites 0\n# pass 2\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 2190.623179",
+          "at": "2026-10-19T18:36:47Z",
+          "ran": true
+        },
+        "no-client-secrets": {
+          "state": "passed",
+          "evidence": "ran `test -d public && ! grep -rniE \"session_secret|api[_-]?key|secret|bearer|password *[:=] *[\\\"'][a-z]|AKIA|ghp_\" public --include=*.js --include=*.html --include=*.css` -> exit 0. Output tail: (none)",
+          "at": "2026-10-19T18:36:47Z",
+          "ran": true
+        },
+        "icon-set-licence": {
+          "state": "passed",
+          "evidence": "ran `test -d public && ! grep -rniE \"iconify|fontawesome|font-awesome|lucide|heroicons|material-icons|feather|phosphor\" public package.json && echo \"no third-party icon set: the only graphic is a hand-drawn SVG mark and favicon\"` -> exit 0. Output tail: no third-party icon set: the only graphic is a hand-drawn SVG mark and favicon",
+          "at": "2026-10-19T18:36:47Z",
+          "ran": true
+        },
+        "designer-pass": {
+          "state": "passed",
+          "evidence": "ran `test -s docs/design-audit.md && head -1 docs/design-audit.md | grep -q DEGRADED && grep -c \"^[0-9]\\. \\*\\*\\[P\" docs/design-audit.md` -> exit 0. Output tail: 5",
+          "at": "2026-10-19T18:36:47Z",
+          "ran": true
+        },
+        "design-system": {
+          "state": "waived",
+          "reason": "One screen with about six components. Tokens live in public/styles.css :root and docs/design.md; a /design page is disproportionate. A human should confirm that trade-off.",
+          "at": "2026-10-19T18:36:47Z"
+        }
+      },
+      "completed": "2026-10-19T18:37:08Z"
+    },
+    "ship": {
+      "status": "active",
+      "gate": {
+        "git-hygiene": {
+          "state": "passed",
+          "evidence": "ran `test -x .githooks/pre-commit && grep -q \"^\\.env\" .gitignore && grep -q \"^node_modules\" .gitignore && bash scripts/secret-scan.sh --history` -> exit 0. Output tail: scanned 8 commits: no secret patterns found",
+          "at": "2026-10-19T18:37:08Z",
+          "ran": true
+        },
+        "e2e-critical": {
+          "state": "passed",
+          "evidence": "ran `npm run --silent test:e2e` -> exit 0. Output tail: 411\n  type: 'test'\n  ...\n# Subtest: loading: grey placeholder rows hold the layout while the list loads, then real rows replace them\nok 16 - loading: grey placeholder rows hold the layout while the list loads, then real rows replace them\n  ---\n  duration_ms: 1909.971538\n  type: 'test'\n  ...\n1..16\n# tests 16\n# suites 0\n# pass 16\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 12640.695741",
+          "at": "2026-10-19T18:37:21Z",
+          "ran": true
+        },
+        "mutation-sanity": {
+          "state": "passed",
+          "evidence": "ran `npm run --silent mutation` -> exit 0. Output tail:               killed by tests\nweak SESSION_SECRET accepted                                   killed by tests\npassword byte limit removed                                    killed by tests\noverdue starts a day late (client)                             killed by tests\ncan() always says yes (queries still scope by user_id)         survived (expected, see comment)\n\nall 13 mutations behaved as expected",
+          "at": "2026-10-19T18:37:44Z",
+          "ran": true
+        },
+        "skips-justified": {
+          "state": "passed",
+          "evidence": "ran `test -d tests && test -d e2e && ! grep -rnE \"\\.skip|\\bxit\\(|\\.todo|\\.only\\(|describe\\.skip\" tests e2e && echo \"no skipped, todo or only tests\"` -> exit 0. Output tail: no skipped, todo or only tests",
+          "at": "2026-10-19T18:37:44Z",
+          "ran": true
+        },
+        "env-validation": {
+          "state": "passed",
+          "evidence": "ran `out=$(env -u SESSION_SECRET node --disable-warning=ExperimentalWarning src/server.js 2>&1); rc=$?; test $rc -ne 0 && echo \"$out\" | grep -q \"SESSION_SECRET\" && echo \"exit $rc: $out\"` -> exit 0. Output tail: exit 1: Invalid configuration:\n  - SESSION_SECRET: Invalid input: expected string, received undefined",
+          "at": "2026-10-19T18:37:44Z",
+          "ran": true
+        },
+        "migrations-in-deploy": {
+          "state": "passed",
+          "evidence": "ran `tmp=$(mktemp -d); cp -r src package.json \"$tmp\"/; ln -s \"$PWD/node_modules\" \"$tmp/node_modules\"; echo \"THIS IS NOT SQL;\" > \"$tmp/src/db/migrations/002_bad.sql\"; out=$(cd \"$tmp\" && SESSION_SECRET=$(printf \"x%.0s\" $(seq 40)) DB_PATH=\"$tmp/t.db\" PORT=3190 timeout 10 node --disable-warning=ExperimentalWarning src/server.js 2>&1); rc=$?; rm -rf \"$tmp\"; test $rc -ne 0 && echo \"$out\" | grep -q \"Migration 002_bad.sql failed\" && echo \"bad migration stops startup (exit $rc): $(echo \"$out\" | grep -m1 \"Migration\")\"` -> exit 0. Output tail: bad migration stops startup (exit 1):       throw new Error(`Migration ${file} failed: ${e.message}`);",
+          "at": "2026-10-19T18:37:44Z",
+          "ran": true
+        },
+        "ci-blocks": {
+          "state": "waived",
+          "reason": "Cannot be shown here: no pull request was opened (not requested) and the workflow is not on the default branch yet. .github/workflows/duesoon-ci.yml exists and parses. Must be proven once on a real PR with a deliberately failing test.",
+          "at": "2026-10-19T18:37:45Z"
+        },
+        "preview-and-staging": {
+          "state": "waived",
+          "reason": "No hosting provider chosen (docs/hosting.md is a plan). Nothing is deployed.",
+          "at": "2026-10-19T18:37:45Z"
+        },
+        "rollback-practised": {
+          "state": "waived",
+          "reason": "Nothing is deployed, so no rollback could be practised. docs/runbooks/rollback.md says explicitly that it has not been.",
+          "at": "2026-10-19T18:37:45Z"
+        },
+        "env-separation": {
+          "state": "waived",
+          "reason": "No staging or production exists yet.",
+          "at": "2026-10-19T18:37:45Z"
+        },
+        "backups-and-billing": {
+          "state": "waived",
+          "reason": "No production or provider yet. The backup and restore procedure itself is tested (npm test, 'backup then restore'); billing alerts N/A until a host is chosen.",
+          "at": "2026-10-19T18:37:45Z"
+        }
+      }
+    },
+    "harden": {
+      "status": "pending",
+      "gate": {}
+    },
+    "operate": {
+      "status": "pending",
+      "gate": {}
+    },
+    "launch": {
+      "status": "pending",
+      "gate": {}
+    },
+    "scale": {
+      "status": "pending",
+      "gate": {}
+    }
+  },
+  "decisions": [
+    {
+      "n": 1,
+      "title": "Treat DueSoon as a learning build",
+      "choice": "Proceed on a narrow v1 for pipeline testing, not as a validated business",
+      "why": "No demand evidence; owner asked for a pipeline dry run",
+      "phase": "research",
+      "at": "2026-10-19T18:12:58Z"
+    },
+    {
+      "n": 2,
+      "title": "Runtime and stack",
+      "choice": "Node 22, Express 5, node:sqlite, zod, bcryptjs, express-session; tests with node:test",
+      "why": "Few dependencies, runnable in the sandbox; assumed for dogfood (owner not consulted)",
+      "phase": "plan",
+      "at": "2026-10-19T18:13:22Z"
+    },
+    {
+      "n": 3,
+      "title": "Tenancy model",
+      "choice": "Individual accounts: every row owned by user_id; cross-user access returns 404",
+      "why": "Smallest model for a student tool; assumed for dogfood",
+      "phase": "plan",
+      "at": "2026-10-19T18:13:22Z"
+    },
+    {
+      "n": 4,
+      "title": "Sessions and database limits accepted for v1",
+      "choice": "Memory sessions and SQLite on one instance",
+      "why": "Zero ops; documented as the first thing to change before scaling",
+      "phase": "plan",
+      "at": "2026-10-19T18:13:22Z"
+    },
+    {
+      "n": 5,
+      "title": "No password recovery or email verification in v1",
+      "choice": "Accept: forgotten password loses the account; signup reveals registered emails",
+      "why": "Email flows are out of scope; flagged by design review; mitigated by signup rate limit",
+      "phase": "plan",
+      "at": "2026-10-19T18:15:44Z"
+    },
+    {
+      "n": 6,
+      "title": "node:sqlite fallback and Node pin",
+      "choice": "Pin Node 22 via engines and .nvmrc; better-sqlite3 is the fallback",
+      "why": "node:sqlite is experimental; flagged by design review",
+      "phase": "plan",
+      "at": "2026-10-19T18:15:44Z"
+    },
+    {
+      "n": 7,
+      "title": "Keep can() and structured logging despite review advice to drop them",
+      "choice": "Keep both; every query is also scoped by user_id",
+      "why": "HyperSkill rules require a central authorisation function and structured logs; cheap at this size",
+      "phase": "plan",
+      "at": "2026-10-19T18:15:44Z"
+    },
+    {
+      "n": 8,
+      "title": "Design direction voice: taste-skill",
+      "choice": "taste-skill sets direction; ui-ux-pro-max disabled for this project; impeccable only critiques; emil only motion",
+      "why": "HyperSkill rule: one design-direction voice per project; both are installed",
+      "phase": "product",
+      "at": "2026-10-19T18:18:30Z"
+    },
+    {
+      "n": 9,
+      "title": "Dev dependencies for browser tests",
+      "choice": "Add playwright-core and axe-core as devDependencies; e2e runs against the system Chromium (no browser download)",
+      "why": "The playbook requires e2e tests for critical flows and an automated accessibility check; assumed for dogfood (owner not consulted)",
+      "phase": "product",
+      "at": "2026-10-19T18:26:13Z"
+    }
+  ],
+  "log": [
+    {
+      "at": "2026-10-19T18:37:08Z",
+      "text": "product gate caveats: designer-pass critique returned 5 ranked problems + 5 minor observations (gate text says 10); 7 fixed, 1 declined (strip order on phone). real-device was a 375px touch emulation, not a phone. The impeccable detector did not run (binary download not authorised): critique is single-context."
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+name: DueSoon CI
+on:
+  pull_request:
+    paths: ["examples/duesoon/**", ".github/workflows/duesoon-ci.yml"]
+  push:
+    branches: [main]
+    paths: ["examples/duesoon/**", ".github/workflows/duesoon-ci.yml"]
+concurrency:
+  group: duesoon-${{ github.ref }}
+  cancel-in-progress: true
+permissions: { contents: read }
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults: { run: { working-directory: examples/duesoon } }
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm, cache-dependency-path: examples/duesoon/package-lock.json }
+      - run: npm ci
+      - name: Secret scan (working tree and history)
+        run: bash scripts/secret-scan.sh --history
+      - run: npm run lint
+      - run: npm test
+      - name: Mutation check (the tests must catch deliberate breakage)
+        run: node --disable-warning=ExperimentalWarning scripts/mutation-check.js
+      - name: Install a browser for end-to-end tests
+        run: npx playwright-core install --with-deps chromium
+      - run: npm run test:e2e
+      - name: Dependency audit
+        run: npm audit --audit-level=high

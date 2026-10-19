@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>DueSoon</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="bar">
+  <a class="brand" href="/" aria-label="DueSoon home">
+    <svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="11" fill="none" stroke="currentColor" stroke-width="3"/><path d="M16 9v7.5l4.5 2.5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><circle class="mark-dot" cx="25.5" cy="6.5" r="3.2"/></svg>
+    <span>DueSoon</span>
+  </a>
+  <div class="who" id="who" hidden>
+    <span id="whoEmail" class="muted"></span>
+    <button type="button" class="text-btn" id="logout">Log out</button>
+  </div>
+</header>
+
+<main id="main" class="canvas">
+  <div class="title-row">
+    <h1 id="pageTitle">DueSoon</h1>
+    <p id="finding" class="sub" aria-live="polite"></p>
+  </div>
+
+  <section id="boot" class="boot" aria-live="polite"><p class="muted">Loading</p></section>
+
+  <section id="auth" class="auth" hidden aria-labelledby="pageTitle">
+    <div class="seg" role="group" aria-label="Sign in or create an account">
+      <button type="button" id="modeLogin" aria-pressed="true">Sign in</button>
+      <button type="button" id="modeSignup" aria-pressed="false">Create account</button>
+    </div>
+    <form id="authForm" novalidate>
+      <label for="email">Email</label>
+      <input id="email" name="email" type="email" autocomplete="email" required>
+      <label for="password">Password</label>
+      <input id="password" name="password" type="password" autocomplete="current-password" required>
+      <p class="hint" id="pwHint" hidden>At least 10 characters. There is no password reset in this version, so keep it somewhere safe.</p>
+      <p class="error" id="authError" role="alert" hidden></p>
+      <button class="primary" id="authSubmit" type="submit">Sign in</button>
+    </form>
+  </section>
+
+  <section id="home" hidden aria-labelledby="pageTitle">
+    <div class="block" id="stripBlock" hidden>
+      <h2>Next 14 days</h2>
+      <div id="strip" class="strip" role="img" aria-label=""></div>
+    </div>
+
+    <form id="addForm" class="add" novalidate aria-label="Add an assignment">
+      <div class="field grow"><label for="addTitle">Assignment</label><input id="addTitle" name="title" maxlength="120" autocomplete="off" required></div>
+      <div class="field"><label for="addCourse">Course <span class="muted">(optional)</span></label><input id="addCourse" name="course" maxlength="60" autocomplete="off"></div>
+      <div class="field"><label for="addDue">Due date</label><input id="addDue" name="dueDate" type="date" required></div>
+      <button class="primary" type="submit" id="addBtn">Add</button>
+    </form>
+    <p id="status" class="status" role="status"></p>
+
+    <div class="block list-block">
+      <div class="list-head"><h2 id="listTitle">Assignments</h2><span id="count" class="muted"></span></div>
+      <div id="listState"></div>
+      <ul id="list" class="list" aria-labelledby="listTitle"></ul>
+    </div>
+    <div class="danger-zone">
+      <button type="button" class="text-btn" id="deleteAccount">Delete my account</button>
+      <span id="deleteConfirm" hidden>
+        This permanently deletes your account and every assignment.
+        <button type="button" class="text-btn danger" id="deleteYes">Delete everything</button>
+        <button type="button" class="text-btn" id="deleteNo">Keep my account</button>
+      </span>
+    </div>
+  </section>
+</main>
+<script type="module" src="/app.js"></script>
+</body>
+</html>
