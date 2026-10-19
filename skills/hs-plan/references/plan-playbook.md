@@ -1,34 +1,50 @@
 # Plan playbook
 
-## Layer 1 - System design
+Use this alongside the steps in `hs-plan/SKILL.md`.
 
-**What it is:** the what and how-much before code: users, workflows, data and traffic expectations, what must never break, the trade-offs taken.
+## Pin down the requirements
 
-**Where agents go wrong:** they jump straight to code and invent requirements; they design for a toy (one user, no concurrency) or over-engineer; they ignore multi-tenancy.
+Produce `docs/system-design.md`. Interview the owner first, one topic at a time: users and roles, the few workflows that must work, who owns the data, what is stored and how sensitive it is, year-one load, billing, legal or regional rules, outside services.
 
-**Interview prompt (adapt, don't paste blindly):**
-> I'm building <one paragraph>. Do not write code. Interview me one group of questions at a time about: users and roles; the 3-5 core workflows; tenancy; data stored and its sensitivity; expected scale in year one; billing and plans; compliance and regional rules; third-party integrations. When I've answered, write `docs/system-design.md` with: problem statement, user roles, core flows, functional requirements, non-functional requirements (performance, availability, security), out of scope, open questions.
+Structure the document as: problem, roles, main flows, functional requirements, non-functional requirements (latency, availability, privacy), out of scope, open questions.
 
-**Stress-test prompt (for `hs-reviewer`):**
-> Read `docs/system-design.md`. Act as a skeptical staff engineer. Find missing requirements, ambiguous flows, scaling risks, security and privacy risks, and anything over-engineered for this stage. Rank by severity. Propose the simplest design that meets the requirements. Do not edit the file; return a list.
+Checks:
+- **Tenancy is stated in one sentence** (individual, team or organisation). It changes every table and every query later, so do not leave it implied.
+- **Out of scope is a real list.** Without it, every later session adds features nobody asked for.
+- Anything you guessed goes under open questions, not into the requirements.
+- The owner has read the whole file and can say back what the product does and for whom.
 
-**Capacity prompt:**
-> From the design, estimate for year one: peak requests per second, database size, file storage, background-job volume. Show the maths. Name the first component to become a bottleneck.
+## Attack your own design
 
-**Verify:** the file exists and the owner read it; tenancy is written; there is an out-of-scope section (without one the agent keeps adding features).
+Hand the design to `hs-reviewer` with this brief:
 
-## Layer 2 - System architecture
+> Read `docs/system-design.md` cold. List what is missing, which flows are ambiguous, where load or data volume would hurt, where one customer's data could reach another, and what is heavier than this stage needs. Order findings by impact. Do not edit anything.
 
-**What it is:** the concrete building blocks - services, how they talk, where data lives, what runs in the background, which third parties are used.
+For each finding, either change the design or write "accepted" with a reason. Silence is not acceptance.
 
-**Where agents go wrong:** choose whatever was most common in training data; add dependencies freely; mix concerns; do slow work inside requests.
+## Size it on paper
 
-**Owner decisions:** modular monolith vs services (default: modular monolith); managed vs self-hosted (default: managed); language/framework the owner can maintain.
+Estimate year-one numbers from the stated user count: peak requests per second (daily requests over 86,400 seconds, times a peak factor you state), database size, stored files, background work per day. Show the arithmetic and name the component most likely to saturate first. Tiny numbers justify a simple architecture; say so.
 
-**Architecture prompt:**
-> Read `docs/system-design.md`. Propose an architecture for a solo/small team with low ops burden and easy debugging; prefer a modular monolith. Give: a Mermaid component diagram; stack per layer with one rejected alternative each; repo folder structure; where background jobs run; third-party services with cost at our scale; the 3 riskiest decisions. Write to `docs/architecture.md`. No code yet.
+## Shape the architecture
 
-**Scaffold prompt:**
-> Scaffold exactly per `docs/architecture.md`: folder structure, strict typing, linter, formatter, `.env.example` documenting every variable, a README with setup steps, and `/api/health`. No features. Start the dev server and call the health endpoint to prove it.
+Write `docs/architecture.md` before any code. Include:
+- a Mermaid diagram of components and the arrows between them;
+- one choice per concern (language, framework, database, auth, hosting, jobs), each beside the alternative you rejected and why;
+- the repository layout;
+- where slow or retryable work runs (email, exports, webhooks);
+- paid third-party services, with cost flagged as an estimate;
+- the three decisions that would hurt most to reverse.
 
-**Verify:** the owner can explain every box; each dependency has a reason; logic is in a dedicated layer (`services/`, `domain/`), not in UI or route files.
+Defaults: a modular monolith, managed services, and a stack the owner can maintain. Record each significant choice as a decision record (context, options, choice, consequences) via `hyperskill.py decide`.
+
+Test: the owner can explain every box and every arrow without help. If they cannot, simplify or teach before moving on.
+
+## Keep dependencies and layers honest
+
+- Every entry in the package manifest gets a one-line reason in the architecture doc or a decision record. Remove duplicates that do the same job.
+- Business rules live in a service or domain module. Route handlers and UI components call it; they do not contain it.
+
+## Scaffold and prove it boots
+
+Create the folders, strict typing, linter, formatter, a fully commented `.env.example`, a README with setup steps, and a `/api/health` route. No product features. Start the dev server, call the endpoint, and paste the response as evidence. Then write `CLAUDE.md` from the template: stack, rules, commands, links to the docs and decisions.

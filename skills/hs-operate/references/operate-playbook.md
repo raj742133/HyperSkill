@@ -1,25 +1,61 @@
-# Operate playbook (layers 13-14)
+# Operate reference
 
-## Layer 13 - Error tracking and logs
+How to learn something is wrong before a customer emails, and what to do next. Named tools are examples; the owner chooses.
 
-Prompts:
+## 1. Logs you can follow
 
-> Replace all console.log/print calls with a structured logger (JSON; debug, info, warn, error). Every request gets a request ID included in every log line and returned in a response header. Every line includes user_id and organization_id when available. Automatically redact password, token, secret, authorization, and <personal fields>. Debug level is off in production. Show an example log line for a request.
+- One JSON logger with debug / info / warn / error. No bare `print` or `console.log` in application code.
+- Middleware assigns a request ID, stamps it on every line for that request and returns it in a response header, so a support ticket quoting the header leads to the whole story.
+- Add `user_id` and `organization_id` when known.
+- Redact by key name (password, token, secret, authorization, cookie, plus the project's personal fields) inside the logger, not at call sites.
+- Production runs at info or above; set retention to match the privacy policy.
 
-> Integrate <Sentry> on frontend and backend. Attach user_id, organization_id and request ID to every error (no emails or personal data without approval). Upload source maps but don't serve them publicly. Separate staging and production. Add a staging-only route that throws so I can verify delivery.
+Example for the evidence:
 
-> Find every empty or overly broad catch block, ignored promise rejection, and place where an error is caught but not logged or rethrown. Fix them so errors are handled meaningfully or reported. Users see a friendly message; full detail goes to error tracking.
+```json
+{"ts":"2026-03-02T10:14:07Z","level":"info","req":"b7f3c1","user_id":"u_42","org_id":"o_9","msg":"invoice.created","ms":38}
+```
 
-Verify: a staging error shows in the tracker with a readable stack trace within a minute; a request ID from a response header finds every log line for that request; searching logs for "password" returns zero results.
+## 2. Errors
 
-## Layer 14 - Monitoring and alerts
+- Tracker in browser and server code, with separate staging and production environments.
+- Tag events with request, user and organisation IDs; no emails or personal data unless approved.
+- Upload source maps to the tracker; never serve them publicly.
+- Add a staging-only route that throws; confirm a readable stack trace arrives within a minute.
+- Sweep for swallowed failures: empty `catch`, handlers that only return a default, floating promises, errors logged without context. Handle each deliberately or report it. Users see a short human message; the tracker gets the detail.
 
-> Write `docs/monitoring.md` defining: uptime checks for homepage, login, `/api/health` and <core workflow endpoint>; technical metrics (error rate, p95 latency per endpoint, DB connections, job queue depth and failure rate); business metrics (signups, active orgs, successful and failed payments); alert rules with threshold, duration, severity and who is notified. Only alert on things that need a human.
+## 3. Health endpoints
 
-> Upgrade `/api/health` to verify DB, cache and job-system connectivity with timeouts and component-level status. Keep a lightweight `/api/health/live` for the load balancer that only confirms the process is up.
+- `/api/health` (readiness): checks database, cache and job queue, each with a short timeout, returns status per component and HTTP 503 when a required one fails.
+- `/api/health/live` (liveness): 200 if the process answers, touching no dependency, so a database blip does not cause healthy instances to be killed.
 
-> For each alert in `docs/monitoring.md` write a runbook in `docs/runbooks/`: what it means, how to check impact, likely causes, step-by-step fixes, when to escalate. Link each alert to its runbook.
+## 4. What to watch
 
-> Set up a simple public status page and write `docs/runbooks/incident.md`: how to declare an incident, how to communicate with customers, and a template for a short post-incident review.
+Write `docs/monitoring.md`.
 
-Verify: stop the staging database and an alert reaches you within the defined time; every alert has a runbook; someone looks at the dashboard at least weekly (put it in a calendar).
+- **Outside probes**: home page, sign-in, health endpoint, and one request that exercises the core workflow.
+- **Technical**: error rate, p95 latency per route, database connections, queue depth, job failures, disk and memory.
+- **Business**: signups, active organisations, successful versus failed payments. A drop here often comes before any technical alarm.
+- **Alert table**: signal, threshold, sustained for how long, severity, recipient and channel, runbook link.
+
+Page a person only for what needs a person now; send the rest to a digest. An alert that fires twice with no action gets deleted or retuned. Define "down" and "degraded" for this product, and an availability target the owner picks.
+
+## 5. Runbooks
+
+One file per alert in `docs/runbooks/`, same skeleton:
+1. What the alert means
+2. Who is affected and how to check
+3. Likely causes, commonest first
+4. Fix steps, copy-pasteable
+5. Escalation: when and to whom
+6. How to confirm recovery
+
+## 6. Incidents
+
+- A public status page the owner can update without a deploy.
+- `docs/runbooks/incident.md`: how to declare one, who leads and who talks to customers, update cadence, where notes go.
+- Afterwards, a short blameless review: timeline, impact, cause, what detection missed, actions with owners and dates.
+
+## Prove it
+
+Trace one request ID through the logs; search logs for "password" and a real token, finding nothing; trigger the staging error; stop the staging database and note when the alert reached a human; follow each alert's runbook link. Put a weekly dashboard look in a calendar.

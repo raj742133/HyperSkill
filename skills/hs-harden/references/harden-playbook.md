@@ -1,45 +1,72 @@
-# Harden playbook (layers 10-12)
+# Harden reference
 
-## Layer 10 - Security
-Agents build what you ask without thinking like an attacker; trust user input in queries, HTML, file paths and redirects; log sensitive data; add outdated packages; leave debug routes on.
+The code does what was asked; this phase asks what a hostile or careless outsider could make it do. Tools named here are examples of a category; the owner chooses.
 
-Threat model prompt:
-> Create `docs/security/threat-model.md`. List assets (data, accounts, payments) and entry points (every endpoint, upload, webhook, form). For each entry point list relevant OWASP Top 10 threats, rate likelihood and impact, and list mitigations we have and are missing.
+## 1. Threat model
 
-Review prompt: see `security-review.md` (run in a fresh context, report only).
+`docs/security/threat-model.md`, one row per entry point:
 
-Dependency prompt:
-> Run a dependency vulnerability audit. List vulnerable packages with severity and whether we actually use the vulnerable code path. Upgrade what's safe; explain what can't be upgraded. Set up automated dependency-update PRs (Dependabot or Renovate) and add the audit to CI.
+| Entry point | Asset reached | Threat (OWASP Top 10 category) | Likelihood | Impact | In place | Missing |
+|---|---|---|---|---|---|---|
 
-Data protection prompt:
-> Implement: encryption at rest for <fields>; redaction of passwords, tokens and personal data from all logs; account deletion that removes or anonymises the user's data; a data-export feature so users can download their data.
+- Assets: personal data, credentials, payment details, uploads, admin powers, money spent on paid APIs.
+- Entry points: every route, form, upload, webhook receiver, and any feature that accepts a URL.
+- Rate likelihood and impact low / medium / high; fix high-high rows first.
+- Update it whenever an entry point is added.
 
-Verify: independent reviewer ran it; script payload in every text field executes nothing; logs contain no emails, tokens or passwords.
+## 2. Hostile input
 
-## Layer 11 - Rate limiting
-Agents don't add it unless asked; use in-memory counters that reset on deploy and don't span servers; apply one global limit.
+- Paste a script tag and an attribute-breaking string (`"><img src=x onerror=alert(1)>`) into every text field, then open every screen that shows it. Nothing may run. Record the fields and screens tried.
+- While signed in, request another tenant's IDs; expect 404.
+- Send oversized, mistyped and empty bodies; expect a clean 400, never a stack trace.
+- Use parameterised queries. Any string-built query, shell call or file path containing user input is a defect.
 
-Prompt:
-> Implement rate limiting with a shared store (Redis/Upstash) so it works across instances. Limits: login/signup/password-reset <N per 15 min per IP and per email>; expensive endpoints <list> <N per minute per org>; general API <N per minute per user>; unauthenticated <N per minute per IP>. Return 429 with Retry-After in our standard error format. Configurable per plan. Write tests that exceed each limit.
+## 3. Dependencies
 
-Cost protection prompt:
-> We call <paid API>. Add per-org daily/monthly quotas tied to plan; usage tracking in the database; a hard global spending cap that disables the feature; an alert at 80% of an org's quota or the global cap; a usage page in the UI.
+1. Run the ecosystem's audit command (`npm audit`, `pip-audit`, `cargo audit`).
+2. Per hit record: package, severity, whether our code reaches the vulnerable function, decision (upgrade, replace, or accept with a revisit date).
+3. Enable automated update pull requests (Dependabot, Renovate) and run the audit in CI so a new advisory fails a build.
+4. Commit lockfiles; pin CI actions.
 
-Abuse review prompt:
-> Review our public surface for abuse: signup spam, email sending abuse (invites, resets), user enumeration via error messages, scraping of public pages, flood-able webhook endpoints. Propose protections for each, including bot protection on signup.
+## 4. Sensitive data
 
-Verify: 20 rapid logins get blocked; limits survive a redeploy; wrong password and no such user give the same message.
+- Classify fields as public, internal or sensitive; encrypt sensitive ones at rest with keys held outside the database.
+- Keep passwords, tokens and personal data out of logs, error pages and analytics.
+- Offer account deletion (remove or anonymise rows) and a download of the user's own data.
+- Confirm the client bundle and git history hold no secrets.
 
-## Layer 12 - Caching and CDN
-Agents cache too aggressively (stale or, worse, another tenant's data), cache nothing, forget invalidation, serve huge images.
+## 5. Throttling
 
-Strategy prompt:
-> Propose caching in `docs/caching.md`. For each candidate (static assets, public pages, API responses, expensive queries, third-party results) specify where it's cached (browser, CDN, server, Redis), TTL, cache key, and how it's invalidated. Rules: any cache of tenant data includes `organization_id` in the key; authenticated responses are never cached at a shared CDN layer.
+Counters live in a store shared by all instances (Redis or managed equivalent); in-process counters vanish on deploy and multiply per server.
 
-CDN prompt:
-> Serve static assets from a CDN with long lifetimes and content-hashed filenames. Optimise images (modern formats, responsive sizes, lazy loading). Set correct Cache-Control for static assets, public pages and authenticated API responses (private / no-store where needed). Show the headers for one example of each.
+| Surface | Key | Posture |
+|---|---|---|
+| Login, signup, reset | IP and target email | Tightest: a few tries per quarter hour |
+| Costly endpoints (export, search, AI) | Organisation | Per minute and per day |
+| Authenticated API | User | Generous |
+| Anonymous pages | IP | Moderate |
 
-App cache prompt:
-> Add Redis caching for <slow operations> using cache-aside with keys that include `organization_id`. Invalidate on every write that affects the data. Add a way to bypass the cache for debugging. Tests: cache invalidated on update; two orgs never receive each other's cached data.
+Answer 429 with `Retry-After` in the standard error shape; make numbers configurable per plan; normalise keys (trim, lowercase) so padding an email cannot buy a fresh budget. Test every limit, redeploy, test again.
 
-Verify: two browsers logged into different orgs never see each other's data even after refreshes; an update shows up immediately (or within the agreed TTL); Lighthouse run on main pages.
+## 6. Spend limits
+
+Per paid API: a per-organisation quota tied to the plan, usage stored in your database, a global ceiling that switches the feature off, a notice at 80%, and a customer usage screen. Also set a cap in the provider's console so your own bug cannot run up the bill.
+
+## 7. Abuse paths
+
+Ask "who profits from misusing this?" of each public feature: mass signups, invite or reset mail sent to strangers, account enumeration (messages and timing), scraping, unauthenticated webhooks that trigger work. Add a bot check at signup if spam is plausible.
+
+## 8. Caching
+
+`docs/caching.md`, one row per cached item: what, layer (browser, CDN, server, Redis), TTL, key, invalidation trigger.
+
+- Keys holding tenant or user data contain that ID.
+- A response that depends on the caller never enters a shared cache; send `private` or `no-store`.
+- Static files: content-hashed names, long lifetime. HTML: not.
+- Cache-aside with every write path deleting or updating the key, plus a debug bypass.
+
+Tests: update then read returns fresh data; two organisations with the same query never see each other's entries.
+
+## Done when
+
+Reviewer report saved and triaged; injection probe recorded; audit output attached; 20 fast logins blocked before and after a redeploy; unknown user and wrong password read identically; two-tenant cache test passes.

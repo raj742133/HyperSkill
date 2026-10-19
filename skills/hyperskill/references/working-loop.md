@@ -1,30 +1,46 @@
-# Working loop for every task (all build phases)
+# Working loop for build tasks
 
-Condensed from a beginner "vibe coding" guide the owner supplied, in our own words.
+This is how a single piece of work proceeds in any build phase. The orchestrator's rules in `hyperskill/SKILL.md` still apply.
 
-## Project files the agent reads first
-`CLAUDE.md` (rules, stack, commands) - `docs/system-design.md` (what and why, incl. **out of scope**) - `docs/architecture.md` (how) - `docs/design.md` (look and feel) - `docs/decisions/` (permanent choices) - `TASKS.md` (what next) - `MEMORY.md` (current state: done, in progress, known issues, next step) - `docs/test-plan.md` and `docs/security.md` once those phases start.
-Rule: **decisions are permanent and logged once; memory is the current state and is rewritten every session.** Update both when reality changes, or the next session works from fiction.
+## Two kinds of project memory
 
-## Start of a session
-Read the files above. Do not change anything. State: what the product is, the architecture, the rules, the current task, what information is missing, and the plan for the task. Wait for a yes before coding anything large.
+| Kind | Files | Changes |
+|---|---|---|
+| Durable choices | `docs/decisions/` (written by `hyperskill.py decide`) | Added once, superseded rather than edited |
+| Current state | `MEMORY.md` (done, in progress, known problems, next step) and `TASKS.md` (queue) | Rewritten at the end of every session |
 
-## One task, one loop
-read -> understand -> plan -> implement -> test -> review -> fix -> commit -> update `TASKS.md` and `MEMORY.md`.
-- Tasks are small (one screen, one rule, one endpoint). "Build authentication" is too big; "create the signup form UI, no logic yet" is right.
-- Prefer **vertical slices**: one complete user flow (create -> save -> display, then edit, then delete) over layer by layer. Failures are easier to locate.
+Alongside them: `CLAUDE.md` (rules, stack, commands), `docs/system-design.md` (including out of scope), `docs/architecture.md`, `docs/design.md` once a UI exists, and the test and security docs once those phases begin. A stale memory file is worse than none, because the next session will believe it.
 
-## Structured task prompt
-CONTEXT (which docs apply) - TASK (one thing) - FILES (where to look) - CONSTRAINTS (follow architecture, reuse components, no unrelated edits, validate input) - ACCEPTANCE CRITERIA (observable, testable) - TESTING (what to run). Finish with the closing report in `hyperskill/SKILL.md` section 3.
+## Opening a session
 
-## Debugging prompt
-Give: the error text, expected behaviour, actual behaviour, reproduction steps, constraints (e.g. no schema change). Then **diagnose before editing**: what fails, why, which file, the smallest fix, how it will be tested. Implement only that fix, add a test that failed before it, run the relevant tests.
+Read before touching anything. Then tell the owner, in a few lines: what the product is, the architecture in brief, the rules that apply, the task at hand, what you still do not know, and your plan. For anything large, wait for a go-ahead.
 
-## Review pass
-Check the change against the PRD/design, architecture, design system, rules, test plan and security docs: correctness, architecture, security, error handling, accessibility, responsiveness, performance, duplication. Report first, fix one at a time. Use `hs-reviewer` so the reviewer is not the author.
+## Sizing the task
 
-## Beginner / lite profile
-For a small learning project, start with only: requirements doc (with out-of-scope), rules (`CLAUDE.md`), `TASKS.md`, README, `.env.example`. Add architecture, design, test plan, security, decisions and memory files as the project grows. The gates still apply to anything real users will touch; lite means fewer documents, not weaker checks.
+A good task fits in one sitting and has an observable result: "the signup form renders and shows validation messages" rather than "build accounts". Prefer a **vertical slice**, meaning one thin path through every layer (create, store, show; then edit; then delete) over finishing a whole layer first. When something breaks you will know which slice caused it.
+
+## The cycle
+
+understand -> plan -> implement -> test -> review -> fix -> commit -> update `TASKS.md` and `MEMORY.md`
+
+Commit once per concern, on a branch. If the task grows while you work, stop, commit what is coherent, and split the rest into new entries in `TASKS.md`.
+
+## Briefing yourself or a subagent
+
+Write the task down in these parts: which docs apply; the single thing to do; where in the code to look; limits (follow the architecture, reuse existing components, no unrelated edits, validate input); how the owner will recognise success; which commands to run. End with the closing report from `hyperskill/SKILL.md` section 3.
+
+## Debugging
+
+Collect the exact error text, what should happen, what does happen, the steps to reproduce, and any limits on the fix. Explain the cause before editing: which file, why it fails, the smallest change, how you will test it. Then make only that change, with a test that fails without it, and run the nearby tests.
+
+## Review
+
+Compare the change with the design, architecture, rules and any test or security notes. Look at correctness, structure, security, error handling, accessibility, responsive behaviour, performance and copy-pasted logic. List findings first and fix them one at a time. Use `hs-reviewer` so that the author is not the judge.
+
+## Lite profile
+
+For a small learning project keep only: a requirements note with out-of-scope, `CLAUDE.md`, `TASKS.md`, a README and `.env.example`. Add the other documents when the project needs them. Lite means fewer files; the gates stay as strict for anything real users will touch.
 
 ## Environments
-Local -> preview -> QA -> production, with separate env values per environment. Production is never the first place a change is tested; after deploy, test the live URL (refresh, direct URLs, logged-out access, invalid input, slow network, empty data, wrong credentials).
+
+Changes move from local to preview to production (add a QA step if the team has one), each with its own configuration. Production is never the first place something runs. After a release, open the live URL and try a hard refresh, a deep link, a logged-out visit, invalid input, an empty account, wrong credentials and a throttled connection.

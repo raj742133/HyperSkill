@@ -1,59 +1,61 @@
 # Foundation playbook
 
-Condensed working notes for layers 3-5. Prompts are starting points; adapt them to the project's stack and docs.
+Working notes for the backend phase. The section order here is not the build order; `hs-foundation/SKILL.md` gives that. Adapt every example to the project's stack and tenancy model (swap `organization_id` for `user_id` in a per-user product).
 
-## Layer 3 - Databases and storage
+## Identity: who is calling
 
-Typical agent mistakes: no migrations; no indexes (fine at 100 rows, slow at 100k); missing `organization_id` (cross-customer leaks); files stored in the DB or public; no backups, no soft deletes, no timestamps.
+Use a maintained provider or library. Writing your own password hashing, token signing or session store is a reason to stop and ask the owner, not a shortcut.
 
-Schema prompt:
-> From `docs/system-design.md` design the schema. Multi-tenant: every tenant table has `organization_id` with an FK. Every table has `id` (UUID), `created_at`, `updated_at`. Soft delete (`deleted_at`) where recovery matters. Index every FK and every column we filter or sort by. Use NOT NULL / UNIQUE / CHECK constraints instead of app-code checks. Money as integer minor units. Output: Mermaid ERD, the schema in our ORM format, an explanation of each index. Don't run migrations yet.
+Cover: signup, login, logout, email verification, password reset with an expiring single-use token, session lifetime, and revoking sessions when a member is removed or a password changes. Middleware resolves the signed-in user and their current organisation once per request and puts both on the request context; handlers read them from there, never from the request body.
 
-Seed prompt:
-> Create the initial migration from the approved schema. Write a seed that creates 2 organisations with 3 users each plus realistic data so tenant isolation can be tested. Run both against the local DB and show the output.
+Auth failures should not reveal which half was wrong: one message for "bad password" and "no such account".
 
-Storage prompt:
-> Implement uploads with <S3/R2/Supabase Storage>: private by default; pre-signed direct uploads; validate type and size before issuing the URL; store only key + metadata; short-lived signed downloads after an authorisation check; paths scoped by `organization_id`. Tests: wrong type, too large, other-org download.
+Check: grep the codebase for hashing primitives (bcrypt, argon2, scrypt, pbkdf2, sha) outside the auth library's configuration; expect nothing.
 
-Query review prompt (run later too):
-> Review every database query. Flag N+1, queries with no supporting index, `SELECT *` where few columns are needed, list endpoints without pagination, and any tenant-table query lacking `organization_id`. Table: file, line, problem, fix. Fix the high-severity ones.
+## Access control: what they may do
 
-Verify: all schema changes are migrations; fetching Org B's data as Org A by changing an ID in a request fails; a backup has been restored at least once.
+1. Write a role-by-action table in `docs/permissions.md`. Begin with few roles (Owner, Admin, Member, Viewer) and add only when a real need appears.
+2. Implement one function, `can(user, action, resource)`. Every endpoint calls it; no inline `if role === ...`.
+3. A resource check always includes "belongs to the caller's organisation". Being logged in proves nothing about ownership.
+4. Return **404**, not 403, when the resource belongs to another tenant, so existence is not revealed. Use 403 only when the caller can see the resource but lacks the right.
+5. Generate tests from the table, one per endpoint, role and outcome: no credentials gives 401, a role without the right gives 403, someone else's tenant gives 404, an allowed role succeeds. Store the table in a data structure the tests iterate over, so a table change cannot silently diverge from the tests.
 
-## Layer 4 - Auth and permissions
+Team lifecycle to test: invite (with expiry), accept, change role, remove, transfer ownership, leave. Rules: the last owner cannot leave or be demoted; expired invites fail; a removed member's next request fails.
 
-Authentication = who you are. Authorisation = what you may do, and on whose data.
+## Data model and migrations
 
-Typical mistakes: custom password hashing; permission checks only in the frontend; checking login but not ownership; no email verification, no reset expiry, no session revocation.
+Draw the entity diagram (Mermaid) first and let the owner look at it, then write the schema.
 
-Auth prompt:
-> Implement authentication with <provider>. Do not hand-roll hashing or sessions. Include signup, login, logout, email verification, password reset, Google login, session expiry. Protect every route under `/app` and `/api` except <public routes>. Add middleware attaching current user and organisation to each request.
+- Tenant-owned tables carry the tenant column with a foreign key and an index; unique constraints usually include it.
+- Primary key, `created_at`, `updated_at` everywhere. Add `deleted_at` only where users could reasonably ask for undo.
+- Put rules in the database: `NOT NULL`, `UNIQUE`, `CHECK`, foreign keys. Application checks can be bypassed by the next script.
+- Index foreign keys and anything used in `WHERE` or `ORDER BY`; confirm with `EXPLAIN` on realistic row counts.
+- Store money as integer minor units plus a currency code.
+- Every change, however small, is a migration file in version control. Never alter a shared database by hand. Do not edit a migration that has already run elsewhere; add a new one.
+- Seed two organisations with three users each so isolation can actually be exercised.
 
-Authorisation prompt:
-> Design RBAC for <roles>. (1) Write the role x action matrix to `docs/permissions.md`. (2) Implement one central `can(user, action, resource)` used by every endpoint; no ad-hoc role checks. (3) Every read/write of a tenant resource verifies its `organization_id` equals the user's current organisation. (4) The frontend hides disallowed actions but the server is the source of truth.
+Isolation proof: log in as a member of org A, request an org B record by its real ID, and expect 404. Keep that as an automated test and paste its output.
 
-Authorisation tests prompt:
-> For every endpoint write integration tests: unauthenticated -> 401; authenticated without permission -> 403; user from Org A requesting Org B's resource by ID -> 404; each role can do exactly what `docs/permissions.md` says and nothing more. Generate them from the matrix so they stay in sync.
+## Uploaded files
 
-Team features prompt:
-> Implement invite by email, accept, change role, remove member, transfer ownership, leave. Edge cases: last owner can't leave; invites expire in 7 days; removed members lose access immediately (revoke sessions).
+Treat every upload as hostile and private. Store objects in a non-public bucket under a path that includes the tenant ID. Check declared type and size before issuing an upload URL, ideally also inspect the content afterwards. Keep only the object key and metadata in the database. Serve downloads through short-lived signed URLs, issued only after `can()` approves. Tests: disallowed type, oversized file, another tenant's download.
 
-Verify: change a resource ID in DevTools to another org's -> 404; a Viewer calling a delete endpoint directly -> 403; no file contains custom password-hashing code.
+## The request boundary
 
-## Layer 5 - APIs and backend logic
+Write `docs/api-conventions.md` and refactor to it: naming, one error body shape with stable codes, schema validation on every input at the edge, cursor pagination for lists, which status code means what, and how handlers obtain user and tenant. Handlers parse, authorise, call a service and format; the service holds the rules.
 
-Typical mistakes: trusting client input; inconsistent error formats; slow work inside requests; non-idempotent payment/webhook handling; unpaginated lists.
+Check: send malformed JSON, wrong types and oversized values to each endpoint. Expect 400 in the standard shape, with no stack trace, SQL or file path.
 
-Conventions prompt:
-> Write `docs/api-conventions.md` and a summary in `CLAUDE.md`: URL/naming style; one error format with codes; validation (<Zod/Pydantic>) on every input at the boundary; cursor pagination for all lists; how auth and org context are read in a handler; which HTTP status codes and when. Then refactor existing endpoints to match.
+## Work that should not block a request
 
-Feature endpoint prompt:
-> Build the API for <feature>. Follow the conventions and permissions docs. Logic in `/services`, thin handlers; validate every input; authorise every operation via `can()`; scope every query by `organization_id`; cursor pagination on lists. Unit tests for services; integration tests per endpoint including permission and cross-tenant cases.
+Anything slow, retryable or dependent on a third party (email, exports, outbound calls) goes to a queue. Jobs must be safe to run twice, retry with backoff and a cap, log failures with the job ID and tenant, and leave failed jobs somewhere a person can see them. Time a representative request; over about one second needs either a stated reason or a job.
 
-Jobs prompt:
-> Set up background jobs with <tool>. Move <emails, exports, third-party calls> out of the request path. Jobs must be idempotent, retry with exponential backoff, have a max retry count, log failures with context, and failed jobs must be visible.
+## Payments and webhooks, if the product charges
 
-Payments prompt:
-> Integrate <Stripe/Razorpay> subscriptions for <plans>. Webhooks are the source of truth, not the checkout redirect. Verify signatures. Idempotent handlers by storing processed event IDs. Handle payment success, failure, cancellation, plan change, refund. Gate features with one helper like `hasFeature(org, feature)`. Tests replay each event twice and assert no duplicates. Test-mode keys only.
+The provider's webhook, not the browser redirect, decides what the customer has paid for. Verify the signature on the raw body. Record each processed event ID and skip repeats. Handle success, failure, cancellation, plan change and refund. Let one helper decide feature access. Use test-mode keys only. Test by delivering every event twice and asserting exactly one effect.
 
-Verify: garbage JSON to an endpoint yields a clean 400 in the standard format; the same webhook twice changes nothing; any request over ~1s has a reason or is a background job.
+## Query review and backups
+
+Before closing the phase, list every query and look for N+1 loops, unindexed filters, `SELECT *` on wide tables, unpaginated lists, and tenant tables queried without the tenant column.
+
+Write `docs/runbooks/backups.md`, then follow it: restore the latest backup into a separate empty database, run a few row counts and one login against it, and note how long it took. An untested backup is a hope.
