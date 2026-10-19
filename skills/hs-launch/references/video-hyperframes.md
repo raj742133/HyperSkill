@@ -53,3 +53,22 @@ ffprobe -v error -show_entries stream=width,height,r_frame_rate,duration -of def
 ffmpeg -v error -ss <t> -i renders/<name>.mp4 -frames:v 1 frames/<t>.png     # grab frames at key beats
 ```
 Look at the frames: text readable and inside safe margins, nothing overlapping a face, correct fonts, CTA visible on the last frame. Fix and re-render before reporting.
+
+## Working method (from the kit's PDF guide, reworded)
+- **Base first, then one spot.** Get a base video you like, tweak it until nothing bothers you, then change one moment at a time. State the moment in words ("when I say 40 a week"), not seconds; the tool finds it in the audio. End every tweak with "keep everything else the same and render again to <path>".
+- **Give it the real thing.** Real numbers and real screenshots, otherwise it invents example ones (which conflicts with our honesty rule). Name the product image `product.png`.
+- **Vocabulary that works by name:** rise, pop, count-up, checklist tick, typewriter, slide-in, blur-in, punch-in (fast zoom for the line people should remember), reframe (footage shrinks into a card), bar fill.
+- **Knobs to turn after a render:** surface (glass vs solid), colour (give hex values), type (swap font, resize), motion (bouncier, overshoot), timing (appear at 2 s), layout (move, scale).
+
+## When something looks wrong
+| Symptom | Say / do |
+|---|---|
+| Wrong or fallback font | "Use the font file in the fonts folder." Keep fonts local. |
+| Text cut off on phones | "Keep all text inside the middle 80% of the width." |
+| A card covers captions | "Move every card above the caption area." |
+| A card is early or late | Speech-to-text can be up to ~1 s off on some clips. Name the word: "appear when I say 'sales'". |
+| File is huge | Film grain and 4K inflate size (a 15 s grain test was 124 MB). Re-render with `--crf 23` (about 69 MB in that test). |
+| Overlay has a solid background | Make the background transparent first, then export MOV/PNG. Frosted/blurred cards lose their blur with nothing behind them, so use a **solid** card for overlays. |
+| Still off | Describe what you see in plain words; it works better than technical terms. |
+
+Kit-reported measurements (author's Mac, not re-run here): the author's 90 s reel renders in under 2 minutes; tested on macOS, Windows not tested by the author.
