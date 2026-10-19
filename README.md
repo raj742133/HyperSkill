@@ -40,6 +40,12 @@ Then in a project: `/hyperskill "a short description of your idea"`. Other comma
 
 Requires Python 3 (standard library only) for the state tracker. The launch phase additionally needs Node 22+, FFmpeg and (for speech-timed work) whisper-cpp.
 
+## Launch site
+
+`site/` is a static page (no build step, no tracking) that shows the pipeline, the vetted tool registry and a real run of the tracker. Its data comes from the repository files: `python3 scripts/build_site.py` regenerates `site/data.js`, and a test fails if it is stale.
+
+Deploy on Vercel by importing this repository: `vercel.json` already sets `outputDirectory` to `site`, no build or install command, and a strict Content-Security-Policy. Or from a terminal with your own account: `npx vercel --prod`. Preview locally with `python3 -m http.server -d site 8000`.
+
 ## Develop
 
 ```

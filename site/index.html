@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HyperSkill: ship with proof</title>
+<meta name="description" content="HyperSkill is a Claude Code plugin that takes a product from idea to launch in nine gated phases. Nothing advances without evidence.">
+<meta name="theme-color" content="#f3eee4" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#14110f" media="(prefers-color-scheme: dark)">
+<meta property="og:title" content="HyperSkill: ship with proof">
+<meta property="og:description" content="Nine gated phases from idea to launch for Claude Code. Nothing advances without evidence.">
+<meta property="og:type" content="website">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="top">
+  <a class="brand" href="#top" aria-label="HyperSkill home"><span class="mark" aria-hidden="true"></span>HyperSkill</a>
+  <nav aria-label="Primary">
+    <a href="#pipeline">Pipeline</a>
+    <a href="#bench">Bench</a>
+    <a href="#limits">Limits</a>
+    <a class="pill" href="#install">Install</a>
+  </nav>
+</header>
+
+<main id="main">
+  <section class="hero" id="top">
+    <div class="hero-copy">
+      <p class="eyebrow">A conductor for Claude Code</p>
+      <h1>AI builds fast.<br><em>HyperSkill makes it prove it.</em></h1>
+      <p class="lede">Take a product from idea to launch in nine gated phases. Research, plan, build, ship, harden, operate, promote, scale. A phase moves on only when there is evidence, and every decision that is yours stays yours.</p>
+      <div class="cta">
+        <div class="cmd" role="group" aria-label="Install command">
+          <code id="cmd-text">/plugin marketplace add raj742133/HyperSkill</code>
+          <button type="button" id="copy" aria-label="Copy install command">Copy</button>
+        </div>
+        <a class="ghost" href="#demo">Watch it refuse</a>
+      </div>
+      <p class="fine">For solo builders and small teams shipping real products with AI agents. Needs Python 3 (standard library only) for the tracker.</p>
+    </div>
+
+    <figure class="term" id="demo" aria-labelledby="demo-cap">
+      <div class="term-bar">
+        <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span class="term-title">real output, not a mock-up</span>
+        <button type="button" id="replay" class="mini">Replay</button>
+      </div>
+      <pre class="term-body" id="term-body" aria-live="polite"></pre>
+      <figcaption id="demo-cap">Every line above is produced by <code>scripts/hyperskill.py</code> when the site is built.</figcaption>
+    </figure>
+  </section>
+
+  <section class="ledger" aria-label="By the numbers">
+    <dl id="numbers"></dl>
+    <p class="fine">Counted from the repository files at build time. Tests cover the tracker, registry and plugin structure, not model behaviour.</p>
+  </section>
+
+  <section class="pipeline" id="pipeline" aria-labelledby="pipeline-h">
+    <div class="sec-head">
+      <p class="eyebrow">The pipeline</p>
+      <h2 id="pipeline-h">Nine phases. <span id="gate-total"></span> checks. No &ldquo;trust me&rdquo;.</h2>
+      <p>Pick a phase to see what must be true before it can advance.</p>
+    </div>
+    <div class="pipe">
+      <div class="phase-list" role="tablist" aria-label="Phases" aria-orientation="vertical" id="phase-tabs"></div>
+      <div class="phase-panel" id="phase-panel" role="tabpanel" tabindex="0" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <section class="rules" aria-labelledby="rules-h">
+    <div class="sec-head">
+      <p class="eyebrow">How it stays honest</p>
+      <h2 id="rules-h">It conducts. It never plays and grades its own work.</h2>
+    </div>
+    <ol class="rule-list">
+      <li><h3>Evidence or it did not happen</h3><p><code>gate --pass</code> refuses to record a pass without evidence. <code>gate --run</code> passes only if your command exits 0. <code>advance</code> will not move while any item is open.</p></li>
+      <li><h3>Your decisions stay yours</h3><p>Stack, tenancy, providers and limits are asked, not assumed, then written to <code>docs/decisions/</code> so a new session cannot quietly change them.</p></li>
+      <li><h3>Fresh eyes review the code</h3><p>Security and test-quality reviews run in a read-only reviewer agent that did not write the code. A skill saying &ldquo;all clear&rdquo; is input, never the verdict.</p></li>
+      <li><h3>Licence-aware by default</h3><p>Opt-in tools stay off until you enable them. Tools with noncommercial licences are blocked on commercial projects, and the resolver says why.</p></li>
+    </ol>
+  </section>
+
+  <section class="bench" id="bench" aria-labelledby="bench-h">
+    <div class="sec-head">
+      <p class="eyebrow">The bench</p>
+      <h2 id="bench-h">Other people&rsquo;s skills, vetted and put in their place.</h2>
+      <p>Each phase asks for a capability, such as <code>security-audit</code> or <code>video</code>. HyperSkill uses an installed provider if policy allows it, otherwise a built-in fallback. It never installs anything on its own.</p>
+    </div>
+    <div class="chips" role="group" aria-label="Filter by policy" id="chips"></div>
+    <div class="table-wrap">
+      <table id="prov-table">
+        <thead><tr><th scope="col">Tool</th><th scope="col">Licence</th><th scope="col">Slots</th><th scope="col">Policy</th><th scope="col">First thing to know</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <p class="fine">Vetted from READMEs on 2026-10-05 to 2026-10-19, not source audits. Re-vet and pin a version before enabling anything.</p>
+  </section>
+
+  <section class="install" id="install" aria-labelledby="install-h">
+    <div class="sec-head">
+      <p class="eyebrow">Start</p>
+      <h2 id="install-h">Two commands, then describe your idea.</h2>
+    </div>
+    <div class="steps">
+      <div class="step"><span class="n">1</span><pre><code>/plugin marketplace add raj742133/HyperSkill
+/plugin install hyperskill@hyperskill</code></pre></div>
+      <div class="step"><span class="n">2</span><pre><code>/hyperskill "a short description of your idea"</code></pre></div>
+    </div>
+    <p>Then <code>/hyperskill-status</code> shows where you are and <code>/hyperskill-gate</code> works the current gate.</p>
+  </section>
+
+  <section class="limits" id="limits" aria-labelledby="limits-h">
+    <div class="sec-head">
+      <p class="eyebrow">Known limits</p>
+      <h2 id="limits-h">What it cannot promise.</h2>
+    </div>
+    <ul class="limit-list">
+      <li>Gates are reported by the model. <code>--run</code> makes many of them machine-checked; items like &ldquo;the owner read every line&rdquo; still rely on honesty.</li>
+      <li>The guidance has not yet been dogfooded on a real product end to end. Expect some phases to need trimming.</li>
+      <li>Some of the source material has no stated licence. Do not republish the reference text before checking <code>docs/sources.md</code> in the <a href="https://github.com/raj742133/HyperSkill">repository</a>.</li>
+      <li>Third-party skills can change under you. Pin versions and read what you install.</li>
+    </ul>
+  </section>
+</main>
+
+<footer class="foot">
+  <p>HyperSkill. Built in the open on <a href="https://github.com/raj742133/HyperSkill">GitHub</a>.</p>
+  <p class="fine">No analytics, no cookies, no trackers on this page.</p>
+</footer>
+
+<noscript><p class="noscript">This page renders its phase list, tool table and demo with JavaScript. The same content is in the repository README and <code>skills/hyperskill/gates.json</code>.</p></noscript>
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
