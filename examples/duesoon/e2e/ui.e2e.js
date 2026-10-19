@@ -165,6 +165,16 @@ test("the whole app works with only a keyboard", async () => {
   await context.close();
 });
 
+test("logging out while offline signs out here and says the server was not told", async () => {
+  const { context, page } = await newPage();
+  await signUp(page);
+  await context.setOffline(true);
+  await page.getByRole("button", { name: "Log out" }).click();
+  await page.getByText("could not be reached to end your session").waitFor();
+  await context.setOffline(false);
+  await context.close();
+});
+
 test("hostile text is shown as text and never runs; CSP reports nothing", async () => {
   const { context, page, problems } = await newPage();
   await signUp(page);

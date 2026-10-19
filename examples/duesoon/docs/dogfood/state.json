@@ -1,7 +1,7 @@
 {
   "name": "duesoon",
   "created": "2026-10-19T18:12:28Z",
-  "current": "ship",
+  "current": null,
   "commercial": true,
   "integrations": {
     "enabled": [],
@@ -228,7 +228,7 @@
       "completed": "2026-10-19T18:37:08Z"
     },
     "ship": {
-      "status": "active",
+      "status": "done",
       "gate": {
         "git-hygiene": {
           "state": "passed",
@@ -291,23 +291,176 @@
           "reason": "No production or provider yet. The backup and restore procedure itself is tested (npm test, 'backup then restore'); billing alerts N/A until a host is chosen.",
           "at": "2026-10-19T18:37:45Z"
         }
-      }
+      },
+      "completed": "2026-10-19T18:51:16Z"
     },
     "harden": {
-      "status": "pending",
-      "gate": {}
+      "status": "done",
+      "gate": {
+        "threat-model": {
+          "state": "passed",
+          "evidence": "docs/security/threat-model.md (updated after review)",
+          "at": "2026-10-19T18:51:36Z"
+        },
+        "independent-review": {
+          "state": "passed",
+          "evidence": "docs/security/audit.md: fresh read-only subagent; 0 critical/high, 3 medium, 7 low; M1-M3, L1-L7 fixed with regression tests in tests/security.test.js (commit 601fe99); signup 409 oracle accepted (ADR 0005)",
+          "at": "2026-10-19T18:51:36Z"
+        },
+        "xss-probe": {
+          "state": "passed",
+          "evidence": "ran `CHROME_PATH=/tmp/claude-0/-home-user-HyperSkill/6d253e8d-d9fd-5c92-96a0-d06ff65b49ce/scratchpad/chrome-ns timeout 100 node --disable-warning=ExperimentalWarning --test --test-name-pattern='hostile text' e2e/ui.e2e.js` -> exit 0. Output tail: TAP version 13\n# Subtest: hostile text is shown as text and never runs; CSP reports nothing\nok 1 - hostile text is shown as text and never runs; CSP reports nothing\n  ---\n  duration_ms: 980.393359\n  type: 'test'\n  ...\n1..1\n# tests 1\n# suites 0\n# pass 1\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 1759.331174",
+          "at": "2026-10-19T18:53:49Z",
+          "ran": true
+        },
+        "dependency-audit": {
+          "state": "passed",
+          "evidence": "ran `npm audit --audit-level=low && (test -f .github/dependabot.yml || test -f ../../.github/dependabot.yml)` -> exit 0. Output tail: found 0 vulnerabilities",
+          "at": "2026-10-19T18:54:02Z",
+          "ran": true
+        },
+        "uniform-auth-errors": {
+          "state": "passed",
+          "evidence": "ran `node --disable-warning=ExperimentalWarning --test --test-name-pattern='same status and message' tests/auth.test.js` -> exit 0. Output tail: TAP version 13\n# Subtest: wrong password and unknown email give the same status and message\nok 1 - wrong password and unknown email give the same status and message\n  ---\n  duration_ms: 135.904146\n  type: 'test'\n  ...\n1..1\n# tests 1\n# suites 0\n# pass 1\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 460.05172",
+          "at": "2026-10-19T18:54:00Z",
+          "ran": true
+        },
+        "cache-tenant-safe": {
+          "state": "passed",
+          "evidence": "ran `node --disable-warning=ExperimentalWarning --test --test-name-pattern='no-store|cache' tests/assignments.test.js` -> exit 0. Output tail: TAP version 13\n# Subtest: every authenticated response is uncacheable by browsers and shared caches\nok 1 - every authenticated response is uncacheable by browsers and shared caches\n  ---\n  duration_ms: 190.7055\n  type: 'test'\n  ...\n1..1\n# tests 1\n# suites 0\n# pass 1\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 584.920074",
+          "at": "2026-10-19T18:54:01Z",
+          "ran": true
+        },
+        "rate-limits": {
+          "state": "passed",
+          "evidence": "tests/auth.test.js + tests/security.test.js: login (per ip+normalised email, plus per-ip) and signup return 429 with Retry-After; limiter store bounded. NOTE: in-memory store, single instance by design (ADR 0004); no shared store",
+          "at": "2026-10-19T18:54:01Z"
+        },
+        "limits-survive-deploy": {
+          "state": "waived",
+          "reason": "Limits live in process memory and reset on restart; accepted for a single-instance app (ADR 0004). A shared store (Redis/DB) is required before a second instance or if restart-evasion matters.",
+          "at": "2026-10-19T18:54:01Z"
+        },
+        "cost-caps": {
+          "state": "waived",
+          "reason": "No paid third-party API is called; nothing to cap.",
+          "at": "2026-10-19T18:54:01Z"
+        },
+        "cache-two-org-test": {
+          "state": "waived",
+          "reason": "No server-side or shared cache exists and there are no organizations (per-user tenancy). Covered instead by Cache-Control: no-store tests on authenticated responses.",
+          "at": "2026-10-19T18:54:01Z"
+        }
+      },
+      "completed": "2026-10-19T18:54:14Z"
     },
     "operate": {
-      "status": "pending",
-      "gate": {}
+      "status": "done",
+      "gate": {
+        "structured-logs": {
+          "state": "passed",
+          "evidence": "ran `node --disable-warning=ExperimentalWarning --test --test-name-pattern='logs one JSON line' tests/infra.test.js` -> exit 0. Output tail: TAP version 13\n# Subtest: a request logs one JSON line with request id, status and user id, and never the password\nok 1 - a request logs one JSON line with request id, status and user id, and never the password\n  ---\n  duration_ms: 154.049823\n  type: 'test'\n  ...\n1..1\n# tests 1\n# suites 0\n# pass 1\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 440.735373",
+          "at": "2026-10-19T18:55:10Z",
+          "ran": true
+        },
+        "redaction": {
+          "state": "passed",
+          "evidence": "ran `node --disable-warning=ExperimentalWarning --test --test-name-pattern='redacts sensitive|never the password' tests/infra.test.js` -> exit 0. Output tail: --\n  duration_ms: 1.827872\n  type: 'test'\n  ...\n# Subtest: a request logs one JSON line with request id, status and user id, and never the password\nok 2 - a request logs one JSON line with request id, status and user id, and never the password\n  ---\n  duration_ms: 121.292107\n  type: 'test'\n  ...\n1..2\n# tests 2\n# suites 0\n# pass 2\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 402.964823",
+          "at": "2026-10-19T18:55:11Z",
+          "ran": true
+        },
+        "no-silent-catch": {
+          "state": "passed",
+          "evidence": "ran `test -d public && test -d src && ! grep -nE 'catch *(\\([a-z]*\\))? *\\{ *(/\\*.*\\*/)? *\\}' public/*.js src -r` -> exit 0. Output tail: (none)",
+          "at": "2026-10-19T18:55:11Z",
+          "ran": true
+        },
+        "health-real": {
+          "state": "passed",
+          "evidence": "ran `grep -q 'SELECT 1' src/app.js && grep -q 'health/live' src/app.js && node --disable-warning=ExperimentalWarning --test --test-name-pattern='health' tests/infra.test.js tests/assignments.test.js tests/auth.test.js` -> exit 0. Output tail: 1..0\n# Subtest: tests/auth.test.js\nok 2 - tests/auth.test.js\n  ---\n  duration_ms: 268.881431\n  type: 'test'\n  ...\n# Subtest: health: ok with a working database, 503 when it is gone\nok 3 - health: ok with a working database, 503 when it is gone\n  ---\n  duration_ms: 129.156497\n  type: 'test'\n  ...\n1..3\n# tests 3\n# suites 0\n# pass 3\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 537.424579",
+          "at": "2026-10-19T18:55:12Z",
+          "ran": true
+        },
+        "runbook-per-alert": {
+          "state": "passed",
+          "evidence": "docs/monitoring.md alert table: every alert row links an existing file in docs/runbooks/ (app-down, database, errors) - checked by script",
+          "at": "2026-10-19T18:55:12Z"
+        },
+        "incident-process": {
+          "state": "passed",
+          "evidence": "docs/runbooks/incident.md (declare/communicate/review); status page not created - noted in the doc as a pre-launch item",
+          "at": "2026-10-19T18:55:12Z"
+        },
+        "error-tracker": {
+          "state": "waived",
+          "reason": "No provider chosen and nothing deployed; no staging to produce an error in. Monitoring plan in docs/monitoring.md.",
+          "at": "2026-10-19T18:55:12Z"
+        },
+        "alert-fires": {
+          "state": "waived",
+          "reason": "No monitoring system or staging database exists to stop; alert rules are written but not wired (docs/monitoring.md says so).",
+          "at": "2026-10-19T18:55:12Z"
+        }
+      },
+      "completed": "2026-10-19T18:55:16Z"
     },
     "launch": {
-      "status": "pending",
-      "gate": {}
+      "status": "done",
+      "gate": {
+        "asset-licences": {
+          "state": "passed",
+          "evidence": "docs/prelaunch.md: only Geist (OFL 1.1, public/fonts/OFL-Geist.txt); no other third-party assets",
+          "at": "2026-10-19T18:55:50Z"
+        },
+        "claims-true": {
+          "state": "passed",
+          "evidence": "ran `test -f docs/prelaunch.md && grep -q 'only public claim' docs/prelaunch.md` -> exit 0. Output tail: (none)",
+          "at": "2026-10-19T18:55:50Z",
+          "ran": true
+        },
+        "promo-rendered": {
+          "state": "waived",
+          "reason": "No promo video was requested or made for this dry run; the video phase (hs-launch / HyperFrames) was not exercised.",
+          "at": "2026-10-19T18:55:50Z"
+        },
+        "legal-published": {
+          "state": "waived",
+          "reason": "Not launching. No terms or privacy policy exist; listed as an open item in docs/prelaunch.md because the app stores emails and password hashes.",
+          "at": "2026-10-19T18:55:50Z"
+        },
+        "prelaunch-audit": {
+          "state": "waived",
+          "reason": "Audit done and published in docs/prelaunch.md with verdict NOT launch-ready: 8 items unmet (auth provider, CI never run, rollback unrehearsed, no staging, no tracker, no wired alerts, no billing alerts, no legal docs). Waived only to finish the dry run; launch is not recommended.",
+          "at": "2026-10-19T18:55:50Z"
+        }
+      },
+      "completed": "2026-10-19T18:56:03Z"
     },
     "scale": {
-      "status": "pending",
-      "gate": {}
+      "status": "done",
+      "gate": {
+        "load-test-numbers": {
+          "state": "passed",
+          "evidence": "docs/scale.md: 50 users, 9585 requests, 0 errors, list p50/p95/p99 2.3/12.5/36.6 ms, sign-up 529/2211/2423 ms; invalid earlier run (429s) discarded",
+          "at": "2026-10-19T18:56:22Z"
+        },
+        "multi-instance": {
+          "state": "waived",
+          "reason": "Tried (scripts/two-instances.js) and it FAILS: sessions are per process, so a user signed in on one instance is signed out on the other; limits are per process too. Single instance by design (ADR 0004); a shared session store is required first.",
+          "at": "2026-10-19T18:56:22Z"
+        },
+        "before-after": {
+          "state": "waived",
+          "reason": "No optimisation was made, so there are no before/after pairs (docs/scale.md).",
+          "at": "2026-10-19T18:56:22Z"
+        },
+        "cost-model": {
+          "state": "waived",
+          "reason": "Only a capacity model exists (docs/scale.md); monthly cost at 10x/100x was NOT modelled because no hosting provider or price was researched.",
+          "at": "2026-10-19T18:56:26Z"
+        }
+      },
+      "completed": "2026-10-19T18:56:26Z"
     }
   },
   "decisions": [

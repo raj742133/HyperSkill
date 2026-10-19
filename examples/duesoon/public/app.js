@@ -27,8 +27,7 @@ async function api(method, path, body) {
     throw Object.assign(new Error("Can't reach DueSoon. Check your connection and try again."), { network: true });
   }
   if (res.status === 204) return null;
-  let json = null;
-  try { json = await res.json(); } catch { /* non-JSON error page */ }
+  const json = await res.json().catch(() => null); // a proxy error page is not JSON: fall through to the generic message below
   if (!res.ok) {
     const e = json && json.error;
     let message = (e && e.message) || "Something went wrong. Try again.";
@@ -108,9 +107,13 @@ $("authForm").addEventListener("submit", async (ev) => {
 });
 
 $("logout").addEventListener("click", async () => {
-  try { await api("POST", "/api/auth/logout"); } catch { /* the cookie is cleared server-side when reachable */ }
+  let reached = true;
+  try { await api("POST", "/api/auth/logout"); } catch { reached = false; }
   state.user = null; state.items = [];
   show("auth");
+  const err = $("authError");
+  err.textContent = "Signed out on this screen, but DueSoon could not be reached to end your session on the server. Sign out again once you are online.";
+  err.hidden = reached;
   $("email").focus();
 });
 

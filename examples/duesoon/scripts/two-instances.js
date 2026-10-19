@@ -6,7 +6,7 @@ import os from "node:os";
 import path from "node:path";
 
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), "duesoon-two-"));
-const env = { ...process.env, SESSION_SECRET: "s".repeat(40), DB_PATH: path.join(dir, "shared.db"), BCRYPT_ROUNDS: "4", LOG_LEVEL: "error" };
+const env = { ...process.env, NODE_ENV: "development", SESSION_SECRET: "s".repeat(40), DB_PATH: path.join(dir, "shared.db"), BCRYPT_ROUNDS: "4", LOG_LEVEL: "error" };
 const start = (port) => spawn("node", ["--disable-warning=ExperimentalWarning", "src/server.js"], { env: { ...env, PORT: String(port) }, stdio: "ignore" });
 const procs = [start(3301), start(3302)];
 const H = { "content-type": "application/json", "x-requested-by": "duesoon" };
