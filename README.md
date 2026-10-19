@@ -58,4 +58,4 @@ python3 -m unittest discover -s tests -v
 
 ## Sources and licensing
 
-See [`docs/sources.md`](docs/sources.md). The guidance here is condensed and rewritten from two supplied guides; review the licensing note before publishing this repository publicly.
+See [`docs/sources.md`](docs/sources.md). HyperSkill is MIT-licensed (`LICENSE`). Its reference guidance was rewritten in original wording from supplied guides that state no licence; that is not a legal clearance, so read the licensing status before publishing.
