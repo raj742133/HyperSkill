@@ -1,13 +1,14 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { loadConfig } from "../src/config.js";
 import { createServer } from "../src/server.js";
 
 const TOKEN = "t".repeat(32);
 const start = async (env = {}) => {
-  const config = loadConfig({ OPERATOR_TOKEN: TOKEN, NODE_ENV: "test", ...env });
+  const config = loadConfig({ OPERATOR_TOKEN: TOKEN, NODE_ENV: "test", DATA_DIR: fs.mkdtempSync(path.join(os.tmpdir(), "chaser-")), ...env });
   const server = createServer(config);
   await new Promise((r) => server.listen(0, "127.0.0.1", r));
   return { base: `http://127.0.0.1:${server.address().port}`, close: () => new Promise((r) => server.close(r)) };
@@ -58,11 +59,20 @@ test("static serving cannot escape the public directory", async (t) => {
   }
 });
 
+// Matches imports of I/O or server code and uses of browser or process APIs, not ordinary words inside message text.
+const IMPURE = /(from\s+["']node:(fs|http|https|net|child_process|path|os)["'])|(from\s+["']\.\.\/(http|store))|\b(fetch|XMLHttpRequest|require)\s*\(|\b(localStorage|sessionStorage|document|window|process|globalThis)\./;
+
+test("the purity check itself catches each kind of violation", () => {
+  for (const bad of ['import fs from "node:fs";', 'const x = await fetch("/a");', "process.env.X", "document.title", "localStorage.setItem(1)", 'import s from "../store/events.js";']) {
+    assert.ok(IMPURE.test(bad), bad);
+  }
+  assert.ok(!IMPURE.test("Please let me know if you need anything from me to process it."), "ordinary words are fine");
+});
+
 test("src/core stays pure: no I/O, HTTP or DOM access", () => {
   const dir = new URL("../src/core/", import.meta.url).pathname;
-  const forbidden = /(from\s+["']node:(fs|http|https|net|child_process|path)["'])|\b(fetch|XMLHttpRequest|localStorage|sessionStorage|document|window|process)\b|from\s+["']\.\.\/(http|store)/;
   for (const f of fs.readdirSync(dir).filter((n) => n.endsWith(".js"))) {
     const code = fs.readFileSync(path.join(dir, f), "utf8").split("\n").filter((l) => !l.trim().startsWith("//")).join("\n");
-    assert.ok(!forbidden.test(code), `${f} must not import I/O, HTTP or DOM code`);
+    assert.ok(!IMPURE.test(code), `${f} must not import I/O, HTTP or DOM code`);
   }
 });

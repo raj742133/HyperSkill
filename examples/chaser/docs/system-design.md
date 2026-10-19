@@ -56,10 +56,10 @@ Every metric is an **event count**; there is no unique-visitor count (no cookies
 
 `page_ready` (fired by script once per page load), `generate`, `copy`, `open_whatsapp`, `open_email`, `sent_yes`, `sent_no`, `pay_intent`, `waitlist_submit`.
 
-Rules: each event posts at most once per page load per message (a JavaScript variable, no storage); the server ignores user agents that look like bots and requests without a preceding `page_ready` from the same load (a per-load random token held in memory); each event carries a `src` tag taken from `?src=` (an allowlist the operator defines: e.g. `me`, `friends`, `community`, `post`); an **operator switch** (`?op=<secret>`) suppresses counting for the owner's own use.
+Rules: each event posts at most once per page load per message (a JavaScript variable, no storage); the server ignores user agents that look like bots and requests without a preceding `page_ready` from the same load (a per-load random token held in memory); each event carries a `src` tag taken from `?src=` (an allowlist the operator defines: e.g. `me`, `friends`, `community`, `post`); the owner's own visits use `?src=me`, which is recorded but excluded from every decision (a secret in the URL would leak into host logs, so there is no separate operator switch).
 
 Ratios used in the decision: **generate rate** = `generate` / `page_ready`; **pay-intent rate** = `pay_intent` / `generate`; **waitlist rate** = `waitlist_submit` / `pay_intent`; **use rate** = `sent_yes` / (`open_whatsapp` + `open_email`).
-Counts are reported per `src`; results from `me` and `friends` are excluded from any pass or stop decision.
+Counts are reported per `src`; results from `me` and `friends` are excluded from any pass or stop decision. `src` values outside the operator's allowlist are recorded as `none`.
 
 ## 9. Success, stop and decision rule
 Window: **ASSUMED** 14 days from first public traffic, and at least 100 `generate` events from sources other than `me` and `friends`. If traffic is below that at 14 days, **extend; do not conclude.**
