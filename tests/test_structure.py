@@ -21,6 +21,36 @@ def frontmatter(path):
     return out
 
 
+class LiveViewStructureTests(unittest.TestCase):
+    def test_hooks_json_is_valid_and_every_script_it_runs_exists(self):
+        with open(os.path.join(ROOT, "hooks", "hooks.json"), encoding="utf-8") as f:
+            hooks = json.load(f)["hooks"]
+        self.assertEqual(set(hooks), {"PreToolUse", "PostToolUse", "PostToolUseFailure"})
+        for event, rules in hooks.items():
+            for rule in rules:
+                self.assertTrue(rule["matcher"], event)
+                for h in rule["hooks"]:
+                    self.assertEqual(h["type"], "command")
+                    self.assertLessEqual(h["timeout"], 10, "a hook must never hold up a tool call for long")
+                    m = re.search(r'\$\{CLAUDE_PLUGIN_ROOT\}/(scripts/[A-Za-z0-9_.-]+\.py)', h["command"])
+                    self.assertTrue(m, h["command"])
+                    self.assertTrue(os.path.isfile(os.path.join(ROOT, m.group(1))), m.group(1))
+        self.assertIn("Bash", hooks["PostToolUseFailure"][0]["matcher"])
+
+    def test_the_live_command_and_skill_instructions_exist(self):
+        path = os.path.join(ROOT, "commands", "hyperskill-live.md")
+        self.assertTrue(os.path.isfile(path))
+        self.assertIsNotNone(frontmatter(path))
+        with open(os.path.join(ROOT, "skills", "hyperskill", "SKILL.md"), encoding="utf-8") as f:
+            skill = f.read()
+        self.assertIn("hyperskill.py event", skill)
+        self.assertIn("/hyperskill-live", skill)
+
+    def test_every_script_the_hook_and_dashboard_import_is_present(self):
+        for name in ("hs_activity.py", "hs_hook.py", "hs_live.py", "make_replay.py"):
+            self.assertTrue(os.path.isfile(os.path.join(ROOT, "scripts", name)), name)
+
+
 class StructureTests(unittest.TestCase):
     def test_manifests_are_valid_json(self):
         for rel in (".claude-plugin/plugin.json", ".claude-plugin/marketplace.json",

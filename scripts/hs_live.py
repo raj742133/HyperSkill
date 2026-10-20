@@ -93,7 +93,10 @@ def make_handler(root, port):
                 folder, name, ctype = STATIC[path]
                 try:
                     with open(os.path.join(folder, name), "rb") as f:
-                        return self._send(200, f.read(), ctype)
+                        body = f.read()
+                    if name == "index.html":  # tell the page it is the live one, so it never has to probe for a server
+                        body = body.replace(b'name="hs-mode" content="replay"', b'name="hs-mode" content="live"')
+                    return self._send(200, body, ctype)
                 except OSError:
                     return self._send(404, b"not found", "text/plain")
             if path == "/live/state.json":

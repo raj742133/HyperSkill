@@ -180,3 +180,17 @@ td.risk { color: var(--ink-2); max-width: 300px; }
   .cmd button { margin-left: 0; }
   .term-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 }
+
+/* live view section */
+.watch { padding-top: 56px; padding-bottom: 24px; }
+.watch-grid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 36px; align-items: center; margin-top: 8px; }
+.watch-shot { margin: 0; }
+.watch-shot img { display: block; width: 100%; height: auto; border-radius: 12px; border: 1px solid var(--rule); background: var(--paper-2); }
+.watch-shot figcaption { margin-top: 8px; font-size: 14px; color: var(--ink-2); }
+.tick { list-style: none; margin: 0 0 20px; padding: 0; }
+.tick li { padding: 10px 0 10px 24px; border-top: 1px solid var(--rule); position: relative; }
+.tick li:first-child { border-top: 0; }
+.tick li::before { content: ""; position: absolute; left: 0; top: 19px; width: 10px; height: 10px; border-radius: 50%; background: var(--accent); }
+.solid { display: inline-flex; align-items: center; min-height: 48px; padding: 0 22px; border-radius: 999px; background: var(--ink); color: var(--paper); font-weight: 600; text-decoration: none; }
+.solid:hover { background: var(--accent); color: var(--accent-ink); }
+@media (max-width: 860px) { .watch-grid { grid-template-columns: 1fr; } }

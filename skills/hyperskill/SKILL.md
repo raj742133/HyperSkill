@@ -23,6 +23,7 @@ python3 <plugin>/scripts/hyperskill.py status
 1. **Announce** the phase, what it will produce, and which decisions it will need from the user.
 2. **Resolve slots, then load the phase skill.** Run `hyperskill.py integrations phase` to see which external skill (if any) will steer each capability in this phase, and offer missing ones once (see section 4). Then load the phase skill named in `status` (e.g. `hs-plan`) and follow it. Load only that phase's skill and only the reference files it points to; do not preload the rest.
 3. **Ask the owner's decisions** with `AskUserQuestion` (2-4 real options, a recommendation first). Record each answer: `hyperskill.py decide --title ... --choice ... --why ...`. Never silently pick a stack, provider, tenancy model, pricing model or compliance stance.
+   **Keep the live view honest.** Before each substantial step, say what you are starting in plain words: `hyperskill.py event "<what>" --kind building|testing|reviewing|waiting|done` (use `waiting` when you need the owner). Files you write, commands you run and test results are recorded by the plugin hook without any action from you, and gate, decision and phase changes are logged by the tracker itself. The owner can watch all of it with `/hyperskill-live`.
 4. **Plan, review, build small.** Plan first and show the plan; build on a branch, one concern per commit; no direct pushes to the default branch; no PR unless asked.
 5. **Verify with evidence.** Walk the gate (`hyperskill.py gate <phase>`). For each item, actually run the check and capture the output. Then record it:
    `hyperskill.py gate <phase> --pass id1,id2 --evidence "<command run + what it showed>"`.
@@ -81,4 +82,4 @@ Every build task follows `references/working-loop.md`: read project files, plan,
 
 ## 6. Commands
 
-`/hyperskill` start or resume - `/hyperskill-status` show state - `/hyperskill-gate [phase]` run the gate for a phase (default: current).
+`/hyperskill` start or resume - `/hyperskill-status` show state - `/hyperskill-gate [phase]` run the gate for a phase (default: current) - `/hyperskill-live` open the live view of everything being made, tested and decided.

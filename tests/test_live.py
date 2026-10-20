@@ -61,6 +61,12 @@ class LiveServerTests(unittest.TestCase):
             self.assertEqual(headers["X-Content-Type-Options"], "nosniff")
             self.assertTrue(body)
 
+    def test_the_live_server_marks_the_page_live_and_the_static_file_stays_replay(self):
+        body = self.get("/live")[2].decode()
+        self.assertIn('name="hs-mode" content="live"', body)
+        with open(os.path.join(ROOT, "site", "live", "index.html"), encoding="utf-8") as f:
+            self.assertIn('name="hs-mode" content="replay"', f.read())
+
     def test_only_the_whitelisted_files_can_be_read(self):
         for path in ("/../README.md", "/..%2fREADME.md", "/.hyperskill/state.json", "/live/state.json/../x", "/live/replay.json", "/replay.json", "/hyperskill.py", "/live/../scripts/hyperskill.py", "/live/live.js/../../scripts/hyperskill.py", "/state.json", "/events", "/live.js"):
             status, _, body = self.get(path)

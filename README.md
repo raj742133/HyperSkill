@@ -44,6 +44,7 @@ It exists because coding agents are good at saying "done". They are less good at
 - **The project's shape is set once.** `init --tenancy user|organization|none` makes organisation-only checks not apply and rewords the rest.
 - **Decisions stay yours.** Stack, tenancy model, providers and limits are asked, not assumed, then written to `docs/decisions/NNNN-*.md` so a later session cannot quietly change them.
 - **Fresh-eyes reviews.** Design stress tests, security reviews and design critiques run in a read-only reviewer with no stake in the code. Their reports are findings, not instructions.
+- **You can watch it work.** A hook and the tracker write an activity log; `/hyperskill-live` shows it in your browser as it happens ([details](#watch-it-work)).
 - **State lives in files.** `.hyperskill/state.json`, `CLAUDE.md` and `docs/` let any new session resume where the last one stopped.
 
 ### It orchestrates other skills, and does not trust them blindly
@@ -58,6 +59,24 @@ Phases ask for capabilities (a design direction, a security audit, video, browse
 - Every slot has a built-in fallback.
 
 Details: [`skills/hyperskill/references/integrations.md`](skills/hyperskill/references/integrations.md) and [`docs/integrations-review.md`](docs/integrations-review.md).
+
+## Watch it work
+
+Run `/hyperskill-live` and a page opens at `http://127.0.0.1:4777/` that shows what is being made, tested and decided **as it happens**: a "Right now" card, the nine phases with their progress, a live activity feed, the checks still open, the latest test run with its pass and fail counts, the files touched and the decisions recorded.
+
+<img src="docs/img/live-view.png" alt="The live view during a recorded session: Right now, the nine phases, an activity feed with a refused advance, a passed check and files written, and panels for tests and open checks" width="860">
+
+[**Play a recorded session on the site**](https://hyperskill-hazel.vercel.app/live): the replay is a real session (Claude, with this plugin installed, building and testing a tiny rupee formatter), nothing added or reordered.
+
+How it works:
+
+- **A plugin hook records the work**, so it does not depend on Claude remembering to report. After each file write or edit, each shell command, each failed command and each helper agent, the hook (`scripts/hs_hook.py`) appends one line to `.hyperskill/activity.jsonl`. Test runs from `node:test`, `unittest`, `pytest` and `jest` are recognised and shown as counts. A failing run appears too.
+- **The tracker logs its own actions** (checks passed, waived, failed or refused, decisions, phase changes), and `hyperskill.py event "..." --kind building|testing|reviewing|waiting|done` sets the "Right now" card.
+- **The page is read-only and local.** `hyperskill.py live` serves it on `127.0.0.1` only, refuses requests whose `Host` header is not its own, sends only a short fixed list of files, and draws everything as plain text.
+- **Secrets are masked before they are written**: `TOKEN=...`, `Authorization` headers, `ghp_...`-style keys, URLs with passwords, long hex or base64 strings. Files outside the project are logged by name only, and the project folder shows as `.`.
+- **It only runs inside a HyperSkill project.** Outside one (no `.hyperskill/state.json` above the working directory) the hook does nothing, and it always exits 0 so it cannot block a tool call. The log is private (mode 0600), ignored by git, and rotated at 5 MB. To turn the recording off, uninstall the plugin or remove `hooks/hooks.json`.
+
+What it does **not** do: it shows what Claude Code reports to hooks (files, commands, results), not Claude's reasoning. The "Right now" card is only as accurate as Claude's own announcements. Helper-agent events are tested but I have not seen them in a real session. It has been tried on Linux only.
 
 ## Install
 
@@ -77,6 +96,7 @@ Then, in a project:
 | `/hyperskill` | Start a project, or resume it where it stopped |
 | `/hyperskill-status` | Show every phase and its open checks |
 | `/hyperskill-gate [phase]` | Walk the gate for a phase (default: the current one) |
+| `/hyperskill-live` | Open the live view of what is being made, tested and decided |
 
 Requires Python 3 (standard library only) for the tracker. The launch phase also needs Node 22+, FFmpeg and, for speech-timed video, whisper-cpp.
 
@@ -117,7 +137,7 @@ A tool to write payment reminders for Indian freelancers. Four parallel research
 Verified:
 
 - The plugin installs from GitHub into a clean config, and `/hyperskill` ran headless from an install of the same plugin (two separate tests, not one end-to-end run).
-- The tracker and the integration resolver are covered by 54 tests; `claude plugin validate .` passes.
+- The tracker and the integration resolver are covered by 103 tests; `claude plugin validate .` passes.
 - Two full runs on real code, described above, with the failures they exposed.
 
 Not verified, so do not rely on it yet:
@@ -135,13 +155,15 @@ Not verified, so do not rely on it yet:
 skills/hyperskill/     the conductor, gates.json (72 checks), integrations.json (the registry)
 skills/hs-*/           one skill per phase, with references/
 agents/                hs-researcher, hs-reviewer (read-only)
-commands/              /hyperskill, /hyperskill-status, /hyperskill-gate
-scripts/               hyperskill.py (state, gates, integrations), install-skills.sh, build_site.py
-site/                  the static launch site (Vercel; vercel.json)
+commands/              /hyperskill, /hyperskill-status, /hyperskill-gate, /hyperskill-live
+hooks/                 hooks.json: records files, commands and test results for the live view
+scripts/               hyperskill.py (state, gates, integrations), hs_hook.py, hs_live.py, hs_activity.py,
+                       make_replay.py, install-skills.sh, build_site.py
+site/                  the static launch site (Vercel; vercel.json); site/live is the live view and its replay
 examples/duesoon/      full nine-phase run
 examples/chaser/       research, plan and build of the second run
 docs/                  sources, integration review, README images
-tests/                 54 tests for the tracker, resolver, structure and site
+tests/                 103 tests for the tracker, resolver, activity log, hook, live server, structure and site
 ```
 
 ## Develop

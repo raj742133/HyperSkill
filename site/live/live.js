@@ -238,15 +238,19 @@
 
   /* ---------- start ---------- */
   async function boot() {
+    // The live server serves this page with hs-mode "live"; the public site leaves it as "replay". No probing, so no failed requests.
+    const wantLive = document.querySelector('meta[name="hs-mode"]')?.content === "live";
     try {
-      const r = await fetch("/live/state.json", { cache: "no-store" });
-      if ((r.headers.get("content-type") || "").includes("json") && r.ok) { state = await r.json(); startLive(); return; }
-    } catch (err) { /* not served by the live command: fall through to the recording */ }
-    try {
-      const r = await fetch("/live/replay.json");
-      if (r.ok) { startReplay(await r.json()); return; }
-    } catch (err) { /* no recording either */ }
-    setMode("offline", "Nothing to show");
+      if (wantLive) {
+        const r = await fetch("/live/state.json", { cache: "no-store" });
+        if (r.ok) { state = await r.json(); startLive(); return; }
+        setMode("offline", "Cannot read the project");
+      } else {
+        const r = await fetch("/live/replay.json");
+        if (r.ok) { startReplay(await r.json()); return; }
+      }
+    } catch (err) { setMode("offline", wantLive ? "Cannot reach the live server" : "Replay unavailable"); }
+    if (mode === "connecting") setMode("offline", "Nothing to show");
     drawAll();
   }
   boot();

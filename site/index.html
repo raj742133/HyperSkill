@@ -23,6 +23,7 @@
   <a class="brand" href="#top" aria-label="HyperSkill home"><span class="mark" aria-hidden="true"></span>HyperSkill</a>
   <nav aria-label="Primary">
     <a href="#pipeline">Pipeline</a>
+    <a href="#watch">Live view</a>
     <a href="#bench">Bench</a>
     <a href="#limits">Limits</a>
     <a class="pill" href="#install">Install</a>
@@ -70,6 +71,30 @@
     <div class="pipe">
       <div class="phase-list" role="tablist" aria-label="Phases" aria-orientation="vertical" id="phase-tabs"></div>
       <div class="phase-panel" id="phase-panel" role="tabpanel" tabindex="0" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <section class="watch" id="watch" aria-labelledby="watch-h">
+    <div class="sec-head">
+      <p class="eyebrow">The live view</p>
+      <h2 id="watch-h">Watch it work, as it works.</h2>
+      <p>Run <code>/hyperskill-live</code> and a page opens that shows what HyperSkill and Claude are doing in your project the moment it happens: each file written, each command, each test run with its pass and fail counts, each check passed, failed or refused, and each decision.</p>
+    </div>
+    <div class="watch-grid">
+      <figure class="watch-shot">
+        <img src="live-view.png" width="1200" height="820" loading="lazy" alt="The live view: a Right now card, the nine phases with progress, an activity feed of files written, a failing then passing test run and a refused advance, and side panels for tests and open checks">
+        <figcaption>The live view at the end of a real recorded session.</figcaption>
+      </figure>
+      <div class="watch-copy">
+        <ul class="tick">
+          <li><strong>Right now</strong> says what is happening, in plain words.</li>
+          <li><strong>Files, commands and tests</strong> are recorded by a plugin hook, so nothing depends on Claude remembering to report them.</li>
+          <li><strong>Failing tests show up too</strong>, with the counts, not only the green ones.</li>
+          <li><strong>Secrets are masked</strong> before anything is written. The page runs on your computer only and is read-only.</li>
+        </ul>
+        <p class="cta"><a class="solid" href="/live">Play a recorded session</a></p>
+        <p class="fine">The recording is a real session: Claude, with this plugin installed, building and testing a tiny rupee formatter. Nothing was added or reordered.</p>
+      </div>
     </div>
   </section>
 
