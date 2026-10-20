@@ -44,11 +44,9 @@ dl { display: grid; grid-template-columns: max-content 1fr; gap: 4px 16px; margi
 a.btn.quiet { background: transparent; color: var(--text); border: 1.5px solid var(--edge); }
 a.btn { display: inline-flex; align-items: center; text-decoration: none; background: var(--accent); color: var(--accent-ink); font-weight: 600; border-radius: 8px; padding: 0 18px; min-height: 46px; }
 details.email { margin-top: 10px; } details.email summary { cursor: pointer; font-weight: 600; min-height: 44px; display: flex; align-items: center; } details.email pre { white-space: pre-wrap; background: var(--bg); border-radius: 8px; padding: 10px 12px; font: inherit; font-size: .95rem; margin: 8px 0; }
-.sent { margin: 8px 0 0; font-size: .95rem; } .sent button { min-height: 44px; padding: 0 14px; margin-left: 6px; background: transparent; color: var(--text); border: 1.5px solid var(--edge); }
 .check { background: var(--accent-soft); border-color: var(--accent); }
 .check .note { margin: 0; font-size: .95rem; }
 .after { margin: -4px 0 28px; }
-.door { border: 2px dashed var(--edge); margin-top: 32px; } .door .hint + button, .door button.primary { margin-top: 12px; } .door .field + .hint { margin-top: 8px; } .hp { position: absolute; left: -9999px; }
 .foot { color: var(--muted); font-size: .9rem; padding-bottom: 40px; }
 @media (max-width: 640px) {
   body { font-size: 16px; } .grid { grid-template-columns: 1fr; } .wrap { padding: 0 16px; }
@@ -59,4 +57,3 @@ details.email { margin-top: 10px; } details.email summary { cursor: pointer; fon
 @media (prefers-reduced-motion: no-preference) { button, a.btn { transition: filter .12s, background .12s; } }
 
 #errors a { color: var(--error); }
-#door-thanks:focus { outline: none; }

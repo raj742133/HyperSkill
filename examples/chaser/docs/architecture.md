@@ -1,3 +1,5 @@
+> **Superseded in part (2026-10-20).** The owner decided Chaser stays free: the priced button, the waitlist, the counters, the stats endpoint and the data storage described below were removed (`docs/decisions/0007-free-tool-no-measuring-no-pricing.md`). This document is kept as the record of the earlier plan.
+
 # Architecture: Chaser v1
 
 Status: proposal for the owner to explain back (gate item `architecture-explained`). Nothing here is built beyond a scaffold. Read `system-design.md` first.

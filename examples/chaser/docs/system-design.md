@@ -1,3 +1,5 @@
+> **Superseded in part (2026-10-20).** The owner decided Chaser stays free: the priced button, the waitlist, the counters, the stats endpoint and the data storage described below were removed (`docs/decisions/0007-free-tool-no-measuring-no-pricing.md`). This document is kept as the record of the earlier plan.
+
 # System design: Chaser v1 (the message-generator test)
 
 Status: revision 2, after an independent review (`design-review.md`). For the owner to read in full. Everything marked **ASSUMED** was not answered by the owner and needs a yes or a correction. Basis: `research.md` and decision 0001.
