@@ -205,7 +205,7 @@ t("each mode is its own world: the liquid colours really change", async () => {
   await context.close();
 });
 
-t("lengths: saved, clamped, applied at once, kept after reload; Cancel and Escape change nothing", async () => {
+t("lengths: saved, validated, applied at once, kept after reload; Cancel and Escape change nothing", async () => {
   const { context, page } = await open();
   await setLengths(page, 50, 10, 20);
   assert.equal(await digits(page), "50:00");
@@ -213,10 +213,16 @@ t("lengths: saved, clamped, applied at once, kept after reload; Cancel and Escap
   assert.equal(await digits(page), "50:00", "survives a reload");
   await page.keyboard.press("2"); assert.equal(await digits(page), "10:00");
   await page.keyboard.press("s");
+  // Out-of-range numbers are stopped by the form itself: Save does nothing and the field says why.
   await page.locator("input[name=focus]").fill("999"); await page.locator("input[name=short]").fill("0");
+  await page.getByRole("button", { name: "Save" }).click();
+  assert.equal(await page.locator("#settings").evaluate((d) => d.open), true, "the dialog stays open");
+  assert.deepEqual(await page.locator("#settings-form").evaluate((f) => [f.elements.focus.validity.rangeOverflow, f.elements.short.validity.rangeUnderflow]), [true, true]);
+  // The limits themselves are accepted.
+  await page.locator("input[name=focus]").fill("120"); await page.locator("input[name=short]").fill("1");
   await save(page);
-  await page.keyboard.press("1"); assert.equal(await digits(page), "120:00", "999 is clamped to 120");
-  await page.keyboard.press("2"); assert.equal(await digits(page), "01:00", "0 is clamped to 1");
+  await page.keyboard.press("1"); assert.equal(await digits(page), "120:00", "the top limit works");
+  await page.keyboard.press("2"); assert.equal(await digits(page), "01:00", "the bottom limit works");
   await page.keyboard.press("s"); await page.locator("input[name=focus]").fill("7");
   await cancel(page);
   await page.keyboard.press("1"); assert.equal(await digits(page), "120:00", "Cancel kept the old value");

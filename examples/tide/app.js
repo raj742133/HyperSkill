@@ -142,7 +142,7 @@ $("modes").addEventListener("keydown", (e) => {
 const typing = (el) => el && (el.matches("input, textarea, select, [contenteditable]") || el.closest("dialog[open]"));
 addEventListener("keydown", (e) => {
   if (e.metaKey || e.ctrlKey || e.altKey || typing(document.activeElement)) return;
-  const onButton = document.activeElement?.matches("button");
+  const a = document.activeElement, onButton = a?.matches("button") && a.checkVisibility?.() !== false; // a hidden button (the dialog just closed) cannot act, so it must not swallow the key
   const k = e.key.toLowerCase();
   if (k === " " && !onButton) { e.preventDefault(); act("toggle"); }
   else if (k === "r") act("reset");
