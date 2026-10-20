@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chaser: write the payment reminder you keep putting off</title>
+  <meta name="description" content="Enter an unpaid invoice and get three ready-to-send reminders for WhatsApp and email: polite, firm and final. Our server never sees the invoice details you enter.">
+  <link rel="icon" href="/chaser/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/chaser/styles.css">
+</head>
+<body>
+<a class="skip" href="#form">Skip to the form</a>
+<main class="wrap">
+  <section class="intro" aria-labelledby="title">
+    <p class="brand">Chaser</p>
+    <h1 id="title">Write the payment reminder you keep putting off.</h1>
+    <p class="lede">Fill in one unpaid invoice. Get three messages you can send yourself, polite, firm and final, for WhatsApp and email.</p>
+    <p class="sample" aria-label="Example of the first message">&ldquo;Hi Ravi, hope you&rsquo;re doing well. A quick reminder that invoice INV-12 for Rs 25,000, which was due on 1 Oct 2026, is still showing as unpaid on my side&hellip;&rdquo;</p>
+    <p class="privacy"><strong>Our server never sees the invoice details you enter.</strong> The messages are written in your browser, and you send them yourself.</p>
+  </section>
+
+  <form id="form" class="card" novalidate autocomplete="off" aria-labelledby="form-h">
+    <h2 id="form-h">The unpaid invoice</h2>
+    <div id="errors" class="error-summary" role="alert" tabindex="-1" hidden></div>
+    <div class="grid">
+      <div class="field">
+        <label for="me">Your name</label>
+        <input id="me" name="me" type="text" autocomplete="name" maxlength="60" required aria-describedby="me-err">
+        <p class="err" id="me-err"></p>
+      </div>
+      <div class="field">
+        <label for="client">Client's name</label>
+        <input id="client" name="client" type="text" autocomplete="off" maxlength="60" required aria-describedby="client-err">
+        <p class="err" id="client-err"></p>
+      </div>
+      <div class="field">
+        <label for="call">What you call them <span class="opt">(optional)</span></label>
+        <input id="call" name="call" type="text" autocomplete="off" maxlength="30" aria-describedby="call-hint call-err">
+        <p class="hint" id="call-hint">The greeting uses this, for example Ravi. Leave it empty to greet them by the full name above.</p>
+        <p class="err" id="call-err"></p>
+      </div>
+      <div class="field">
+        <label for="amount">Amount (Rs)</label>
+        <input id="amount" name="amount" type="text" inputmode="decimal" autocomplete="off" required aria-describedby="amount-hint amount-err">
+        <p class="hint" id="amount-hint">For example 25000 or 1,25,000.50. Type the amount still owed.</p>
+        <p class="err" id="amount-err"></p>
+      </div>
+      <div class="field">
+        <label for="invoice">Invoice number <span class="opt">(optional)</span></label>
+        <input id="invoice" name="invoice" type="text" autocomplete="off" maxlength="30" aria-describedby="invoice-err">
+        <p class="err" id="invoice-err"></p>
+      </div>
+      <div class="field">
+        <label for="due">Due date</label>
+        <input id="due" name="due" type="date" required aria-describedby="due-err">
+        <p class="err" id="due-err"></p>
+      </div>
+      <div class="field">
+        <label for="deadline">Pay-by date for the final message</label>
+        <input id="deadline" name="deadline" type="date" required aria-describedby="deadline-hint deadline-err">
+        <p class="hint" id="deadline-hint">The date you want to be paid by. Today or later.</p>
+        <p class="err" id="deadline-err"></p>
+      </div>
+      <div class="field wide">
+        <label for="pay">Your UPI ID or payment link <span class="opt">(optional)</span></label>
+        <input id="pay" name="pay" type="text" autocomplete="off" maxlength="120" aria-describedby="pay-hint pay-err">
+        <p class="hint" id="pay-hint">For example name@bank or an https link. You will see it again before you send.</p>
+        <p class="err" id="pay-err"></p>
+      </div>
+    </div>
+    <div class="actions"><button type="submit" class="primary">Write my messages</button></div>
+  </form>
+
+  <section id="results" class="results" aria-labelledby="results-h" tabindex="-1" hidden>
+    <h2 id="results-h">Your messages</h2>
+    <p id="summary" class="summary"></p>
+    <p class="hint after">Edit any message before you send it, and change anything that is not true for you. WhatsApp will ask you to pick the contact. Message only people you already work with.</p>
+    <div class="check card" aria-labelledby="check-h">
+      <h3 id="check-h">Check before you send</h3>
+      <dl id="check"></dl>
+      <p class="note">Check the amount and UPI ID match your invoice. If you edit a message below, this summary does not change.</p>
+    </div>
+    <div id="messages"></div>
+    <p id="live" class="sr-only" role="status" aria-live="polite"></p>
+  </section>
+</main>
+<footer class="wrap foot">
+  <p>Chaser is free. It is not legal advice, and you are responsible for what you send.</p>
+  <p>This page keeps no cookies, counts nothing and stores nothing about your invoice.</p>
+</footer>
+<script type="module" src="/chaser/app.js"></script>
+</body>
+</html>
