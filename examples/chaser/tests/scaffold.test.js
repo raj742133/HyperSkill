@@ -1,25 +1,22 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import os from "node:os";
 import path from "node:path";
 import { loadConfig } from "../src/config.js";
 import { createServer } from "../src/server.js";
 
-const TOKEN = "t".repeat(32);
 const start = async (env = {}) => {
-  const config = loadConfig({ OPERATOR_TOKEN: TOKEN, NODE_ENV: "test", DATA_DIR: fs.mkdtempSync(path.join(os.tmpdir(), "chaser-")), ...env });
+  const config = loadConfig({ NODE_ENV: "test", ...env });
   const server = createServer(config);
   await new Promise((r) => server.listen(0, "127.0.0.1", r));
   return { base: `http://127.0.0.1:${server.address().port}`, close: () => new Promise((r) => server.close(r)) };
 };
 
-test("config refuses to start without a strong OPERATOR_TOKEN and rejects bad values", () => {
-  assert.throws(() => loadConfig({}), /OPERATOR_TOKEN/);
-  assert.throws(() => loadConfig({ OPERATOR_TOKEN: "short" }), /at least 24/);
-  assert.throws(() => loadConfig({ OPERATOR_TOKEN: TOKEN, PORT: "99999" }), /PORT/);
-  assert.throws(() => loadConfig({ OPERATOR_TOKEN: TOKEN, ALLOWED_SRC: "ok,BAD SRC" }), /ALLOWED_SRC/);
-  assert.equal(loadConfig({ OPERATOR_TOKEN: TOKEN }).NODE_ENV, "production");
+test("config rejects bad values and defaults to production", () => {
+  assert.throws(() => loadConfig({ PORT: "99999" }), /PORT/);
+  assert.throws(() => loadConfig({ NODE_ENV: "staging" }), /NODE_ENV/);
+  assert.equal(loadConfig({}).NODE_ENV, "production");
+  assert.equal(loadConfig({}).HOST, "127.0.0.1");
 });
 
 test("health endpoints answer, the page is served, unknown paths are 404", async (t) => {
@@ -33,11 +30,11 @@ test("health endpoints answer, the page is served, unknown paths are 404", async
   assert.equal((await fetch(s.base + "/nope")).status, 404);
 });
 
-test("every response carries a CSP that only allows the page's own origin", async (t) => {
+test("every response carries a CSP that allows no outgoing requests and no other origins", async (t) => {
   const s = await start(); t.after(s.close);
   for (const p of ["/", "/api/health", "/nope"]) {
     const csp = (await fetch(s.base + p)).headers.get("content-security-policy");
-    assert.match(csp, /connect-src 'self'/, p);
+    assert.match(csp, /connect-src 'none'/, p);
     assert.match(csp, /default-src 'self'/, p);
     assert.ok(!/https?:\/\//.test(csp), "no third-party origin in the CSP");
   }

@@ -4,16 +4,13 @@ import { fileURLToPath } from "node:url";
 import { loadConfig } from "./config.js";
 import { securityHeaders } from "./http/headers.js";
 import { createHandler } from "./http/routes.js";
-import { createEventStore } from "./store/events.js";
-import { createWaitlistStore } from "./store/waitlist.js";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const PUBLIC_DIR = path.join(HERE, "..", "public");
 const CORE_DIR = path.join(HERE, "core");
 
 export function createServer(config) {
-  const dir = path.resolve(config.DATA_DIR);
-  const handler = createHandler({ config, publicDir: PUBLIC_DIR, coreDir: CORE_DIR, events: createEventStore({ dir }), waitlist: createWaitlistStore({ dir }) });
+  const handler = createHandler({ publicDir: PUBLIC_DIR, coreDir: CORE_DIR });
   const headers = securityHeaders(config);
   return http.createServer((req, res) => {
     for (const [k, v] of Object.entries(headers)) res.setHeader(k, v);

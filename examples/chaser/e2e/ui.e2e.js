@@ -8,25 +8,21 @@ import { chromium } from "playwright-core";
 import { loadConfig } from "../src/config.js";
 import { createServer } from "../src/server.js";
 
-const TOKEN = "e".repeat(32);
 const UA = "Mozilla/5.0 (Linux; Android 14; Pixel 7) AppleWebKit/537.36 Chrome/120 Mobile Safari/537.36";
 const today = () => { const d = new Date(), p = (n) => String(n).padStart(2, "0"); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`; };
 const shift = (days) => { const d = new Date(); d.setDate(d.getDate() + days); const p = (n) => String(n).padStart(2, "0"); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`; };
 
-let browser, open, closed, dirOpen;
-async function serve(env) {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "chaser-e2e-"));
-  const server = createServer(loadConfig({ OPERATOR_TOKEN: TOKEN, NODE_ENV: "test", DATA_DIR: dir, ...env }));
+let browser, open;
+async function serve() {
+  const server = createServer(loadConfig({ NODE_ENV: "test" }));
   await new Promise((r) => server.listen(0, "127.0.0.1", r));
-  return { base: `http://127.0.0.1:${server.address().port}`, dir, close: () => new Promise((r) => server.close(r)) };
+  return { base: `http://127.0.0.1:${server.address().port}`, close: () => new Promise((r) => server.close(r)) };
 }
 before(async () => {
   browser = await chromium.launch({ executablePath: process.env.CHROME_PATH, args: ["--no-sandbox", "--disable-gpu"] });
-  open = await serve({ OPERATOR_NAME: "Test Operator", OPERATOR_CONTACT: "ops@example.org", TEST_END_DATE: "2026-12-31", ALLOWED_SRC: "me,post" });
-  closed = await serve({ ALLOWED_SRC: "me,post" });
-  dirOpen = open.dir;
+  open = await serve();
 });
-after(async () => { await browser?.close(); await open?.close(); await closed?.close(); });
+after(async () => { await browser?.close(); await open?.close(); });
 
 async function newPage(server = open, opts = {}) {
   const context = await browser.newContext({ userAgent: UA, viewport: { width: 1000, height: 900 }, ...opts });
@@ -34,7 +30,7 @@ async function newPage(server = open, opts = {}) {
   const problems = [];
   page.on("console", (m) => { if (["error", "warning"].includes(m.type())) problems.push(m.text()); });
   page.on("pageerror", (e) => problems.push("pageerror: " + e.message));
-  await page.goto(server.base + "/?src=post");
+  await page.goto(server.base + "/");
   await page.waitForFunction(() => document.getElementById("form"));
   return { context, page, problems };
 }
@@ -44,7 +40,6 @@ async function fill(page, over = {}) {
   return v;
 }
 const generate = async (page, over) => { const v = await fill(page, over); await page.getByRole("button", { name: "Write my messages" }).click(); return v; };
-const stats = async (server) => (await fetch(server.base + "/api/stats", { headers: { authorization: `Bearer ${TOKEN}` } })).json();
 
 test("happy path: three messages with the right amount, dates and working send links", async () => {
   const { context, page, problems } = await newPage();
@@ -107,7 +102,7 @@ test("editing a message updates its WhatsApp link", async () => {
   await context.close();
 });
 
-test("review fixes: a rupee sign is accepted, the email text can be copied, and focus moves to the answer after the paid-plan question", async () => {
+test("review fixes: a rupee sign is accepted and the email text can be copied", async () => {
   const { context, page } = await newPage(open, { permissions: ["clipboard-read", "clipboard-write"] });
   await generate(page, { amount: "\u20b925,000" });
   assert.match(await page.locator("#check").innerText(), /Rs 25,000/);
@@ -116,8 +111,6 @@ test("review fixes: a rupee sign is accepted, the email text can be copied, and 
   await card.getByRole("button", { name: /Copy the firm email/ }).click();
   const copied = await page.evaluate(() => navigator.clipboard.readText());
   assert.match(copied, /^Subject: .+\n\n[\s\S]*Rs 25,000/);
-  await page.getByRole("button", { name: "I would pay for this" }).click();
-  assert.equal(await page.evaluate(() => document.activeElement?.id), "door-thanks");
   await context.close();
 });
 
@@ -193,87 +186,27 @@ test("hostile text is shown as text and never runs", async () => {
   await context.close();
 });
 
-test("privacy: generating messages sends no form data anywhere and contacts no other site", async () => {
+test("privacy: generating messages sends nothing anywhere, not even a request, and stores nothing", async () => {
   const { context, page } = await newPage();
   const requests = [];
+  await page.waitForTimeout(300);
   page.on("request", (r) => requests.push({ url: r.url(), body: r.postData() ?? "" }));
-  const v = await generate(page, { client: "UNIQUE-CLIENT-NAME", amount: "98765.43", invoice: "UNIQUE-INV-77", pay: "unique.upi@okaxis" });
+  await generate(page, { client: "UNIQUE-CLIENT-NAME", amount: "98765.43", invoice: "UNIQUE-INV-77", pay: "unique.upi@okaxis" });
   await page.locator("#results").waitFor();
   await page.locator("article.msg").first().locator("summary").click();
   await page.getByRole("button", { name: "Copy text" }).first().click();
   await page.waitForTimeout(400);
-  const origin = new URL(open.base).origin;
-  for (const r of requests) {
-    assert.ok(r.url.startsWith(origin), "only our own origin: " + r.url);
-    for (const secret of [v.client, "98765", v.invoice, v.pay, v.me]) assert.ok(!r.url.includes(secret) && !r.body.includes(secret), `${secret} leaked to ${r.url}`);
-  }
-  const api = requests.filter((r) => r.url.includes("/api/")).map((r) => `${new URL(r.url).pathname} ${JSON.parse(r.body || "{}").event ?? ""}`);
-  assert.deepEqual(api.filter((a) => a !== "/api/config "), ["/api/event page_ready", "/api/event generate", "/api/event copy"].filter((e) => api.includes(e)), "only counters, no form data");
-  assert.ok(api.every((a) => a === "/api/config " || a.startsWith("/api/event ")), "no other API call: " + api);
-  const stored = fs.readdirSync(dirOpen).map((f) => fs.readFileSync(path.join(dirOpen, f), "utf8")).join("\n");
-  for (const secret of ["UNIQUE-CLIENT-NAME", "98765", "UNIQUE-INV-77", "unique.upi"]) assert.ok(!stored.includes(secret), secret + " reached the disk");
+  assert.deepEqual(requests, [], "no request at all after the page has loaded: " + requests.map((r) => r.url));
   assert.equal(await page.evaluate(() => localStorage.length + sessionStorage.length + document.cookie.length), 0, "nothing stored in the browser");
   await context.close();
 });
 
-test("offline: messages still generate, sending the email list says so plainly", async () => {
+test("offline: with the network cut after the page loads, the messages are still written", async () => {
   const { context, page } = await newPage();
+  await context.setOffline(true);
   await generate(page);
   await page.locator("#results").waitFor();
-  await context.setOffline(true);
-  await page.getByRole("button", { name: "I would pay for this" }).click();
-  await page.locator("#email").fill("asha@example.org");
-  await page.getByRole("button", { name: "Tell me when it is ready" }).click();
-  await page.getByText("Can't reach the server").waitFor();
-  assert.equal(await page.locator("#email").inputValue(), "asha@example.org", "typed email kept");
-  await context.setOffline(false);
-  await page.getByRole("button", { name: "Tell me when it is ready" }).click();
-  await page.getByText("Thanks. You are on the list.").waitFor();
-  await context.close();
-});
-
-test("the paid-plan question: counts intent, shows the notice, takes an email once, and says nothing is sold", async () => {
-  const { context, page } = await newPage();
-  await generate(page);
-  assert.match(await page.locator("#door").innerText(), /Coming soon/);
-  assert.match(await page.locator("#price").innerText(), /Rs 149 a month/);
-  await page.getByRole("button", { name: "I would pay for this" }).click();
-  const notice = await page.locator("#wl-notice").innerText();
-  for (const s of ["Test Operator", "ops@example.org", "31 Dec 2026", "IP addresses"]) assert.ok(notice.includes(s), s);
-  assert.match(await page.locator("#door-thanks").innerText(), /nothing will be charged/);
-  await page.locator("#email").fill("not-an-email");
-  await page.getByRole("button", { name: "Tell me when it is ready" }).click();
-  assert.match(await page.locator("#wl-err").innerText(), /valid email/);
-  await page.locator("#email").fill("Asha@Example.org");
-  await page.getByRole("button", { name: "Tell me when it is ready" }).click();
-  await page.getByText("Thanks. You are on the list.").waitFor();
-  await page.waitForTimeout(200);
-  const st = await stats(open);
-  assert.ok(st.bySource.post.pay_intent >= 1 && st.bySource.post.waitlist_submit >= 1);
-  assert.equal(st.waitlistEntries >= 1, true);
-  await context.close();
-});
-
-test("without operator details the email list stays closed", async () => {
-  const { context, page } = await newPage(closed);
-  await generate(page);
-  await page.getByRole("button", { name: "I would pay for this" }).click();
-  assert.match(await page.locator("#door-thanks").innerText(), /email list is not open/);
-  assert.equal(await page.locator("#wl").isHidden(), true);
-  await context.close();
-});
-
-test("the 'did you send it?' question counts a yes once and the traffic source is recorded", async () => {
-  const { context, page } = await newPage();
-  await generate(page);
-  await page.route("https://wa.me/**", (r) => r.fulfill({ status: 200, body: "ok" }));
-  const [popup] = await Promise.all([page.waitForEvent("popup"), page.locator("article.msg").first().getByRole("link", { name: "Open in WhatsApp" }).click()]);
-  await popup.close();
-  await page.locator("article.msg").first().getByRole("button", { name: "Yes" }).click();
-  await page.getByText("Thanks. That helps.").waitFor();
-  await page.waitForTimeout(300);
-  const st = await stats(open);
-  assert.ok(st.bySource.post.open_whatsapp >= 1 && st.bySource.post.sent_yes >= 1);
+  assert.match(await page.locator("#wa-polite").inputValue(), /Rs 1,25,000\.50/);
   await context.close();
 });
 
@@ -310,7 +243,7 @@ test("phone: no sideways scroll, targets at least 44px, nothing cut off", async 
   await generate(page);
   await page.locator("#results").waitFor();
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true, "no horizontal scroll");
-  for (const sel of ["button.primary", "article.msg a.btn", "article.msg button.secondary", "#pay-intent", "#me", "#due"]) {
+  for (const sel of ["button.primary", "article.msg a.btn", "article.msg button.secondary", "#me", "#due"]) {
     const box = await page.locator(sel).first().boundingBox();
     assert.ok(box.height >= 44, `${sel} is ${Math.round(box.height)}px high`);
     assert.ok(box.x >= 0 && box.x + box.width <= 376, `${sel} fits the screen`);
@@ -319,12 +252,12 @@ test("phone: no sideways scroll, targets at least 44px, nothing cut off", async 
   await context.close();
 });
 
-test("accessibility: axe finds nothing serious on the empty page, the results and the plan question, in light and dark", async () => {
+test("accessibility: axe finds nothing serious on the empty page, the errors and the results, in light and dark", async () => {
   const axeSource = fs.readFileSync(new URL("../node_modules/axe-core/axe.min.js", import.meta.url), "utf8");
   for (const colorScheme of ["light", "dark"]) {
     const context = await browser.newContext({ userAgent: UA, bypassCSP: true, colorScheme }); // bypassCSP only so the test can inject axe
     const page = await context.newPage();
-    await page.goto(open.base + "/?src=me");
+    await page.goto(open.base + "/");
     const run = async (label) => {
       await page.evaluate(axeSource);
       const res = await page.evaluate(() => axe.run(document, { runOnly: ["wcag2a", "wcag2aa", "wcag21aa", "best-practice"] }));
@@ -337,8 +270,6 @@ test("accessibility: axe finds nothing serious on the empty page, the results an
     await page.locator("#results").waitFor();
     await page.locator("article.msg").first().locator("summary").click();
     await run("results");
-    await page.getByRole("button", { name: "I would pay for this" }).click();
-    await run("plan question");
     await context.close();
   }
 });
@@ -351,6 +282,7 @@ test("the page loads its own files only, with the strict policy, and no cookie i
   await page.waitForTimeout(300);
   const origin = new URL(open.base).origin;
   assert.ok(urls.every((u) => u.startsWith(origin)), urls.filter((u) => !u.startsWith(origin)).join(","));
+  assert.ok(urls.every((u) => !u.includes("/api/")), "the page makes no API calls: " + urls.filter((u) => u.includes("/api/")).join(","));
   assert.deepEqual(await context.cookies(), []);
   await context.close();
 });
