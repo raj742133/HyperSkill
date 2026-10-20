@@ -30,7 +30,8 @@ body { transition: --sky-a .9s ease, --sky-b .9s ease, --liq-a .9s ease, --liq-b
 .o1 { width: 52vmax; height: 52vmax; left: -14vmax; top: -18vmax; background: var(--glow); transform: translate(calc(var(--mx) * 40px), calc(var(--my) * 30px)); animation: drift1 26s ease-in-out infinite alternate; }
 .o2 { width: 44vmax; height: 44vmax; right: -16vmax; bottom: -16vmax; background: var(--liq-a); opacity: .42; transform: translate(calc(var(--mx) * -50px), calc(var(--my) * -36px)); animation: drift2 31s ease-in-out infinite alternate; }
 .o3 { width: 26vmax; height: 26vmax; right: 16vmax; top: 8vmax; background: var(--liq-b); opacity: .22; transform: translate(calc(var(--mx) * 70px), calc(var(--my) * 50px)); animation: drift1 38s ease-in-out infinite alternate-reverse; }
-@keyframes drift1 { to { margin: 6vmax 0 0 8vmax; } } @keyframes drift2 { to { margin: -7vmax 9vmax 0 0; } }
+/* the drift uses the separate translate property, which the compositor animates without re-laying-out the page */
+@keyframes drift1 { to { translate: 8vmax 6vmax; } } @keyframes drift2 { to { translate: -9vmax -7vmax; } }
 .grain { position: absolute; inset: 0; opacity: .08; mix-blend-mode: overlay; background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='160' height='160' filter='url(%23n)'/></svg>"); }
 
 .stage { min-height: 100svh; display: grid; grid-template-rows: auto 1fr auto auto auto; justify-items: center; padding: max(16px, env(safe-area-inset-top)) 20px max(20px, env(safe-area-inset-bottom)); gap: 12px; }
@@ -50,7 +51,9 @@ kbd { font: 600 11px var(--mono); border: 1px solid currentColor; border-radius:
 #sound[aria-pressed="false"] .waves { opacity: .25; stroke-dasharray: 3 3; }
 
 /* the vessel */
-.vessel { position: relative; width: min(74vw, 62vh, 560px); aspect-ratio: 1; align-self: center; filter: drop-shadow(0 40px 80px rgba(0,0,0,.45)) drop-shadow(0 0 60px color-mix(in srgb, var(--glow) 35%, transparent)); transition: transform .5s cubic-bezier(.2,.8,.2,1); }
+.vessel { position: relative; width: min(74vw, 62vh, 560px); aspect-ratio: 1; align-self: center; transition: transform .5s cubic-bezier(.2,.8,.2,1); }
+/* the shadow and glow live on a still layer behind the canvas, so they are not repainted every frame */
+.vessel::before { content: ""; position: absolute; inset: 6%; border-radius: 50%; box-shadow: 0 40px 80px rgba(0,0,0,.45), 0 0 90px color-mix(in srgb, var(--glow) 38%, transparent); }
 body[data-status="running"] .vessel { animation: breathe 6s ease-in-out infinite; }
 body[data-status="done"] .vessel { animation: ding .9s cubic-bezier(.2,.8,.2,1); }
 @keyframes breathe { 50% { transform: scale(1.012); } }

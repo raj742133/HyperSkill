@@ -174,6 +174,8 @@ form.addEventListener("submit", () => {
   $("live").textContent = "Session lengths saved";
 });
 dlg.addEventListener("click", (e) => { if (e.target === dlg) dlg.close("cancel"); });
+// Closing must leave focus somewhere defined: a hidden button holding focus would swallow the next keyboard shortcut.
+dlg.addEventListener("close", () => { const a = document.activeElement; if (a instanceof HTMLElement && (dlg.contains(a) || a === document.body)) a.blur(); });
 
 /* ---------- pointer play: parallax sky, magnetic buttons, ripples in the glass ---------- */
 let pending = null;

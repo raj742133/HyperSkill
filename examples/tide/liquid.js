@@ -93,7 +93,7 @@ export function createLiquid(canvas, { getProgress, getColors, reduced = false }
 
   function step(ts) {
     if (!state.running) return;
-    const dt = Math.min(0.05, (ts - last) / 1000 || 0.016); last = ts;
+    const dt = Math.min(0.1, (ts - last) / 1000 || 0.016); // capped so a stalled frame cannot make the water jump last = ts;
     state.t += dt; state.frames += 1;
     if (++colorTick % 8 === 0) colors = getColors();
     state.energy += (0.25 - state.energy) * Math.min(1, dt * 1.2);
