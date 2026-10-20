@@ -36,7 +36,9 @@ export function validateInput(raw, today) {
   else if (parseDate(today) && daysBetween(today, raw.deadline) < 0) errors.deadline = "That date has passed. Pick today or a later date.";
   value.deadline = raw?.deadline;
 
-  if (value.pay && !errors.pay && !UPI_ID.test(value.pay) && !HTTPS_LINK.test(value.pay)) {
+  if (value.pay && !errors.pay && /^\+?(91)?[\s-]?\d{10}$/.test(value.pay)) {
+    errors.pay = "A phone number alone is not a UPI ID. Add your bank handle after it, for example 9876543210@ybl, or leave this empty.";
+  } else if (value.pay && !errors.pay && !UPI_ID.test(value.pay) && !HTTPS_LINK.test(value.pay)) {
     errors.pay = "That does not look like a UPI ID (name@bank) or an https payment link. Check it, or leave it empty.";
   }
   return { ok: Object.keys(errors).length === 0, errors, value };
