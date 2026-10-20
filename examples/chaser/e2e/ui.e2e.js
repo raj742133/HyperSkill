@@ -57,10 +57,10 @@ test("happy path: three messages with the right amount, dates and working send l
   const polite = await page.locator("#wa-polite").inputValue();
   assert.match(polite, /^Hi Ravi Traders,/);
   assert.match(polite, /Rs 1,25,000\.50/);
-  const href = await page.locator("article.msg").first().getByRole("link", { name: "Open in WhatsApp" }).getAttribute("href");
+  const href = await page.locator("article.msg:has(#wa-polite)").getByRole("link", { name: "Open in WhatsApp" }).getAttribute("href");
   assert.ok(href.startsWith("https://wa.me/?text="));
   assert.equal(decodeURIComponent(href.slice(20)), polite);
-  const link = page.locator("article.msg").first().getByRole("link", { name: "Open in WhatsApp" });
+  const link = page.locator("article.msg:has(#wa-polite)").getByRole("link", { name: "Open in WhatsApp" });
   assert.equal(await link.getAttribute("rel"), "noopener noreferrer");
   assert.equal(await link.getAttribute("target"), "_blank");
   assert.match(await page.locator("#wa-final").inputValue(), /pay further work|pause further work/);
@@ -74,11 +74,12 @@ test("results: the suggested message is marked, every message is fully visible, 
   await page.locator("#results").waitFor();
   assert.match(await page.locator("#summary").innerText(), /Suggested: start with Firm/);
   const cards = page.locator("article.msg");
-  assert.equal(await cards.nth(1).getAttribute("class"), "card msg suggested");
-  assert.equal(await cards.nth(1).locator(".tag").innerText(), "Suggested");
+  assert.equal(await cards.nth(0).getAttribute("class"), "card msg suggested", "the suggested message comes first");
+  assert.equal(await cards.nth(0).locator("textarea").getAttribute("id"), "wa-firm");
+  assert.equal(await cards.nth(0).locator(".tag").innerText(), "Suggested");
   assert.equal(await page.locator(".tag").count(), 1);
   assert.equal(await page.locator("article.msg a.btn:not(.quiet)").count() >= 1, true);
-  assert.equal(await cards.nth(0).getByRole("link", { name: "Open in WhatsApp" }).getAttribute("class"), "btn quiet");
+  assert.equal(await cards.nth(1).getByRole("link", { name: "Open in WhatsApp" }).getAttribute("class"), "btn quiet");
   for (const id of ["wa-polite", "wa-firm", "wa-final"]) {
     const clipped = await page.locator("#" + id).evaluate((t) => t.scrollHeight > t.clientHeight + 2);
     assert.equal(clipped, false, `${id} is cut off`);
@@ -101,7 +102,7 @@ test("editing a message updates its WhatsApp link", async () => {
   const { context, page } = await newPage();
   await generate(page);
   await page.locator("#wa-firm").fill("My own words, Rs 5 only");
-  const href = await page.locator("article.msg").nth(1).getByRole("link", { name: "Open in WhatsApp" }).getAttribute("href");
+  const href = await page.locator("article.msg:has(#wa-firm)").getByRole("link", { name: "Open in WhatsApp" }).getAttribute("href");
   assert.equal(decodeURIComponent(href.slice(20)), "My own words, Rs 5 only");
   await context.close();
 });
@@ -110,13 +111,36 @@ test("review fixes: a rupee sign is accepted, the email text can be copied, and 
   const { context, page } = await newPage(open, { permissions: ["clipboard-read", "clipboard-write"] });
   await generate(page, { amount: "\u20b925,000" });
   assert.match(await page.locator("#check").innerText(), /Rs 25,000/);
-  const card = page.locator("article.msg").nth(1);
+  const card = page.locator("article.msg:has(#wa-firm)");
   await card.locator("summary").click();
   await card.getByRole("button", { name: /Copy the firm email/ }).click();
   const copied = await page.evaluate(() => navigator.clipboard.readText());
   assert.match(copied, /^Subject: .+\n\n[\s\S]*Rs 25,000/);
   await page.getByRole("button", { name: "I would pay for this" }).click();
   assert.equal(await page.evaluate(() => document.activeElement?.id), "door-thanks");
+  await context.close();
+});
+
+test("review fixes 2: the greeting can use a short name; an invoice not yet due shows Polite and keeps the rest behind a button; edits are not replaced without asking", async () => {
+  const { context, page } = await newPage();
+  await generate(page, { call: "Ravi", due: shift(5) });
+  assert.match(await page.locator("#wa-polite").inputValue(), /^Hi Ravi,/);
+  assert.equal(await page.locator("#later").isHidden(), true, "firm and final wait behind a button");
+  assert.equal(await page.locator("article.msg:visible").count(), 1);
+  await page.getByRole("button", { name: "Show the firm and final messages" }).click();
+  assert.equal(await page.locator("article.msg:visible").count(), 3);
+  assert.equal(await page.evaluate(() => document.activeElement.tagName), "TEXTAREA");
+  // an edited message is not thrown away silently
+  await page.locator("#wa-polite").fill("My own words");
+  let asked = 0;
+  page.once("dialog", (d) => { asked++; d.dismiss(); });
+  await page.getByRole("button", { name: "Write my messages" }).click();
+  assert.equal(asked, 1);
+  assert.equal(await page.locator("#wa-polite").inputValue(), "My own words", "Cancel keeps the edit");
+  page.once("dialog", (d) => { asked++; d.accept(); });
+  await page.getByRole("button", { name: "Write my messages" }).click();
+  assert.equal(asked, 2);
+  assert.match(await page.locator("#wa-polite").inputValue(), /^Hi Ravi,/, "OK writes fresh messages");
   await context.close();
 });
 
@@ -258,7 +282,7 @@ test("only the keyboard: fill every field by typing, submit, reach copy and send
   const mdy = (iso) => { const [y, m, d] = iso.split("-"); return m + d + y; };
   await page.locator("#me").focus();
   const order = [];
-  for (const [id, text] of [["me", "Asha"], ["client", "Ravi"], ["amount", "5000"], ["invoice", ""], ["due", mdy(shift(-3))], ["deadline", mdy(shift(5))], ["pay", ""]]) {
+  for (const [id, text] of [["me", "Asha"], ["client", "Ravi"], ["call", ""], ["amount", "5000"], ["invoice", ""], ["due", mdy(shift(-3))], ["deadline", mdy(shift(5))], ["pay", ""]]) {
     assert.equal(await page.evaluate(() => document.activeElement.id), id, `focus should be on ${id}`);
     order.push(id);
     if (text) await page.keyboard.type(text);
@@ -266,7 +290,7 @@ test("only the keyboard: fill every field by typing, submit, reach copy and send
     // a date field has month, day and year parts: after typing all three, one more Tab leaves it
     if ((id === "due" || id === "deadline") && (await page.evaluate(() => document.activeElement.id)) === id) await page.keyboard.press("Tab");
   }
-  assert.deepEqual(order, ["me", "client", "amount", "invoice", "due", "deadline", "pay"]);
+  assert.deepEqual(order, ["me", "client", "call", "amount", "invoice", "due", "deadline", "pay"]);
   assert.equal(await page.evaluate(() => document.activeElement.textContent), "Write my messages");
   await page.keyboard.press("Enter");
   await page.locator("#results").waitFor();

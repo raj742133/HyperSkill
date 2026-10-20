@@ -34,6 +34,12 @@
         <p class="err" id="client-err"></p>
       </div>
       <div class="field">
+        <label for="call">What you call them <span class="opt">(optional)</span></label>
+        <input id="call" name="call" type="text" autocomplete="off" maxlength="30" aria-describedby="call-hint call-err">
+        <p class="hint" id="call-hint">The greeting uses this, for example Ravi. Leave it empty to greet them by the full name above.</p>
+        <p class="err" id="call-err"></p>
+      </div>
+      <div class="field">
         <label for="amount">Amount (Rs)</label>
         <input id="amount" name="amount" type="text" inputmode="decimal" autocomplete="off" required aria-describedby="amount-hint amount-err">
         <p class="hint" id="amount-hint">For example 25000 or 1,25,000.50. Type the amount still owed.</p>

@@ -150,3 +150,12 @@ test("generating messages makes no network call and reads no browser state (pure
   globalThis.fetch = () => { throw new Error("network call during generation"); };
   try { gen(); } finally { globalThis.fetch = saved.fetch; }
 });
+
+test("greeting: uses 'what you call them' when given, the full client name otherwise, and the optional field is length-checked", () => {
+  assert.match(gen({ call: "Ravi" }).messages[0].whatsapp, /^Hi Ravi,\n/);
+  assert.match(gen({ call: "Ravi" }).messages[0].email.body, /^Dear Ravi,\n/);
+  assert.match(gen({ call: "  " }).messages[0].whatsapp, /^Hi Ravi Traders,\n/);
+  assert.match(gen().messages[2].whatsapp, /^Hi Ravi Traders,\n/);
+  assert.equal(validateInput({ ...base, call: "x".repeat(31) }, TODAY).ok, false);
+  assert.equal(validateInput({ ...base, call: "Ra\nvi" }, TODAY).ok, false);
+});

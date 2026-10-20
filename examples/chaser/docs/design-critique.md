@@ -30,15 +30,15 @@ Evidence: `docs/screenshots/before/` (the build before the first critique, regen
 
 | # | Finding | Status |
 |---|---|---|
-| 1 | Greeting uses the full client name ("Hi Ravi Kumar"), sample says "Hi Ravi" | **Open, owner decision.** First-word greetings break on "Dr Rao" and company names; a "what do you call them" field is the safer fix |
+| 1 | Greeting uses the full client name ("Hi Ravi Kumar"), sample says "Hi Ravi" | **Fixed.** A first-word greeting would break on "Dr Rao" and company names, so there is a new optional field "What you call them"; empty means the full name as before (unit and browser tests) |
 | 2 | The rupee sign was rejected; a bare phone number is not a valid UPI ID | **Half fixed.** The rupee sign is now accepted (test added). The phone-number hint is open |
 | 3 | Email version could not be copied | **Fixed.** "Copy email" copies subject and text (browser test added) |
 | 4 | Fixed wording; "pause further work" is wrong if work is finished | **Mitigated.** Line added above the cards: edit anything that is not true for you. A "work is ongoing" switch is open |
-| 5 | Invoice not yet due still shows Firm and Final cards | **Open, owner decision** (hide behind "show later reminders") |
-| 6 | Writing the messages again silently overwrites edits | **Open** (confirm before replacing edited text) |
+| 5 | Invoice not yet due still shows Firm and Final cards | **Fixed.** Not overdue: only Polite is shown, the other two wait behind "Show the firm and final messages" (browser test) |
+| 6 | Writing the messages again silently overwrites edits | **Fixed.** Writing again asks before replacing edited text; Cancel keeps the edits (browser test) |
 | 7 | Error summary duplicates inline errors, uses default link colours | **Half fixed.** Links now use the theme error colour. Duplication kept: the summary is how a screen reader and keyboard user finds the first error |
 | 8 | Focus lost to the page after "I would pay for this" | **Fixed.** Focus moves to the confirmation (browser test added) |
 | 9 | "Pick the contact" hint far from the buttons | **Fixed.** Moved under the summary, before the cards |
-| 10 | On a phone the suggested card is second, results start far down | **Open** (suggested card first) |
+| 10 | On a phone the suggested card is second, results start far down | **Fixed.** The suggested card comes first (browser test) |
 
-After the changes: 39 of 39 unit tests, 18 of 18 browser tests (axe included, light and dark) pass.
+After the first round: 39 of 39 unit tests, 18 of 18 browser tests (axe included, light and dark) pass. Second round (findings 1, 5, 6, 10 above): 40 of 40 unit tests, 19 of 19 browser tests, and the mutation check kills every mutant. Still open: the phone-number UPI hint (2), a "work is ongoing" switch (4), and the summary/inline error duplication (7, kept on purpose).

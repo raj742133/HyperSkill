@@ -3,7 +3,7 @@ import { validateInput, generateMessages, whatsappLink, mailtoLink, formatRupees
 const $ = (id) => document.getElementById(id);
 const params = new URLSearchParams(location.search);
 const src = params.get("src") ?? undefined;
-const FIELDS = ["me", "client", "amount", "invoice", "due", "deadline", "pay"];
+const FIELDS = ["me", "client", "call", "amount", "invoice", "due", "deadline", "pay"];
 /** Which message fits today: a few days late, about two weeks late, or well past that. Only a suggestion. */
 const suggest = (days) => (days <= 0 ? "polite" : days <= 7 ? "polite" : days <= 21 ? "firm" : "final");
 const WHEN = {
@@ -75,6 +75,7 @@ $("form").addEventListener("submit", (e) => {
   const result = validateInput(readForm(), today);
   showErrors(result.errors);
   if (!result.ok) return;
+  if ($("messages").querySelector("textarea[data-edited]") && !confirm("Writing the messages again will replace the changes you made to them. Continue?")) return;
   render(result.value, today);
   track("generate");
 });
@@ -93,13 +94,21 @@ function render(v, today) {
   const label = out.messages.find((m) => m.tone === best).label;
   $("summary").textContent = out.overdue
     ? `This invoice is ${out.days} day${out.days === 1 ? "" : "s"} overdue (counted from today's date on your device). Suggested: start with ${label}.`
-    : "This invoice is not overdue yet, so the polite message fits best. Keep the firm and final ones for later.";
+    : "This invoice is not overdue yet, so the polite message fits best. The firm and final ones are below, for later.";
   const check = $("check"); check.textContent = "";
   const rows = [["Client", v.client], ["Amount", formatRupees(v.paise)], ["Due date", formatDate(v.due)], ["Pay-by date (final message)", formatDate(v.deadline)], ["Pay to", v.pay || "No payment details added"]];
   for (const [k, val] of rows) check.append(el("dt", { text: k }), el("dd", { text: val }));
 
   const box = $("messages"); box.textContent = "";
-  for (const m of out.messages) box.append(messageCard(m, m.tone === best));
+  // The suggested message comes first; when nothing is overdue the other two wait behind a button.
+  const ordered = [...out.messages.filter((m) => m.tone === best), ...out.messages.filter((m) => m.tone !== best)];
+  const later = out.overdue ? null : el("div", { id: "later", hidden: "" });
+  ordered.forEach((m, i) => (later && i > 0 ? later : box).append(messageCard(m, m.tone === best)));
+  if (later) {
+    const show = el("button", { type: "button", class: "secondary", "aria-controls": "later", "aria-expanded": "false", text: "Show the firm and final messages" });
+    show.addEventListener("click", () => { later.hidden = false; show.hidden = true; later.querySelector("textarea").focus(); });
+    box.append(show, later);
+  }
   const results = $("results"); results.hidden = false;
   results.focus(); results.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
 }
@@ -109,7 +118,7 @@ function messageCard(m, suggested) {
   const ta = el("textarea", { id: `wa-${m.tone}`, "aria-label": `${m.label} message for WhatsApp, you can edit it`, spellcheck: "true" });
   ta.value = m.whatsapp;
   const wa = el("a", { class: suggested ? "btn" : "btn quiet", href: whatsappLink(m.whatsapp), target: "_blank", rel: "noopener noreferrer", text: "Open in WhatsApp" });
-  ta.addEventListener("input", () => { wa.href = whatsappLink(ta.value); grow(ta); });
+  ta.addEventListener("input", () => { wa.href = whatsappLink(ta.value); grow(ta); ta.dataset.edited = "1"; });
   const copy = el("button", { type: "button", class: "secondary", text: "Copy text" });
   const asked = el("p", { class: "sent", hidden: "" });
   const askSent = () => {
