@@ -19,18 +19,9 @@ class SiteTests(unittest.TestCase):
         r = subprocess.run([sys.executable, os.path.join(ROOT, "scripts", "sync_chaser.py"), "--check"], capture_output=True, text=True)
         self.assertEqual(r.returncode, 0, r.stderr)
 
-    def test_tide_copy_matches_the_example(self):
-        """site/tide is a copy of examples/tide with absolute asset paths; fail when they drift apart."""
-        src = os.path.join(ROOT, "examples", "tide")
-        for name in ("styles.css", "app.js", "timer.js", "liquid.js", "favicon.svg"):
-            with open(os.path.join(src, name), "rb") as a, open(os.path.join(SITE, "tide", name), "rb") as b:
-                self.assertEqual(a.read(), b.read(), name + " differs: copy examples/tide/" + name + " to site/tide/")
-        with open(os.path.join(src, "index.html"), encoding="utf-8") as f:
-            html = f.read()
-        for name in ("favicon.svg", "styles.css", "app.js"):
-            html = html.replace('"' + name + '"', '"/tide/' + name + '"')
-        with open(os.path.join(SITE, "tide", "index.html"), encoding="utf-8") as f:
-            self.assertEqual(f.read(), html, "site/tide/index.html differs from examples/tide/index.html")
+    def test_tide_copy_is_up_to_date(self):
+        r = subprocess.run([sys.executable, os.path.join(ROOT, "scripts", "sync_tide.py"), "--check"], capture_output=True, text=True)
+        self.assertEqual(r.returncode, 0, r.stderr)
 
     def test_html_references_exist(self):
         with open(os.path.join(SITE, "index.html"), encoding="utf-8") as f:
@@ -53,6 +44,19 @@ class SiteTests(unittest.TestCase):
         keys = {h["key"] for rule in cfg["headers"] for h in rule["headers"]}
         for k in ("Content-Security-Policy", "X-Content-Type-Options", "Strict-Transport-Security"):
             self.assertIn(k, keys)
+
+    def test_tide_and_chaser_get_the_strict_policy_and_the_broad_one_leaves_them_alone(self):
+        with open(os.path.join(ROOT, "vercel.json"), encoding="utf-8") as f:
+            rules = json.load(f)["headers"]
+        broad, strict = rules[0], rules[1]
+        self.assertIn("(?!(?:tide|chaser)", broad["source"], "the broad rule must not also match /tide and /chaser")
+        self.assertEqual(strict["source"], "/(tide|chaser)(/.*)?")
+        csp = next(h["value"] for h in strict["headers"] if h["key"] == "Content-Security-Policy")
+        for need in ("connect-src 'none'", "font-src 'none'", "base-uri 'none'", "frame-ancestors 'none'", "script-src 'self'"):
+            self.assertIn(need, csp)
+        self.assertNotIn("http", csp)
+        # the strict rule replaces the broad one on those paths, so it must carry every other security header too
+        self.assertEqual({h["key"] for h in strict["headers"]}, {h["key"] for h in broad["headers"]})
 
     def test_live_view_files_are_published_and_the_policy_lets_the_replay_load_its_data(self):
         for name in ("index.html", "live.css", "live.js", "replay.json"):

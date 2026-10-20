@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# Opt-in. Enable with:  git config core.hooksPath examples/tide/.githooks   (run from the repository root)
+set -euo pipefail
+root=$(git rev-parse --show-toplevel)
+cd "$root/examples/tide"
+# NUL-separated, so file names with spaces or glob characters are scanned as one file each
+git diff --cached -z --name-only --diff-filter=ACM | while IFS= read -r -d '' f; do printf '%s\0' "$root/$f"; done \
+  | xargs -0 -r bash scripts/secret-scan.sh || { echo "pre-commit: possible secret staged, commit blocked"; exit 1; }
+npm run --silent lint

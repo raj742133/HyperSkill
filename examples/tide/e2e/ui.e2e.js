@@ -11,7 +11,7 @@ const t = (name, fn) => test(name, { timeout: 60_000 }, fn); // a hang is report
 let browser, server, base;
 const opened = []; // every context a test opens, closed after the test even when it failed, so one failure cannot starve the next tests of CPU
 before(async () => {
-  server = createServer();
+  server = createServer({ quiet: true });
   await new Promise((r) => server.listen(0, "127.0.0.1", r));
   base = `http://127.0.0.1:${server.address().port}/`;
   browser = await chromium.launch({ executablePath: process.env.CHROME_PATH, args: ["--no-sandbox", "--disable-gpu"] });
@@ -113,6 +113,7 @@ t("a finished session: zero, a splash of droplets, a dot, an announcement, and t
   assert.equal(await digits(page), "00:00");
   assert.equal(await page.locator("#caption").textContent(), "Done. Take a break?"); // the page shows it in capitals through CSS
   assert.equal(await page.locator("#go").innerText(), "Start short break");
+  assert.match(await page.title(), /^Time is up/, "the tab title says so, which stays visible when the page is in the background");
   assert.equal(await page.locator("#dots li").count(), 1);
   assert.match(await page.locator("#live").innerText(), /Focus session finished/);
   await page.keyboard.press("Space");
@@ -157,8 +158,11 @@ t("keyboard: 1 2 3 switch worlds, R resets, S opens lengths, M toggles sound; sh
   await page.keyboard.press("2"); assert.equal(await mode(page), "short"); assert.equal(await digits(page), "05:00");
   await page.keyboard.press("3"); assert.equal(await mode(page), "long"); assert.equal(await digits(page), "15:00");
   await page.keyboard.press("1"); await page.keyboard.press("Space"); await advance(page, 5000);
-  await page.keyboard.press("r");
+  await page.locator("#reset").click(); // a running session is stopped on purpose, with the button (the R key is ignored then: see the next tests)
   assert.deepEqual([await status(page), await digits(page)], ["idle", "25:00"]);
+  await page.keyboard.press("3"); await page.keyboard.press("r"); // when nothing is running, R resets the shown mode
+  assert.deepEqual([await mode(page), await status(page), await digits(page)], ["long", "idle", "15:00"]);
+  await page.keyboard.press("1");
   assert.equal(await page.locator("#sound").getAttribute("aria-pressed"), "false");
   await page.keyboard.press("m");
   assert.equal(await page.locator("#sound").getAttribute("aria-pressed"), "true");
@@ -321,6 +325,78 @@ t("reduced motion: no animation loop, no drifting sky, no rolling digits, but th
   assert.match(await digits(page), /^24:5\d|24:4\d$/);
   assert.deepEqual(await page.locator("#digits .d").evaluateAll((cs) => cs.map((c) => c.children.length)), [1, 1, 1, 1], "digits change without a roll");
   assert.deepEqual(problems, []);
+  await context.close();
+});
+
+t("offline: with the network cut after the page loads, the timer still runs and finishes", async () => {
+  const { context, page } = await open();
+  await context.setOffline(true);
+  await setLengths(page, 1);
+  await page.keyboard.press("Space");
+  await jump(page, 61_000);
+  assert.equal(await status(page), "done");
+  assert.equal(await digits(page), "00:00");
+  await context.close();
+});
+
+t("script-injection probe: payloads in the fields and in tampered stored settings run nothing and cannot break the timer", async () => {
+  const payload = '<img src=x onerror="window.__xss=1"><script>window.__xss=1<\/script>';
+  const { context, page, problems } = await open({ clock: false, storageState: undefined });
+  await page.addInitScript((p) => { if (!localStorage.getItem("tide.v1")) localStorage.setItem("tide.v1", JSON.stringify({ seconds: { focus: p, short: -5, long: 1e12 }, focusDone: p, sound: "yes", day: p })); }, payload);
+  await page.reload();
+  await page.waitForFunction(() => window.__tide);
+  assert.match(await digits(page), /^\d\d:\d\d$/, "the display still shows a real time, not NaN");
+  assert.notEqual(await digits(page), "NaN:NaN");
+  await page.keyboard.press("s");
+  for (const name of ["focus", "short", "long"]) await page.locator(`#settings input[name=${name}]`).evaluate((el, p) => { el.value = p; }, payload);
+  await page.keyboard.press("Escape");
+  await page.keyboard.press("Space");
+  assert.equal(await page.evaluate(() => window.__xss), undefined, "nothing ran");
+  assert.equal(await page.locator("img[src='x']").count(), 0, "no injected element in the page");
+  assert.deepEqual(problems.filter((p) => !/cannot be parsed, or is out of range/.test(p)), [], "only the browser's own complaint about text in a number field (the test forced it)");
+  await context.close();
+});
+
+t("reduced motion still shows progress: the glass drains as time passes and the colour matches the mode", async () => {
+  const { context, page } = await open({ reducedMotion: "reduce" });
+  const level = () => page.evaluate(() => window.__tide.liquid.stats().level);
+  await page.keyboard.press("Space");
+  await advance(page, 1_000);
+  const early = await level();
+  await jump(page, 10 * 60_000);
+  const later = await level();
+  assert.ok(early > 0.95, `full at the start (${early})`);
+  assert.ok(later < 0.65 && later > 0.45, `about 60% after 10 of 25 minutes (${later})`);
+  await context.close();
+});
+
+t("single keys cannot wipe a running session: 1 2 3 and R are ignored with a message, the buttons still work", async () => {
+  const { context, page } = await open();
+  await page.keyboard.press("Space");
+  await advance(page, 5_000);
+  for (const k of ["2", "3", "r"]) await page.keyboard.press(k);
+  assert.equal(await status(page), "running", "still running");
+  assert.equal(await page.evaluate(() => window.__tide.timer.snapshot().mode), "focus", "still the focus mode");
+  assert.match(await page.locator("#live").textContent(), /A session is in progress/);
+  await page.locator("#reset").click();
+  assert.equal(await status(page), "idle", "the Reset button still stops it");
+  await page.keyboard.press("2");
+  assert.equal(await page.evaluate(() => window.__tide.timer.snapshot().mode), "short", "when idle the keys switch modes");
+  await context.close();
+});
+
+t("privacy: no request after the page loads, no cookie, and the strict policy is in force", async () => {
+  const { context, page } = await open();
+  const requests = [];
+  page.on("request", (r) => requests.push(r.url()));
+  await page.keyboard.press("Space");
+  await advance(page, 5_000);
+  await page.keyboard.press("m");
+  await page.keyboard.press("s");
+  await page.keyboard.press("Escape");
+  assert.deepEqual(requests, [], "the page asks for nothing once it has loaded");
+  assert.deepEqual(await context.cookies(), [], "no cookie");
+  assert.equal(await page.evaluate(() => fetch(location.href).then(() => "allowed", () => "blocked")), "blocked", "the policy refuses any request the page tries to make");
   await context.close();
 });
 

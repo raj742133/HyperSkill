@@ -18,9 +18,10 @@ export function createTimer({ now = () => Date.now(), seconds = {}, onDone = () 
   let mode = "focus", status = "idle", remaining = secs.focus * 1000, endsAt = 0, focusDone = 0;
 
   const total = () => secs[mode] * 1000;
+  let cap = total(); // the full length of the session in progress: changing a setting mid-session does not change it
   const sync = () => {
     if (status !== "running") return;
-    remaining = Math.max(0, endsAt - now());
+    remaining = Math.min(cap, Math.max(0, endsAt - now())); // never more than the full length, even if the clock is set back
     if (remaining === 0) {
       status = "done";
       if (mode === "focus") focusDone += 1;
@@ -28,7 +29,7 @@ export function createTimer({ now = () => Date.now(), seconds = {}, onDone = () 
     }
   };
   function snapshot() {
-    return { mode, status, remainingMs: remaining, totalMs: total(), progress: 1 - remaining / total(), focusDone, seconds: { ...secs } };
+    return { mode, status, remainingMs: remaining, totalMs: cap, progress: 1 - remaining / cap, focusDone, seconds: { ...secs } };
   }
   return {
     snapshot: () => { sync(); return snapshot(); },
@@ -37,22 +38,23 @@ export function createTimer({ now = () => Date.now(), seconds = {}, onDone = () 
       sync();
       if (status === "running") return snapshot();
       if (status === "done") { remaining = total(); }
+      if (status === "idle" || status === "done") cap = remaining;
       status = "running"; endsAt = now() + remaining;
       return snapshot();
     },
     pause() { sync(); if (status === "running") { status = "paused"; } return snapshot(); },
     toggle() { sync(); return status === "running" ? this.pause() : this.start(); },
-    reset() { status = "idle"; remaining = total(); return snapshot(); },
+    reset() { status = "idle"; remaining = total(); cap = remaining; return snapshot(); },
     setMode(next) {
       if (!MODES[next]) throw new Error(`unknown mode: ${next}`);
-      mode = next; status = "idle"; remaining = total(); return snapshot();
+      mode = next; status = "idle"; remaining = total(); cap = remaining; return snapshot();
     },
     /** Change a length in minutes; clamped to LIMITS. Applies at once when that mode is idle or finished. */
     setMinutes(which, minutes) {
       const [lo, hi] = LIMITS[which];
       const m = Math.min(hi, Math.max(lo, Math.round(Number(minutes)) || lo));
       secs[which] = m * 60;
-      if (which === mode && status !== "running" && status !== "paused") remaining = total();
+      if (which === mode && status !== "running" && status !== "paused") { remaining = total(); cap = remaining; }
       return m;
     },
     /** The mode that should follow the current one: a long break after every fourth focus session. */

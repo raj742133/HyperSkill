@@ -1,9 +1,9 @@
-import { createTimer, formatTime, MODES } from "./timer.js";
+import { createTimer, formatTime, MODES, LIMITS } from "./timer.js";
 import { createLiquid } from "./liquid.js";
 
 const $ = (id) => document.getElementById(id);
 const body = document.body;
-const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches; // read once: changing the OS setting takes effect on the next page load
 const STORE = "tide.v1";
 
 /* ---------- saved settings (best effort: private windows can refuse storage) ---------- */
@@ -13,15 +13,37 @@ function load() {
 function save(patch) {
   try { localStorage.setItem(STORE, JSON.stringify({ ...load(), ...patch })); } catch (err) { /* nothing to do: settings just will not persist */ }
 }
-const saved = load();
-const today = new Date().toISOString().slice(0, 10);
+/** Stored settings come from the visitor's browser and can be anything: keep only values of the right type and range. */
+function clean(raw) {
+  const o = raw && typeof raw === "object" && !Array.isArray(raw) ? raw : {};
+  const seconds = {};
+  for (const [which, [lo, hi]] of Object.entries(LIMITS)) {
+    const v = o.seconds?.[which];
+    if (Number.isInteger(v) && v % 60 === 0 && v / 60 >= lo && v / 60 <= hi) seconds[which] = v;
+  }
+  return {
+    seconds,
+    sound: o.sound === true,
+    day: typeof o.day === "string" && /^\d{4}-\d{2}-\d{2}$/.test(o.day) ? o.day : undefined,
+    focusDone: Number.isInteger(o.focusDone) && o.focusDone >= 0 && o.focusDone < 1000 ? o.focusDone : 0,
+  };
+}
+const saved = clean(load());
+const localDay = () => { const d = new Date(), p = (n) => String(n).padStart(2, "0"); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`; };
+const today = localDay(); // the visitor's own date, not UTC
 
 /* ---------- sound: a soft two-note chime, off until asked ---------- */
 let soundOn = saved.sound === true, audio = null;
+// Browsers only let audio start after a click or key press, so the context is made and woken when a session starts, not when it ends.
+function unlockAudio() {
+  if (!soundOn) return;
+  try { audio ??= new AudioContext(); audio.resume?.(); } catch (err) { /* no audio here: chime() turns sound off */ }
+}
 function chime() {
   if (!soundOn) return;
   try {
     audio ??= new AudioContext();
+    audio.resume?.();
     [660, 990].forEach((f, i) => {
       const o = audio.createOscillator(), g = audio.createGain(), t = audio.currentTime + i * 0.18;
       o.type = "sine"; o.frequency.value = f;
@@ -81,6 +103,8 @@ function setDigits(text) {
 
 /* ---------- drawing the whole state ---------- */
 let lastSecond = -1, lastStatus = "", lastMode = "";
+const titleFor = (s, text) => s.status === "running" || s.status === "paused" ? `${text} · ${MODES[s.mode].label} · Tide`
+  : s.status === "done" ? `Time is up · ${MODES[s.mode].label} · Tide` : "Tide: a focus timer";
 function render(force = false) {
   const s = timer.snapshot();
   const text = formatTime(s.remainingMs);
@@ -88,15 +112,17 @@ function render(force = false) {
   if (sec !== lastSecond || force) {
     setDigits(text);
     $("spoken").textContent = spoken(s.remainingMs);
-    document.title = s.status === "running" || s.status === "paused" ? `${text} · ${MODES[s.mode].label} · Tide` : "Tide: a focus timer";
+    document.title = titleFor(s, text);
+    if (reduced) liquid.refresh(); // with reduced motion there is no animation loop, so redraw the glass as each second passes
     lastSecond = sec;
   }
   if (s.status !== lastStatus || s.mode !== lastMode || force) {
     body.dataset.status = s.status; body.dataset.mode = s.mode;
+    document.title = titleFor(s, formatTime(s.remainingMs)); // a finished session says so in the tab title, which stays visible when the page is in the background
     $("go").textContent = s.status === "running" ? "Pause" : s.status === "paused" ? "Resume" : s.status === "done" ? "Start " + MODES[timer.suggestNext()].label.toLowerCase() : "Start";
     $("caption").textContent = caption(s);
     document.querySelectorAll("#modes button").forEach((b) => { const on = b.dataset.mode === s.mode; b.setAttribute("aria-checked", String(on)); b.tabIndex = on ? 0 : -1; });
-    if (s.mode !== lastMode) liquid.refresh();
+    if (s.mode !== lastMode) { liquid.refresh(); setTimeout(() => liquid.refresh(), 1000); } // again once the 0.9 s colour change has finished
     lastStatus = s.status; lastMode = s.mode;
   }
 }
@@ -124,6 +150,7 @@ function act(name) {
     const s = timer.snapshot();
     if (s.status === "done") timer.setMode(timer.suggestNext());
     timer.toggle();
+    unlockAudio();
     $("live").textContent = timer.snapshot().status === "running" ? "Started" : "Paused";
   } else if (name === "reset") { timer.reset(); $("live").textContent = "Reset"; }
   else if (MODES[name]) { timer.setMode(name); $("live").textContent = `${MODES[name].label} selected`; }
@@ -146,6 +173,10 @@ addEventListener("keydown", (e) => {
   const a = document.activeElement, onButton = a?.matches("button") && a.checkVisibility?.() !== false; // a hidden button (the dialog just closed) cannot act, so it must not swallow the key
   const k = e.key.toLowerCase();
   if (k === " " && !onButton) { e.preventDefault(); act("toggle"); }
+  else if ("r123".includes(k) && k.length === 1 && ["running", "paused"].includes(timer.snapshot().status)) {
+    // One stray key next to Space must not throw away a session in progress: the Reset button and the mode buttons still can.
+    $("live").textContent = "A session is in progress. Use the Reset button or a mode button to stop it.";
+  }
   else if (k === "r") act("reset");
   else if (k === "1") act("focus"); else if (k === "2") act("short"); else if (k === "3") act("long");
   else if (k === "m") toggleSound();

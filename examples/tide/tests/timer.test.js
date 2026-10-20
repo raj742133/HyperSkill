@@ -110,3 +110,25 @@ test("a long break is suggested after every fourth focus session, otherwise a sh
 test("the default lengths are the classic 25, 5 and 15 minutes", () => {
   assert.deepEqual(Object.values(MODES).map((m) => m.seconds / 60), [25, 5, 15]);
 });
+
+test("changing a length while a session runs or is paused does not touch the time left", () => {
+  const c = clock();
+  const t = createTimer({ now: c.now });
+  t.start(); c.add(60_000);
+  t.setMinutes("focus", 50);
+  assert.equal(t.snapshot().remainingMs, 24 * 60_000, "running: unchanged");
+  t.pause();
+  t.setMinutes("focus", 10);
+  assert.equal(t.snapshot().remainingMs, 24 * 60_000, "paused: unchanged");
+  t.reset();
+  assert.equal(t.snapshot().remainingMs, 10 * 60_000, "after a reset the new length applies");
+});
+
+test("if the clock is set back while running, the time left never exceeds the full length", () => {
+  const c = clock();
+  const t = createTimer({ now: c.now });
+  t.start(); c.add(60_000);
+  c.add(-3_600_000); // the computer's clock jumps back an hour
+  assert.equal(t.snapshot().remainingMs, 25 * 60_000);
+  assert.equal(t.snapshot().progress, 0);
+});

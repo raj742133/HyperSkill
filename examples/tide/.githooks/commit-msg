@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Conventional Commits: "type(scope): summary". Enabled together with the pre-commit hook (core.hooksPath).
+first=$(head -n1 "$1")
+if ! grep -qE '^(feat|fix|docs|test|chore|refactor|perf|ci|build|style|tide|site)(\([a-z0-9._-]+\))?!?: .{3,}' <<<"$first"; then
+  echo "commit-msg: start with a type, for example 'fix(timer): keep time after sleep' (types: feat fix docs test chore refactor perf ci build style)"; exit 1
+fi
