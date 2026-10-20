@@ -109,7 +109,7 @@ t("a finished session: zero, a splash of droplets, a dot, an announcement, and t
   await jump(page, 1_500);
   assert.equal(await status(page), "done");
   assert.equal(await digits(page), "00:00");
-  assert.equal(await page.locator("#caption").innerText(), "Done. Take a break?");
+  assert.equal(await page.locator("#caption").textContent(), "Done. Take a break?"); // the page shows it in capitals through CSS
   assert.equal(await page.locator("#go").innerText(), "Start short break");
   assert.equal(await page.locator("#dots li").count(), 1);
   assert.match(await page.locator("#live").innerText(), /Focus session finished/);
@@ -327,8 +327,10 @@ t("accessibility: nothing serious in any world, with the dialog open, or on a fi
   const axeSource = fs.readFileSync(new URL("../node_modules/axe-core/axe.min.js", import.meta.url), "utf8");
   const { context, page } = await open({ bypassCSP: true });
   const run = async (label) => {
+    await page.clock.resume(); // axe uses timers of its own, which never fire while the fake clock is paused
     await page.evaluate(axeSource);
     const res = await page.evaluate(() => axe.run(document, { runOnly: ["wcag2a", "wcag2aa", "wcag21aa", "best-practice"] }));
+    await page.clock.pauseAt(new Date((await page.evaluate(() => Date.now())) + 1000));
     assert.deepEqual(res.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).join(", ")}`), [], label);
   };
   for (const k of ["1", "2", "3"]) { await page.keyboard.press(k); await advance(page, 1200); await run(`mode ${k}`); }
