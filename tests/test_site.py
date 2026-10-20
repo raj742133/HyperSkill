@@ -15,6 +15,19 @@ class SiteTests(unittest.TestCase):
                            capture_output=True, text=True)
         self.assertEqual(r.returncode, 0, r.stderr)
 
+    def test_tide_copy_matches_the_example(self):
+        """site/tide is a copy of examples/tide with absolute asset paths; fail when they drift apart."""
+        src = os.path.join(ROOT, "examples", "tide")
+        for name in ("styles.css", "app.js", "timer.js", "liquid.js", "favicon.svg"):
+            with open(os.path.join(src, name), "rb") as a, open(os.path.join(SITE, "tide", name), "rb") as b:
+                self.assertEqual(a.read(), b.read(), name + " differs: copy examples/tide/" + name + " to site/tide/")
+        with open(os.path.join(src, "index.html"), encoding="utf-8") as f:
+            html = f.read()
+        for name in ("favicon.svg", "styles.css", "app.js"):
+            html = html.replace('"' + name + '"', '"/tide/' + name + '"')
+        with open(os.path.join(SITE, "tide", "index.html"), encoding="utf-8") as f:
+            self.assertEqual(f.read(), html, "site/tide/index.html differs from examples/tide/index.html")
+
     def test_html_references_exist(self):
         with open(os.path.join(SITE, "index.html"), encoding="utf-8") as f:
             html = f.read()
