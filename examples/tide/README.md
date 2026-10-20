@@ -10,7 +10,7 @@ Built as a test of HyperSkill's "make something with crazy UI and test it" flow.
 
 ## Run it
 ```
-npm start        # http://127.0.0.1:3000/
+npm start        # http://127.0.0.1:4173/ (set PORT to change)
 ```
 
 ## Use it
