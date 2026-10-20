@@ -19,6 +19,9 @@ Usage:
   hyperskill.py skip PHASE --reason TEXT            skip a whole phase (recorded)
   hyperskill.py decide --title T --choice C --why W [--phase PHASE]
   hyperskill.py log TEXT
+  hyperskill.py event TEXT [--kind building|testing|reviewing|waiting|done]
+                                                    tell the live view what is happening right now
+  hyperskill.py live [--port 4777]                  open the live dashboard (read-only, 127.0.0.1 only)
   hyperskill.py integrations [list] [--json]        vetted external skills and what is installed
   hyperskill.py integrations resolve SLOT [--json]  which provider to use for a capability slot
   hyperskill.py integrations phase [PHASE]          resolve every slot of a phase
@@ -37,6 +40,8 @@ import subprocess
 import sys
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, _HERE)
+import hs_activity as activity  # noqa: E402  (shared with the plugin hook and the live dashboard)
 GATES_PATH = os.path.join(_HERE, "..", "skills", "hyperskill", "gates.json")
 INTEGRATIONS_PATH = os.path.join(_HERE, "..", "skills", "hyperskill", "integrations.json")
 
@@ -171,6 +176,8 @@ def cmd_init(args):
     }
     st["phases"][phases[0]["id"]]["status"] = "active"
     save_state(args.root, st)
+    activity.append(args.root, "init", "Started %s: %s, tenancy %s" % (st["name"], "commercial" if st["commercial"] else "non-commercial", st["tenancy"]),
+                    phase=st["current"], unavailable=",".join(st["unavailable"]) or None)
     print("initialised %s (%s, tenancy: %s%s); current phase: %s"
           % (st["name"], "commercial" if st["commercial"] else "non-commercial", st["tenancy"],
              ", unavailable: " + ",".join(st["unavailable"]) if st["unavailable"] else "", st["current"]))
@@ -187,6 +194,7 @@ def cmd_config(args):
     if un is not None:
         st["unavailable"] = un
     save_state(args.root, st)
+    activity.append(args.root, "config", "Set tenancy %s, unavailable here: %s" % (st["tenancy"], ", ".join(st["unavailable"]) or "nothing"), phase=st["current"])
     print("tenancy: %s; unavailable: %s" % (st["tenancy"], ", ".join(st["unavailable"]) or "(nothing)"))
 
 
@@ -240,12 +248,22 @@ def cmd_gate(args):
             r = subprocess.run(args.cmd, shell=True, cwd=args.root, capture_output=True, text=True, timeout=args.timeout)
         except subprocess.TimeoutExpired:
             die("command timed out after %ss; nothing recorded." % args.timeout)
-        tail = ((r.stdout or "") + (r.stderr or "")).strip()[-400:]
+        full = (r.stdout or "") + (r.stderr or "")
+        tail = full.strip()[-400:]
+        summary = activity.parse_test_summary(full)
+        label = next((item_text(st, i) for i in ph["gate"] if i["id"] == args.run_id), args.run_id)
+        if summary:
+            activity.append(args.root, "test", "%s: %d passed, %d failed" % (summary["runner"], summary["passed"], summary["failed"]),
+                            phase=ph["id"], item=args.run_id, cmd=args.cmd, **summary)
         if r.returncode != 0:
+            activity.append(args.root, "check_failed", "%s/%s did not pass (exit %d)" % (ph["id"], args.run_id, r.returncode),
+                            phase=ph["id"], item=args.run_id, label=label, cmd=args.cmd, output=tail[-300:])
             print(tail)
             die("command exited %d; '%s' stays open." % (r.returncode, args.run_id))
         rec[args.run_id] = {"state": "passed", "evidence": "ran `%s` -> exit 0. Output tail: %s" % (args.cmd, tail or "(none)"),
                             "at": now(), "ran": True}
+        activity.append(args.root, "gate_pass", "%s/%s passed by running a command" % (ph["id"], args.run_id),
+                        phase=ph["id"], item=args.run_id, label=label, ran=True, cmd=args.cmd, output=tail[-300:])
         touched.append(args.run_id)
     if args.pass_ids:
         if not args.evidence or not args.evidence.strip():
@@ -256,6 +274,8 @@ def cmd_gate(args):
             if gid not in valid:
                 die("'%s' is not a gate item of phase %s" % (gid, ph["id"]))
             rec[gid] = {"state": "passed", "evidence": args.evidence.strip(), "at": now()}
+            activity.append(args.root, "gate_pass", "%s/%s passed" % (ph["id"], gid), phase=ph["id"], item=gid,
+                            label=next((item_text(st, i) for i in ph["gate"] if i["id"] == gid), gid), evidence=args.evidence.strip())
             touched.append(gid)
     if args.waive_ids:
         if not args.reason or not args.reason.strip():
@@ -264,6 +284,8 @@ def cmd_gate(args):
             if gid not in valid:
                 die("'%s' is not a gate item of phase %s" % (gid, ph["id"]))
             rec[gid] = {"state": "waived", "reason": args.reason.strip(), "at": now()}
+            activity.append(args.root, "gate_waive", "%s/%s waived" % (ph["id"], gid), phase=ph["id"], item=gid,
+                            label=next((item_text(st, i) for i in ph["gate"] if i["id"] == gid), gid), reason=args.reason.strip())
             touched.append(gid)
     if args.waive_unavailable:
         if not st["unavailable"]:
@@ -273,6 +295,8 @@ def cmd_gate(args):
             if applies(st, item) and item["id"] not in rec and lacking:
                 rec[item["id"]] = {"state": "waived", "at": now(), "unavailable": lacking,
                                    "reason": "needs %s, which this environment does not have. Revisit before a real launch." % "+".join(lacking)}
+                activity.append(args.root, "gate_waive", "%s/%s waived: needs %s" % (ph["id"], item["id"], "+".join(lacking)),
+                                phase=ph["id"], item=item["id"], label=item_text(st, item), reason=rec[item["id"]]["reason"])
                 touched.append(item["id"])
         if not touched:
             print("(no open item in %s needs something unavailable)" % ph["id"])
@@ -303,6 +327,8 @@ def cmd_advance(args):
     cur = phase_def(phases, st["current"])
     open_ids, _, _ = gate_summary(st, cur)
     if open_ids:
+        activity.append(args.root, "refused", "Cannot leave %s: %d check%s still open" % (cur["id"], len(open_ids), "" if len(open_ids) == 1 else "s"),
+                        phase=cur["id"], open=",".join(open_ids))
         die("gate not clear for '%s'. Open items: %s" % (cur["id"], ", ".join(open_ids)))
     st["phases"][cur["id"]]["status"] = "done"
     st["phases"][cur["id"]]["completed"] = now()
@@ -313,10 +339,12 @@ def cmd_advance(args):
     if idx >= len(ids):
         st["current"] = None
         print("pipeline complete")
+        activity.append(args.root, "advance", "Finished %s: the pipeline is complete" % cur["id"], phase=cur["id"], to="complete")
     else:
         st["current"] = ids[idx]
         st["phases"][ids[idx]]["status"] = "active"
         print("advanced: %s -> %s" % (cur["id"], ids[idx]))
+        activity.append(args.root, "advance", "Finished %s, now in %s" % (cur["id"], ids[idx]), phase=cur["id"], to=ids[idx])
     save_state(args.root, st)
 
 
@@ -339,6 +367,7 @@ def cmd_skip(args):
         if st["current"]:
             st["phases"][st["current"]]["status"] = "active"
     save_state(args.root, st)
+    activity.append(args.root, "skip", "Skipped %s" % ph["id"], phase=ph["id"], reason=args.reason.strip())
     print("skipped %s; current: %s" % (ph["id"], st["current"]))
 
 
@@ -366,6 +395,7 @@ def cmd_decide(args):
                 "## Alternatives considered\n_Add here._\n\n## Consequences\n_Add here._\n"
                 % (n, args.title, entry["at"], entry["phase"], args.choice, args.why))
     save_state(args.root, st)
+    activity.append(args.root, "decision", "Decision %d: %s" % (n, args.title), phase=entry["phase"], n=n, choice=args.choice, why=args.why)
     print("recorded decision %d -> docs/decisions/%s" % (n, fname))
 
 
@@ -373,7 +403,22 @@ def cmd_log(args):
     st = load_state(args.root)
     st["log"].append({"at": now(), "text": args.text})
     save_state(args.root, st)
+    activity.append(args.root, "note", args.text, phase=st["current"])
     print("logged")
+
+
+KINDS = ("building", "testing", "reviewing", "waiting", "done")
+
+
+def cmd_event(args):
+    st = load_state(args.root)
+    ok = activity.append(args.root, "progress", args.text, phase=st["current"], kind=args.kind)
+    print("shown in the live view" if ok else "could not write the activity log (continuing)")
+
+
+def cmd_live(args):
+    import hs_live
+    hs_live.serve(args.root, args.port, open_browser=not args.no_open)
 
 
 # ---------------------------------------------------------------- integrations
@@ -572,6 +617,16 @@ def build_parser():
     p = sub.add_parser("log")
     p.add_argument("text")
     p.set_defaults(fn=cmd_log)
+
+    p = sub.add_parser("event", help="tell the live view what is happening right now")
+    p.add_argument("text")
+    p.add_argument("--kind", choices=KINDS, default="building")
+    p.set_defaults(fn=cmd_event)
+
+    p = sub.add_parser("live", help="open the live dashboard (read-only, 127.0.0.1 only)")
+    p.add_argument("--port", type=int, default=4777)
+    p.add_argument("--no-open", action="store_true", help="do not try to open a browser")
+    p.set_defaults(fn=cmd_live)
 
     p = sub.add_parser("integrations")
     p.add_argument("action", nargs="?", choices=["list", "resolve", "phase", "enable", "disable"])

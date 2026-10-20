@@ -37,6 +37,34 @@ class SiteTests(unittest.TestCase):
         for k in ("Content-Security-Policy", "X-Content-Type-Options", "Strict-Transport-Security"):
             self.assertIn(k, keys)
 
+    def test_live_view_files_are_published_and_the_policy_lets_the_replay_load_its_data(self):
+        for name in ("index.html", "live.css", "live.js", "replay.json"):
+            self.assertTrue(os.path.isfile(os.path.join(SITE, "live", name)), name)
+        self.assertTrue(os.path.isfile(os.path.join(SITE, "live-view.png")))
+        with open(os.path.join(ROOT, "vercel.json"), encoding="utf-8") as f:
+            csp = next(h["value"] for rule in json.load(f)["headers"] for h in rule["headers"] if h["key"] == "Content-Security-Policy")
+        self.assertIn("connect-src 'self'", csp)
+        self.assertNotIn("unsafe-inline", csp)
+        with open(os.path.join(SITE, "index.html"), encoding="utf-8") as f:
+            html = f.read()
+        self.assertIn('href="/live"', html)
+        self.assertIn('src="live-view.png"', html)
+
+    def test_the_recorded_replay_is_well_formed_and_carries_no_secrets_or_local_paths(self):
+        with open(os.path.join(SITE, "live", "replay.json"), encoding="utf-8") as f:
+            raw = f.read()
+        data = json.loads(raw)
+        self.assertEqual(len(data["phases"]), 9)
+        self.assertTrue(data["events"])
+        self.assertEqual([e["ts"] for e in data["events"]], sorted(e["ts"] for e in data["events"]), "events are in recorded order")
+        for needle in ("/tmp/", "/home/", "/root", "claude-0", "scratchpad", "OPERATOR_TOKEN", "Bearer ", "sk-", "ghp_"):
+            self.assertNotIn(needle, raw, needle)
+        types = {e["type"] for e in data["events"]}
+        for want in ("file", "test", "gate_pass", "check_failed", "refused", "decision", "progress"):
+            self.assertIn(want, types, want)
+        tests = [e for e in data["events"] if e["type"] == "test"]
+        self.assertTrue(any(t["failed"] for t in tests) and any(not t["failed"] for t in tests), "the recording shows a failing and a passing run")
+
     def test_site_makes_no_claims_the_repo_cannot_back(self):
         with open(os.path.join(SITE, "index.html"), encoding="utf-8") as f:
             html = f.read().lower()
