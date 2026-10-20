@@ -5,7 +5,7 @@ export const MAX_RUPEES = 1_000_000_000; // Rs 100 crore
 /** "1,25,000.50" or "125000" -> amount in paise (integer), or null when not a valid positive amount. */
 export function parseAmountToPaise(text) {
   if (typeof text !== "string") return null;
-  const t = text.trim().replace(/^(rs\.?|inr)\s*/i, "");
+  const t = text.trim().replace(/^(₹|rs\.?|inr)\s*/i, "");
   if (!/^\d{1,3}(,\d{2,3})*(\.\d{1,2})?$|^\d+(\.\d{1,2})?$/.test(t)) return null;
   const [whole, frac = ""] = t.replace(/,/g, "").split(".");
   const paise = Number(whole) * 100 + Number(frac.padEnd(2, "0"));

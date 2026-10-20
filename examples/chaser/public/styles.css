@@ -57,3 +57,6 @@ details.email { margin-top: 10px; } details.email summary { cursor: pointer; fon
 @media (max-width: 380px) { .wrap { padding: 0 12px; } }
 #results:focus { outline: none; }
 @media (prefers-reduced-motion: no-preference) { button, a.btn { transition: filter .12s, background .12s; } }
+
+#errors a { color: var(--error); }
+#door-thanks:focus { outline: none; }

@@ -17,6 +17,7 @@ const text = (r) => r.messages.map((m) => `${m.whatsapp}\n${m.email.subject}\n${
 test("amounts: Indian grouping at every size, decimals only when typed", () => {
   const cases = [["1", "Rs 1"], ["999", "Rs 999"], ["1000", "Rs 1,000"], ["25000", "Rs 25,000"], ["125000", "Rs 1,25,000"],
     ["1,25,000.50", "Rs 1,25,000.50"], ["12345678", "Rs 1,23,45,678"], ["1000000000", "Rs 1,00,00,00,000"], ["0.5", "Rs 0.50"], ["Rs 5000", "Rs 5,000"]];
+  cases.push(["₹25,000", "Rs 25,000"], ["₹ 1,25,000.50", "Rs 1,25,000.50"]);
   for (const [input, want] of cases) assert.equal(formatRupees(parseAmountToPaise(input)), want, input);
 });
 

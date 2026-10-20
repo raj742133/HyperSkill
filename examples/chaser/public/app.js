@@ -130,11 +130,17 @@ function messageCard(m, suggested) {
 
   const mail = el("a", { class: "btn", href: mailtoLink(m.email), text: "Open in email" });
   mail.addEventListener("click", () => { track("open_email", m.tone); askSent(); });
+  const copyMail = el("button", { type: "button", class: "secondary", text: "Copy email", "aria-label": `Copy the ${m.label.toLowerCase()} email, subject and text` });
+  copyMail.addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText(`Subject: ${m.email.subject}\n\n${m.email.body}`); say(`${m.label} email copied.`); }
+    catch { say("Copying is blocked here. Select the email text and copy it with your keyboard."); }
+    track("copy", m.tone);
+  });
   const details = el("details", { class: "email" },
     el("summary", { text: "Email version" }),
     el("p", {}, el("strong", { text: "Subject: " }), m.email.subject),
     el("pre", { text: m.email.body }),
-    mail);
+    el("div", { class: "row" }, mail, copyMail));
   const card = el("article", { class: suggested ? "card msg suggested" : "card msg" },
     el("h3", {}, m.label, suggested ? el("span", { class: "tag", text: "Suggested" }) : "", el("span", { class: "when", text: WHEN[m.tone] })),
     ta, el("div", { class: "row" }, wa, copy), details, asked);
@@ -155,6 +161,7 @@ $("pay-intent").addEventListener("click", () => {
   } else {
     $("door-thanks").textContent = "Thanks, noted. It does not exist yet, and the email list is not open.";
   }
+  $("door-thanks").focus();
 });
 
 $("wl").addEventListener("submit", async (e) => {

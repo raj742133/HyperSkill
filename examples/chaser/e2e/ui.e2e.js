@@ -106,6 +106,20 @@ test("editing a message updates its WhatsApp link", async () => {
   await context.close();
 });
 
+test("review fixes: a rupee sign is accepted, the email text can be copied, and focus moves to the answer after the paid-plan question", async () => {
+  const { context, page } = await newPage(open, { permissions: ["clipboard-read", "clipboard-write"] });
+  await generate(page, { amount: "\u20b925,000" });
+  assert.match(await page.locator("#check").innerText(), /Rs 25,000/);
+  const card = page.locator("article.msg").nth(1);
+  await card.locator("summary").click();
+  await card.getByRole("button", { name: /Copy the firm email/ }).click();
+  const copied = await page.evaluate(() => navigator.clipboard.readText());
+  assert.match(copied, /^Subject: .+\n\n[\s\S]*Rs 25,000/);
+  await page.getByRole("button", { name: "I would pay for this" }).click();
+  assert.equal(await page.evaluate(() => document.activeElement?.id), "door-thanks");
+  await context.close();
+});
+
 test("validation: an error summary takes focus, fields are marked invalid, links jump to the field, errors clear when fixed", async () => {
   const { context, page } = await newPage();
   await page.getByRole("button", { name: "Write my messages" }).click();
