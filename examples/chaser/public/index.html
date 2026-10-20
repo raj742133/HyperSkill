@@ -34,6 +34,12 @@
         <p class="err" id="client-err"></p>
       </div>
       <div class="field">
+        <label for="call">What you call them <span class="opt">(optional)</span></label>
+        <input id="call" name="call" type="text" autocomplete="off" maxlength="30" aria-describedby="call-hint call-err">
+        <p class="hint" id="call-hint">The greeting uses this, for example Ravi. Leave it empty to greet them by the full name above.</p>
+        <p class="err" id="call-err"></p>
+      </div>
+      <div class="field">
         <label for="amount">Amount (Rs)</label>
         <input id="amount" name="amount" type="text" inputmode="decimal" autocomplete="off" required aria-describedby="amount-hint amount-err">
         <p class="hint" id="amount-hint">For example 25000 or 1,25,000.50. Type the amount still owed.</p>
@@ -68,6 +74,7 @@
   <section id="results" class="results" aria-labelledby="results-h" tabindex="-1" hidden>
     <h2 id="results-h">Your messages</h2>
     <p id="summary" class="summary"></p>
+    <p class="hint after">Edit any message before you send it, and change anything that is not true for you. WhatsApp will ask you to pick the contact. Message only people you already work with.</p>
     <div class="check card" aria-labelledby="check-h">
       <h3 id="check-h">Check before you send</h3>
       <dl id="check"></dl>
@@ -75,14 +82,13 @@
     </div>
     <div id="messages"></div>
     <p id="live" class="sr-only" role="status" aria-live="polite"></p>
-    <p class="hint after">WhatsApp will ask you to pick the contact. Message only people you already work with.</p>
 
     <aside id="door" class="card door" aria-labelledby="door-h">
       <h3 id="door-h">Coming soon: sent for you automatically</h3>
       <p>Chaser does not send anything yet. We are finding out if a tool that schedules these reminders for you is worth building: <strong id="price">Rs 149 a month</strong>.</p>
       <button type="button" id="pay-intent" class="secondary">I would pay for this</button>
       <div id="door-2" hidden>
-        <p id="door-thanks"></p>
+        <p id="door-thanks" tabindex="-1"></p>
         <form id="wl" novalidate autocomplete="off" hidden>
           <div class="field">
             <label for="email">Your email, to hear when it is ready</label>

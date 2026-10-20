@@ -17,6 +17,7 @@ const text = (r) => r.messages.map((m) => `${m.whatsapp}\n${m.email.subject}\n${
 test("amounts: Indian grouping at every size, decimals only when typed", () => {
   const cases = [["1", "Rs 1"], ["999", "Rs 999"], ["1000", "Rs 1,000"], ["25000", "Rs 25,000"], ["125000", "Rs 1,25,000"],
     ["1,25,000.50", "Rs 1,25,000.50"], ["12345678", "Rs 1,23,45,678"], ["1000000000", "Rs 1,00,00,00,000"], ["0.5", "Rs 0.50"], ["Rs 5000", "Rs 5,000"]];
+  cases.push(["₹25,000", "Rs 25,000"], ["₹ 1,25,000.50", "Rs 1,25,000.50"]);
   for (const [input, want] of cases) assert.equal(formatRupees(parseAmountToPaise(input)), want, input);
 });
 
@@ -148,4 +149,13 @@ test("generating messages makes no network call and reads no browser state (pure
   const saved = { fetch: globalThis.fetch };
   globalThis.fetch = () => { throw new Error("network call during generation"); };
   try { gen(); } finally { globalThis.fetch = saved.fetch; }
+});
+
+test("greeting: uses 'what you call them' when given, the full client name otherwise, and the optional field is length-checked", () => {
+  assert.match(gen({ call: "Ravi" }).messages[0].whatsapp, /^Hi Ravi,\n/);
+  assert.match(gen({ call: "Ravi" }).messages[0].email.body, /^Dear Ravi,\n/);
+  assert.match(gen({ call: "  " }).messages[0].whatsapp, /^Hi Ravi Traders,\n/);
+  assert.match(gen().messages[2].whatsapp, /^Hi Ravi Traders,\n/);
+  assert.equal(validateInput({ ...base, call: "x".repeat(31) }, TODAY).ok, false);
+  assert.equal(validateInput({ ...base, call: "Ra\nvi" }, TODAY).ok, false);
 });

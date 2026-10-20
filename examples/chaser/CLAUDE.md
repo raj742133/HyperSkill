@@ -29,4 +29,4 @@ Tenancy: none (no accounts, no stored client data).
 `docs/research.md`, `docs/system-design.md`, `docs/architecture.md`, `docs/design-review.md`, `docs/decisions/`. Raw research briefs: `docs/research-raw/`.
 
 ## Pipeline
-Phase state: `.hyperskill/state.json` (not committed); `/hyperskill` resumes. Current phase: plan.
+Phase state: `.hyperskill/state.json` (not committed); `/hyperskill` resumes. Current phase: product (foundation closed; designer-pass still open, see docs/design-critique.md).

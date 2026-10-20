@@ -20,6 +20,7 @@ export function validateInput(raw, today) {
   const value = {
     me: text("me", "your name", 60),
     client: text("client", "the client's name", 60),
+    call: text("call", "what you call them", 30, false),
     invoice: text("invoice", "the invoice number", 30, false),
     pay: text("pay", "a UPI ID or payment link", 120, false),
   };

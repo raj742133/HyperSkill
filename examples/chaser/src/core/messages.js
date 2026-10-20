@@ -31,7 +31,7 @@ export function generateMessages(v, today) {
   const when = overdue ? `which was due on ${due}` : days === 0 ? `which is due today (${due})` : `which is due on ${due}`;
   const ago = overdue ? ` (${days} day${days === 1 ? "" : "s"} ago)` : "";
   const sign = v.me;
-  const hi = `Hi ${v.client},`;
+  const hi = `Hi ${v.call || v.client},`; // "what you call them" is optional; the full client name is the default
 
   const polite = {
     wa: lines(
