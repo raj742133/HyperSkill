@@ -31,10 +31,12 @@ async function open({ clock = true, ...ctxOpts } = {}) {
   await page.goto(base);
   if (clock) await page.clock.pauseAt(new Date("2026-01-01T09:01:00Z"));
   await page.waitForFunction(() => window.__tide);
-  if (clock) await page.clock.runFor(300);
+  if (clock) await advance(page, 300);
   return { context, page, problems };
 }
 // During a roll a cell holds the old and the new digit; the newest (last) layer is the current value.
+// The display refreshes a few milliseconds after each second boundary, so a test moves the clock a little past the second it wants to see.
+const advance = (page, ms) => page.clock.runFor(ms >= 1000 ? ms + 60 : ms);
 const digits = (page) => page.locator("#digits").evaluate((d) => [...d.children].map((c) => c.lastElementChild.textContent).join(""));
 const status = (page) => page.evaluate(() => document.body.dataset.status);
 const mode = (page) => page.evaluate(() => document.body.dataset.mode);
@@ -43,6 +45,7 @@ const setLengths = async (page, f, s = 5, l = 15) => {
   await page.keyboard.press("s");
   await page.locator("input[name=focus]").fill(String(f)); await page.locator("input[name=short]").fill(String(s)); await page.locator("input[name=long]").fill(String(l));
   await page.getByRole("button", { name: "Save" }).click();
+  await page.waitForFunction(() => !document.getElementById("settings").open); // closed for real, as a person would wait
 };
 const canvasStats = (page) => page.locator("#liquid").evaluate((c) => {
   const d = c.getContext("2d").getImageData(0, 0, c.width, c.height).data;
@@ -59,7 +62,7 @@ t("loads cleanly: 25:00, focus selected, the glass is drawn, no console errors",
   assert.equal(await page.title(), "Tide: a focus timer");
   const s = await canvasStats(page);
   assert.ok(s.nonEmpty > 200 && s.colours > 8, `the canvas is drawn: ${JSON.stringify(s)}`);
-  await page.clock.runFor(2500); // the glass fills up as an intro
+  await advance(page, 2500); // the glass fills up as an intro
   assert.ok(await level(page) > 0.9, "the glass ends the intro full");
   assert.deepEqual(problems, []);
   await context.close();
@@ -69,16 +72,16 @@ t("start, run, pause and resume follow the clock exactly, and the tab title show
   const { context, page } = await open();
   await page.keyboard.press("Space");
   assert.equal(await status(page), "running");
-  await page.clock.runFor(10_000);
+  await advance(page, 10_000);
   assert.equal(await digits(page), "24:50");
   assert.match(await page.title(), /^24:50 · Focus · Tide$/);
   await page.keyboard.press("Space");
   assert.equal(await status(page), "paused");
   assert.equal(await page.locator("#go").innerText(), "Resume");
-  await page.clock.runFor(60_000);
+  await advance(page, 60_000);
   assert.equal(await digits(page), "24:50", "paused time does not move");
   await page.getByRole("button", { name: "Resume" }).click();
-  await page.clock.runFor(20_000);
+  await advance(page, 20_000);
   assert.equal(await digits(page), "24:30");
   await context.close();
 });
@@ -87,7 +90,7 @@ t("a tab that sleeps does not lose time: jumping the clock five minutes shows th
   const { context, page } = await open();
   await page.keyboard.press("Space");
   await page.clock.fastForward(5 * 60 * 1000); // timers do not fire; the deadline still decides
-  await page.clock.runFor(250);
+  await advance(page, 250);
   assert.equal(await digits(page), "20:00");
   await context.close();
 });
@@ -97,9 +100,9 @@ t("a finished session: zero, a splash of droplets, a dot, an announcement, and t
   await setLengths(page, 1);
   assert.equal(await digits(page), "01:00");
   await page.keyboard.press("Space");
-  await page.clock.runFor(59_000);
+  await advance(page, 59_000);
   assert.equal(await status(page), "running");
-  await page.clock.runFor(1_500);
+  await advance(page, 1_500);
   assert.equal(await status(page), "done");
   assert.equal(await digits(page), "00:00");
   assert.equal(await page.locator("#caption").innerText(), "Done. Take a break?");
@@ -118,7 +121,7 @@ t("after four focus sessions a long break is suggested", async () => {
   await setLengths(page, 1);
   const seen = [];
   for (let i = 0; i < 4; i++) {
-    await page.keyboard.press("1"); await page.keyboard.press("Space"); await page.clock.runFor(61_000);
+    await page.keyboard.press("1"); await page.keyboard.press("Space"); await advance(page, 61_000);
     seen.push(await page.locator("#go").innerText());
   }
   assert.deepEqual(seen, ["Start short break", "Start short break", "Start short break", "Start long break"]);
@@ -130,13 +133,13 @@ t("the glass drains in step with the clock: full, about half, empty", async () =
   const { context, page } = await open();
   await setLengths(page, 2);
   await page.keyboard.press("Space");
-  await page.clock.runFor(1000); await page.clock.runFor(1000);
+  await advance(page, 1000); await advance(page, 1000);
   const early = await level(page);
-  await page.clock.runFor(58_000);
-  for (let i = 0; i < 20; i++) await page.clock.runFor(100); // let the surface settle
+  await advance(page, 58_000);
+  for (let i = 0; i < 20; i++) await advance(page, 100); // let the surface settle
   const half = await level(page);
-  await page.clock.runFor(61_000);
-  for (let i = 0; i < 30; i++) await page.clock.runFor(100);
+  await advance(page, 61_000);
+  for (let i = 0; i < 30; i++) await advance(page, 100);
   const end = await level(page);
   assert.ok(early > 0.9, `early ${early}`);
   assert.ok(half > 0.4 && half < 0.6, `half ${half}`);
@@ -148,7 +151,7 @@ t("keyboard: 1 2 3 switch worlds, R resets, S opens lengths, M toggles sound; sh
   const { context, page } = await open();
   await page.keyboard.press("2"); assert.equal(await mode(page), "short"); assert.equal(await digits(page), "05:00");
   await page.keyboard.press("3"); assert.equal(await mode(page), "long"); assert.equal(await digits(page), "15:00");
-  await page.keyboard.press("1"); await page.keyboard.press("Space"); await page.clock.runFor(5000);
+  await page.keyboard.press("1"); await page.keyboard.press("Space"); await advance(page, 5000);
   await page.keyboard.press("r");
   assert.deepEqual([await status(page), await digits(page)], ["idle", "25:00"]);
   assert.equal(await page.locator("#sound").getAttribute("aria-pressed"), "false");
@@ -202,7 +205,7 @@ t("lengths: saved, clamped, applied at once, kept after reload; Cancel and Escap
   const { context, page } = await open();
   await setLengths(page, 50, 10, 20);
   assert.equal(await digits(page), "50:00");
-  await page.reload(); await page.waitForFunction(() => window.__tide); await page.clock.runFor(300);
+  await page.reload(); await page.waitForFunction(() => window.__tide); await advance(page, 300);
   assert.equal(await digits(page), "50:00", "survives a reload");
   await page.keyboard.press("2"); assert.equal(await digits(page), "10:00");
   await page.keyboard.press("s");
@@ -221,7 +224,7 @@ t("lengths: saved, clamped, applied at once, kept after reload; Cancel and Escap
 
 t("a running session is not cut short by changing its length", async () => {
   const { context, page } = await open();
-  await page.keyboard.press("Space"); await page.clock.runFor(30_000);
+  await page.keyboard.press("Space"); await advance(page, 30_000);
   await page.keyboard.press("s"); await page.locator("input[name=focus]").fill("5"); await page.getByRole("button", { name: "Save" }).click();
   assert.equal(await digits(page), "24:30");
   await context.close();
@@ -320,10 +323,10 @@ t("accessibility: nothing serious in any world, with the dialog open, or on a fi
     const res = await page.evaluate(() => axe.run(document, { runOnly: ["wcag2a", "wcag2aa", "wcag21aa", "best-practice"] }));
     assert.deepEqual(res.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(" ")).join(", ")}`), [], label);
   };
-  for (const k of ["1", "2", "3"]) { await page.keyboard.press(k); await page.clock.runFor(1200); await run(`mode ${k}`); }
+  for (const k of ["1", "2", "3"]) { await page.keyboard.press(k); await advance(page, 1200); await run(`mode ${k}`); }
   await page.keyboard.press("1"); await page.keyboard.press("s"); await run("settings dialog");
   await page.keyboard.press("Escape");
-  await setLengths(page, 1); await page.keyboard.press("Space"); await page.clock.runFor(62_000); await run("finished session");
+  await setLengths(page, 1); await page.keyboard.press("Space"); await advance(page, 62_000); await run("finished session");
   const roles = await page.evaluate(() => ({ timer: !!document.querySelector('[role="timer"][aria-label]'), group: !!document.querySelector('[role="radiogroup"][aria-label]'), live: !!document.querySelector('[role="status"][aria-live="polite"]'), h1: document.querySelectorAll("h1").length }));
   assert.deepEqual(roles, { timer: true, group: true, live: true, h1: 1 });
   await context.close();
@@ -332,7 +335,7 @@ t("accessibility: nothing serious in any world, with the dialog open, or on a fi
 t("the spoken time reads naturally for screen readers and updates each second", async () => {
   const { context, page } = await open();
   assert.equal(await page.locator("#spoken").innerText(), "25 minutes 0 seconds");
-  await page.keyboard.press("Space"); await page.clock.runFor(61_000);
+  await page.keyboard.press("Space"); await advance(page, 61_000);
   assert.equal(await page.locator("#spoken").innerText(), "23 minutes 59 seconds");
   await context.close();
 });
