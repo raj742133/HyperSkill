@@ -31,7 +31,7 @@ Evidence: `docs/screenshots/before/` (the build before the first critique, regen
 | # | Finding | Status |
 |---|---|---|
 | 1 | Greeting uses the full client name ("Hi Ravi Kumar"), sample says "Hi Ravi" | **Fixed.** A first-word greeting would break on "Dr Rao" and company names, so there is a new optional field "What you call them"; empty means the full name as before (unit and browser tests) |
-| 2 | The rupee sign was rejected; a bare phone number is not a valid UPI ID | **Half fixed.** The rupee sign is now accepted (test added). The phone-number hint is open |
+| 2 | The rupee sign was rejected; a bare phone number is not a valid UPI ID | **Fixed.** The rupee sign is accepted, and a bare phone number now gets a specific hint to add the bank handle, e.g. 9876543210@ybl (unit tests) |
 | 3 | Email version could not be copied | **Fixed.** "Copy email" copies subject and text (browser test added) |
 | 4 | Fixed wording; "pause further work" is wrong if work is finished | **Mitigated.** Line added above the cards: edit anything that is not true for you. A "work is ongoing" switch is open |
 | 5 | Invoice not yet due still shows Firm and Final cards | **Fixed.** Not overdue: only Polite is shown, the other two wait behind "Show the firm and final messages" (browser test) |
@@ -41,4 +41,4 @@ Evidence: `docs/screenshots/before/` (the build before the first critique, regen
 | 9 | "Pick the contact" hint far from the buttons | **Fixed.** Moved under the summary, before the cards |
 | 10 | On a phone the suggested card is second, results start far down | **Fixed.** The suggested card comes first (browser test) |
 
-After the first round: 39 of 39 unit tests, 18 of 18 browser tests (axe included, light and dark) pass. Second round (findings 1, 5, 6, 10 above): 40 of 40 unit tests, 19 of 19 browser tests, and the mutation check kills every mutant. Still open: the phone-number UPI hint (2), a "work is ongoing" switch (4), and the summary/inline error duplication (7, kept on purpose).
+After the first round: 39 of 39 unit tests, 18 of 18 browser tests (axe included, light and dark) pass. Second round (findings 1, 5, 6, 10 above): 40 of 40 unit tests, 19 of 19 browser tests, and the mutation check kills every mutant. Third round: unit tests 41 of 41. Still open: a "work is ongoing" switch (4), and the summary/inline error duplication (7, kept on purpose).

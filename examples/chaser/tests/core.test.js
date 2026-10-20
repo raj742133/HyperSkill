@@ -159,3 +159,12 @@ test("greeting: uses 'what you call them' when given, the full client name other
   assert.equal(validateInput({ ...base, call: "x".repeat(31) }, TODAY).ok, false);
   assert.equal(validateInput({ ...base, call: "Ra\nvi" }, TODAY).ok, false);
 });
+
+test("a bare phone number as the payment detail gets a specific hint, a number with a bank handle is accepted", () => {
+  for (const bad of ["9876543210", "+91 9876543210", "91-9876543210"]) {
+    const r = validateInput({ ...base, pay: bad }, TODAY);
+    assert.equal(r.ok, false, bad);
+    assert.match(r.errors.pay, /bank handle.*9876543210@ybl/, bad);
+  }
+  assert.equal(validateInput({ ...base, pay: "9876543210@ybl" }, TODAY).ok, true);
+});
