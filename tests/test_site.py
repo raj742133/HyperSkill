@@ -15,6 +15,10 @@ class SiteTests(unittest.TestCase):
                            capture_output=True, text=True)
         self.assertEqual(r.returncode, 0, r.stderr)
 
+    def test_chaser_copy_is_up_to_date(self):
+        r = subprocess.run([sys.executable, os.path.join(ROOT, "scripts", "sync_chaser.py"), "--check"], capture_output=True, text=True)
+        self.assertEqual(r.returncode, 0, r.stderr)
+
     def test_tide_copy_matches_the_example(self):
         """site/tide is a copy of examples/tide with absolute asset paths; fail when they drift apart."""
         src = os.path.join(ROOT, "examples", "tide")
