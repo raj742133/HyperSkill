@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tide: a focus timer</title>
+<meta name="description" content="A focus timer shaped like a glass that drains as time passes. Pomodoro lengths you can change, keyboard first, no accounts, no tracking.">
+<meta name="theme-color" content="#0b1030">
+<link rel="icon" href="/tide/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/tide/styles.css">
+</head>
+<body data-mode="focus" data-status="idle">
+<a class="skip" href="#go">Skip to the timer controls</a>
+<div class="sky" aria-hidden="true"><i class="orb o1"></i><i class="orb o2"></i><i class="orb o3"></i><i class="grain"></i></div>
+
+<main class="stage">
+  <header class="top">
+    <h1 class="brand"><span class="mark" aria-hidden="true"></span>Tide</h1>
+    <div class="modes" role="radiogroup" aria-label="Session type" id="modes">
+      <button type="button" role="radio" aria-checked="true" data-mode="focus" tabindex="0">Focus<kbd>1</kbd></button>
+      <button type="button" role="radio" aria-checked="false" data-mode="short" tabindex="-1">Short break<kbd>2</kbd></button>
+      <button type="button" role="radio" aria-checked="false" data-mode="long" tabindex="-1">Long break<kbd>3</kbd></button>
+    </div>
+    <div class="tools">
+      <button type="button" id="sound" class="icon" aria-pressed="false" aria-label="Sound, off"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path class="waves" d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12"/></svg></button>
+      <button type="button" id="open-settings" class="icon" aria-label="Session lengths" aria-haspopup="dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg></button>
+    </div>
+  </header>
+
+  <section class="vessel" id="vessel" aria-label="Timer">
+    <canvas id="liquid" aria-hidden="true"></canvas>
+    <div class="readout" role="timer" aria-label="Time remaining" aria-live="off">
+      <div class="digits" id="digits" aria-hidden="true"></div>
+      <span class="sr-only" id="spoken">25 minutes</span>
+      <p class="caption" id="caption">Ready when you are</p>
+    </div>
+  </section>
+
+  <div class="controls">
+    <button type="button" id="go" class="primary magnet">Start</button>
+    <button type="button" id="reset" class="ghost magnet">Reset</button>
+  </div>
+  <p class="hint"><kbd>Space</kbd> start or pause <span>·</span> <kbd>R</kbd> reset <span>·</span> <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> switch <span>·</span> <kbd>S</kbd> lengths <span>·</span> <kbd>M</kbd> sound</p>
+  <ol class="dots" id="dots" aria-label="Focus sessions finished today"></ol>
+  <p id="live" class="sr-only" role="status" aria-live="polite"></p>
+</main>
+
+<dialog id="settings" aria-labelledby="settings-h">
+  <form method="dialog" id="settings-form">
+    <h2 id="settings-h">Session lengths</h2>
+    <p class="note">In minutes. A running session is never cut short.</p>
+    <label>Focus <input type="number" inputmode="numeric" name="focus" min="1" max="120" required></label>
+    <label>Short break <input type="number" inputmode="numeric" name="short" min="1" max="60" required></label>
+    <label>Long break <input type="number" inputmode="numeric" name="long" min="1" max="60" required></label>
+    <div class="row"><button type="submit" class="primary" value="save">Save</button><button type="button" id="cancel" class="ghost">Cancel</button></div>
+  </form>
+</dialog>
+<script type="module" src="/tide/app.js"></script>
+</body>
+</html>
