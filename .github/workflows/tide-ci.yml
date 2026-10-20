@@ -1,0 +1,36 @@
+name: Tide CI
+on:
+  pull_request:
+    paths: ["examples/tide/**", "site/tide/**", ".github/workflows/tide-ci.yml"]
+  push:
+    branches: [main]
+    paths: ["examples/tide/**", "site/tide/**", ".github/workflows/tide-ci.yml"]
+concurrency:
+  group: tide-${{ github.ref }}
+  cancel-in-progress: true
+permissions: { contents: read }
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults: { run: { working-directory: examples/tide } }
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm, cache-dependency-path: examples/tide/package-lock.json }
+      - run: npm ci
+      - name: Secret scan (working tree and history)
+        run: bash scripts/secret-scan.sh --history
+      - run: npm run lint
+      - run: npm test
+      - name: Mutation check (the tests must catch deliberate breakage)
+        run: node scripts/mutation-check.js
+      - name: Install a browser for end-to-end tests
+        run: npx playwright-core install --with-deps chromium
+      - run: npm run test:e2e
+      - name: Dependency audit
+        run: npm audit --audit-level=high
+      - name: The deployed copy matches the example
+        working-directory: .
+        run: python3 -m unittest tests.test_site

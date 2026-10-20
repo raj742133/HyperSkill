@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# Enable with:  git config core.hooksPath examples/tide/.githooks   (run from the repository root)
+set -euo pipefail
+root=$(git rev-parse --show-toplevel)
+cd "$root/examples/tide"
+staged=$(git diff --cached --name-only --diff-filter=ACM | sed "s#^#$root/#")
+if [[ -n "$staged" ]]; then
+  # shellcheck disable=SC2086
+  bash scripts/secret-scan.sh $staged || { echo "pre-commit: possible secret staged, commit blocked"; exit 1; }
+fi
+npm run --silent lint
