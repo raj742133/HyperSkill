@@ -106,14 +106,15 @@ t("a finished session: zero, a splash of droplets, a dot, an announcement, and t
   await page.keyboard.press("Space");
   await jump(page, 59_000);
   assert.equal(await status(page), "running");
-  await jump(page, 1_500);
+  await page.clock.fastForward(1_500); // the moment the session ends
+  assert.ok((await page.evaluate(() => window.__tide.liquid.stats().drops)) > 0, "droplets were thrown at the end");
+  await page.clock.runFor(300);
   assert.equal(await status(page), "done");
   assert.equal(await digits(page), "00:00");
   assert.equal(await page.locator("#caption").textContent(), "Done. Take a break?"); // the page shows it in capitals through CSS
   assert.equal(await page.locator("#go").innerText(), "Start short break");
   assert.equal(await page.locator("#dots li").count(), 1);
   assert.match(await page.locator("#live").innerText(), /Focus session finished/);
-  assert.ok((await page.evaluate(() => window.__tide.liquid.stats().drops)) > 0, "droplets were thrown");
   await page.keyboard.press("Space");
   assert.equal(await mode(page), "short", "starting from done moves to the suggested break");
   assert.equal(await status(page), "running");
