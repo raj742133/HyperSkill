@@ -6,6 +6,8 @@ import fs from "node:fs";
 import { chromium } from "playwright-core";
 import { createServer } from "../scripts/serve.js";
 
+const t = (name, fn) => test(name, { timeout: 60_000 }, fn); // a hang is reported against the test that hung
+
 let browser, server, base;
 before(async () => {
   server = createServer();
@@ -27,7 +29,8 @@ async function open({ clock = true, ...ctxOpts } = {}) {
   if (clock) await page.clock.runFor(300);
   return { context, page, problems };
 }
-const digits = (page) => page.locator("#digits").evaluate((d) => [...d.children].map((c) => c.firstElementChild.textContent).join(""));
+// During a roll a cell holds the old and the new digit; the newest (last) layer is the current value.
+const digits = (page) => page.locator("#digits").evaluate((d) => [...d.children].map((c) => c.lastElementChild.textContent).join(""));
 const status = (page) => page.evaluate(() => document.body.dataset.status);
 const mode = (page) => page.evaluate(() => document.body.dataset.mode);
 const level = (page) => page.evaluate(() => window.__tide.liquid.stats().level);
@@ -43,7 +46,7 @@ const canvasStats = (page) => page.locator("#liquid").evaluate((c) => {
   return { sum, nonEmpty, colours: seen.size };
 });
 
-test("loads cleanly: 25:00, focus selected, the glass is drawn, no console errors", async () => {
+t("loads cleanly: 25:00, focus selected, the glass is drawn, no console errors", async () => {
   const { context, page, problems } = await open();
   assert.equal(await digits(page), "25:00");
   assert.equal(await mode(page), "focus");
@@ -57,7 +60,7 @@ test("loads cleanly: 25:00, focus selected, the glass is drawn, no console error
   await context.close();
 });
 
-test("start, run, pause and resume follow the clock exactly, and the tab title shows the time", async () => {
+t("start, run, pause and resume follow the clock exactly, and the tab title shows the time", async () => {
   const { context, page } = await open();
   await page.keyboard.press("Space");
   assert.equal(await status(page), "running");
@@ -75,7 +78,7 @@ test("start, run, pause and resume follow the clock exactly, and the tab title s
   await context.close();
 });
 
-test("a tab that sleeps does not lose time: jumping the clock five minutes shows the right remainder", async () => {
+t("a tab that sleeps does not lose time: jumping the clock five minutes shows the right remainder", async () => {
   const { context, page } = await open();
   await page.keyboard.press("Space");
   await page.clock.fastForward(5 * 60 * 1000); // timers do not fire; the deadline still decides
@@ -84,7 +87,7 @@ test("a tab that sleeps does not lose time: jumping the clock five minutes shows
   await context.close();
 });
 
-test("a finished session: zero, a splash of droplets, a dot, an announcement, and the next break offered", async () => {
+t("a finished session: zero, a splash of droplets, a dot, an announcement, and the next break offered", async () => {
   const { context, page } = await open();
   await setLengths(page, 1);
   assert.equal(await digits(page), "01:00");
@@ -105,7 +108,7 @@ test("a finished session: zero, a splash of droplets, a dot, an announcement, an
   await context.close();
 });
 
-test("after four focus sessions a long break is suggested", async () => {
+t("after four focus sessions a long break is suggested", async () => {
   const { context, page } = await open();
   await setLengths(page, 1);
   const seen = [];
@@ -118,7 +121,7 @@ test("after four focus sessions a long break is suggested", async () => {
   await context.close();
 });
 
-test("the glass drains in step with the clock: full, about half, empty", async () => {
+t("the glass drains in step with the clock: full, about half, empty", async () => {
   const { context, page } = await open();
   await setLengths(page, 2);
   await page.keyboard.press("Space");
@@ -136,7 +139,7 @@ test("the glass drains in step with the clock: full, about half, empty", async (
   await context.close();
 });
 
-test("keyboard: 1 2 3 switch worlds, R resets, S opens lengths, M toggles sound; shortcuts stay quiet while typing", async () => {
+t("keyboard: 1 2 3 switch worlds, R resets, S opens lengths, M toggles sound; shortcuts stay quiet while typing", async () => {
   const { context, page } = await open();
   await page.keyboard.press("2"); assert.equal(await mode(page), "short"); assert.equal(await digits(page), "05:00");
   await page.keyboard.press("3"); assert.equal(await mode(page), "long"); assert.equal(await digits(page), "15:00");
@@ -155,7 +158,7 @@ test("keyboard: 1 2 3 switch worlds, R resets, S opens lengths, M toggles sound;
   await context.close();
 });
 
-test("Space on a focused button presses that button only (no double toggle)", async () => {
+t("Space on a focused button presses that button only (no double toggle)", async () => {
   const { context, page } = await open();
   await page.locator("#reset").focus();
   await page.keyboard.press("Space");
@@ -165,7 +168,7 @@ test("Space on a focused button presses that button only (no double toggle)", as
   await context.close();
 });
 
-test("the mode switch is a proper radio group: arrow keys move and select, one tab stop", async () => {
+t("the mode switch is a proper radio group: arrow keys move and select, one tab stop", async () => {
   const { context, page } = await open();
   await page.locator('#modes button[aria-checked="true"]').focus();
   await page.keyboard.press("ArrowRight");
@@ -178,7 +181,7 @@ test("the mode switch is a proper radio group: arrow keys move and select, one t
   await context.close();
 });
 
-test("each mode is its own world: the liquid colours really change", async () => {
+t("each mode is its own world: the liquid colours really change", async () => {
   const { context, page } = await open({ clock: false });
   const colour = () => page.evaluate(() => getComputedStyle(document.body).getPropertyValue("--liq-b").trim());
   const focus = await colour();
@@ -190,7 +193,7 @@ test("each mode is its own world: the liquid colours really change", async () =>
   await context.close();
 });
 
-test("lengths: saved, clamped, applied at once, kept after reload; Cancel and Escape change nothing", async () => {
+t("lengths: saved, clamped, applied at once, kept after reload; Cancel and Escape change nothing", async () => {
   const { context, page } = await open();
   await setLengths(page, 50, 10, 20);
   assert.equal(await digits(page), "50:00");
@@ -211,7 +214,7 @@ test("lengths: saved, clamped, applied at once, kept after reload; Cancel and Es
   await context.close();
 });
 
-test("a running session is not cut short by changing its length", async () => {
+t("a running session is not cut short by changing its length", async () => {
   const { context, page } = await open();
   await page.keyboard.press("Space"); await page.clock.runFor(30_000);
   await page.keyboard.press("s"); await page.locator("input[name=focus]").fill("5"); await page.getByRole("button", { name: "Save" }).click();
@@ -219,7 +222,7 @@ test("a running session is not cut short by changing its length", async () => {
   await context.close();
 });
 
-test("it still works when the browser refuses to store anything", async () => {
+t("it still works when the browser refuses to store anything", async () => {
   const context = await browser.newContext({ viewport: { width: 1280, height: 800 } });
   await context.addInitScript(() => { Object.defineProperty(window, "localStorage", { get() { throw new Error("blocked"); } }); });
   const page = await context.newPage();
@@ -233,7 +236,7 @@ test("it still works when the browser refuses to store anything", async () => {
   await context.close();
 });
 
-test("the digits roll: a change shows two layers briefly, then exactly one; many quick changes never pile up", async () => {
+t("the digits roll: a change shows two layers briefly, then exactly one; many quick changes never pile up", async () => {
   const { context, page } = await open({ clock: false });
   await page.keyboard.press("Space");
   await page.waitForFunction(() => [...document.querySelectorAll("#digits .d")].some((c) => c.children.length === 2), null, { timeout: 4000 });
@@ -245,7 +248,7 @@ test("the digits roll: a change shows two layers briefly, then exactly one; many
   await context.close();
 });
 
-test("the liquid is alive: frames keep coming, the picture changes between frames, and the speed is reported", async () => {
+t("the liquid is alive: frames keep coming, the picture changes between frames, and the speed is reported", async () => {
   const { context, page } = await open({ clock: false });
   await page.keyboard.press("Space");
   const f0 = await page.evaluate(() => window.__tide.liquid.stats().frames);
@@ -260,7 +263,7 @@ test("the liquid is alive: frames keep coming, the picture changes between frame
   await context.close();
 });
 
-test("touching the glass makes ripples and stirs the water", async () => {
+t("touching the glass makes ripples and stirs the water", async () => {
   const { context, page } = await open({ clock: false });
   const box = await page.locator("#liquid").boundingBox();
   await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
@@ -271,7 +274,7 @@ test("touching the glass makes ripples and stirs the water", async () => {
   await context.close();
 });
 
-test("buttons lean toward the pointer, settle when it leaves, and leave a ripple on click that cleans up after itself", async () => {
+t("buttons lean toward the pointer, settle when it leaves, and leave a ripple on click that cleans up after itself", async () => {
   const { context, page } = await open({ clock: false });
   const b = await page.locator("#go").boundingBox();
   await page.mouse.move(b.x + b.width + 30, b.y + b.height / 2, { steps: 5 });
@@ -288,7 +291,7 @@ test("buttons lean toward the pointer, settle when it leaves, and leave a ripple
   await context.close();
 });
 
-test("reduced motion: no animation loop, no drifting sky, no rolling digits, but the glass is still drawn and the timer works", async () => {
+t("reduced motion: no animation loop, no drifting sky, no rolling digits, but the glass is still drawn and the timer works", async () => {
   const { context, page, problems } = await open({ clock: false, reducedMotion: "reduce" });
   await page.keyboard.press("Space"); await page.waitForTimeout(2300);
   const st = await page.evaluate(() => window.__tide.liquid.stats());
@@ -303,7 +306,7 @@ test("reduced motion: no animation loop, no drifting sky, no rolling digits, but
   await context.close();
 });
 
-test("accessibility: nothing serious in any world, with the dialog open, or on a finished session", async () => {
+t("accessibility: nothing serious in any world, with the dialog open, or on a finished session", async () => {
   const axeSource = fs.readFileSync(new URL("../node_modules/axe-core/axe.min.js", import.meta.url), "utf8");
   const { context, page } = await open({ bypassCSP: true });
   const run = async (label) => {
@@ -320,7 +323,7 @@ test("accessibility: nothing serious in any world, with the dialog open, or on a
   await context.close();
 });
 
-test("the spoken time reads naturally for screen readers and updates each second", async () => {
+t("the spoken time reads naturally for screen readers and updates each second", async () => {
   const { context, page } = await open();
   assert.equal(await page.locator("#spoken").innerText(), "25 minutes 0 seconds");
   await page.keyboard.press("Space"); await page.clock.runFor(61_000);
@@ -328,7 +331,7 @@ test("the spoken time reads naturally for screen readers and updates each second
   await context.close();
 });
 
-test("phone: nothing overflows sideways, controls are at least 44px, the glass fits above the buttons", async () => {
+t("phone: nothing overflows sideways, controls are at least 44px, the glass fits above the buttons", async () => {
   const { context, page } = await open({ viewport: { width: 375, height: 700 }, hasTouch: true, isMobile: true });
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, "no horizontal scroll");
   for (const sel of ["#go", "#reset", "#sound", "#open-settings", '#modes button[data-mode="focus"]', '#modes button[data-mode="long"]']) {
@@ -343,7 +346,7 @@ test("phone: nothing overflows sideways, controls are at least 44px, the glass f
   await context.close();
 });
 
-test("200% text zoom and a short window still work: controls reachable, no overlap of readout and buttons", async () => {
+t("200% text zoom and a short window still work: controls reachable, no overlap of readout and buttons", async () => {
   const { context, page } = await open({ viewport: { width: 700, height: 420 } });
   const v = await page.locator("#vessel").boundingBox();
   assert.ok(v.width > 120, `glass not squashed away: ${v.width}`);
@@ -352,7 +355,7 @@ test("200% text zoom and a short window still work: controls reachable, no overl
   await context.close();
 });
 
-test("the page serves only its own files and loads nothing from elsewhere", async () => {
+t("the page serves only its own files and loads nothing from elsewhere", async () => {
   const context = await browser.newContext();
   const page = await context.newPage();
   const urls = []; page.on("request", (r) => urls.push(r.url()));

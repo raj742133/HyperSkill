@@ -206,7 +206,13 @@ document.addEventListener("pointerdown", (e) => {
 });
 
 /* ---------- go ---------- */
-setInterval(() => { timer.tick(); render(); }, 200);
+// Refresh just after each second boundary while running, so the display is never a second behind; idle, a slow check is enough.
+function loop() {
+  const s = timer.tick(); render();
+  const wait = s.status === "running" ? (s.remainingMs % 1000 || 1000) + 8 : 250;
+  setTimeout(loop, Math.min(wait, 1008));
+}
+loop();
 document.addEventListener("visibilitychange", () => { timer.tick(); render(true); });
 drawDots(); render(true); liquid.start();
 window.__tide = { liquid, timer }; // read by the browser tests (frame counts, state); nothing else uses it
