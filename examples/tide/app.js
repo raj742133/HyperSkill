@@ -139,7 +139,8 @@ $("modes").addEventListener("keydown", (e) => {
   e.preventDefault(); act(order[(i + move + 3) % 3]); document.querySelector("#modes button[aria-checked=true]").focus();
 });
 
-const typing = (el) => el && (el.matches("input, textarea, select, [contenteditable]") || el.closest("dialog[open]"));
+// A field that is no longer on screen (the dialog just closed) cannot be typed into, so it must not block the shortcuts.
+const typing = (el) => el && el.checkVisibility?.() !== false && (el.matches("input, textarea, select, [contenteditable]") || el.closest("dialog[open]"));
 addEventListener("keydown", (e) => {
   if (e.metaKey || e.ctrlKey || e.altKey || typing(document.activeElement)) return;
   const a = document.activeElement, onButton = a?.matches("button") && a.checkVisibility?.() !== false; // a hidden button (the dialog just closed) cannot act, so it must not swallow the key
