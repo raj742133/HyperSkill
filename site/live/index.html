@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HyperSkill live view</title>
+<meta name="description" content="Watch what HyperSkill is making, testing and deciding, as it happens.">
+<meta name="theme-color" content="#14110f">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/live/live.css">
+</head>
+<body>
+<a class="skip" href="#feed-h">Skip to the activity feed</a>
+<header class="bar">
+  <div class="bar-in">
+    <p class="brand"><span class="mark" aria-hidden="true"></span>HyperSkill</p>
+    <a id="back" class="back" href="/" hidden>Back to the site</a>
+    <p class="proj" id="proj" aria-live="off"></p>
+    <p class="badge" id="badge" role="status"><span class="dot" aria-hidden="true"></span><span id="badge-text">Connecting</span></p>
+  </div>
+</header>
+
+<main class="wrap" id="main">
+  <noscript><p class="empty">This page needs JavaScript to show live activity.</p></noscript>
+  <p id="banner" class="banner" hidden></p>
+
+  <section class="now" aria-labelledby="now-h">
+    <h2 id="now-h" class="eyebrow">Right now</h2>
+    <p id="now-text" class="now-text" aria-live="polite">Waiting for the first event.</p>
+    <p id="now-meta" class="now-meta"></p>
+  </section>
+
+  <section aria-labelledby="rail-h">
+    <h2 id="rail-h" class="eyebrow">The nine phases</h2>
+    <ol id="rail" class="rail"></ol>
+  </section>
+
+  <div id="replay" class="replay" hidden>
+    <button type="button" id="r-play" class="btn">Pause</button>
+    <button type="button" id="r-restart" class="btn">Restart</button>
+    <label class="speed">Speed
+      <select id="r-speed"><option value="1">1x</option><option value="4" selected>4x</option><option value="16">16x</option></select>
+    </label>
+    <span id="r-pos" class="pos"></span>
+    <progress id="r-bar" max="100" value="0" aria-label="Replay position"></progress>
+  </div>
+
+  <div class="cols">
+    <section class="feed-col" aria-labelledby="feed-h">
+      <div class="feed-head">
+        <h2 id="feed-h" class="eyebrow">Activity</h2>
+        <div class="chips" role="group" aria-label="Filter the activity">
+          <button type="button" class="chip" data-f="all" aria-pressed="true">All</button>
+          <button type="button" class="chip" data-f="files" aria-pressed="false">Files</button>
+          <button type="button" class="chip" data-f="tests" aria-pressed="false">Tests</button>
+          <button type="button" class="chip" data-f="gates" aria-pressed="false">Checks</button>
+          <button type="button" class="chip" data-f="notes" aria-pressed="false">Decisions</button>
+        </div>
+      </div>
+      <ol id="feed" class="feed"></ol>
+      <p id="feed-empty" class="empty">Nothing yet. Start working in the project and the events appear here.</p>
+    </section>
+
+    <aside class="side" aria-label="Summary">
+      <section class="card" aria-labelledby="t-h">
+        <h2 id="t-h" class="eyebrow">Tests</h2>
+        <p id="t-last" class="big">No test run yet</p>
+        <p id="t-sub" class="sub"></p>
+        <div id="t-hist" class="hist" role="img" aria-label="Recent test runs"></div>
+      </section>
+      <section class="card" aria-labelledby="o-h">
+        <h2 id="o-h" class="eyebrow">Open checks in <span id="o-phase">the current phase</span></h2>
+        <ul id="open" class="open"></ul>
+      </section>
+      <section class="card" aria-labelledby="f-h">
+        <h2 id="f-h" class="eyebrow">Files <span id="f-count" class="count"></span></h2>
+        <ul id="files" class="files"></ul>
+      </section>
+      <section class="card" aria-labelledby="d-h">
+        <h2 id="d-h" class="eyebrow">Decisions <span id="d-count" class="count"></span></h2>
+        <ul id="decisions" class="decisions"></ul>
+      </section>
+    </aside>
+  </div>
+  <p class="foot" id="foot"></p>
+</main>
+<script src="/live/live.js"></script>
+</body>
+</html>
