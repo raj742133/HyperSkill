@@ -1,6 +1,6 @@
 // Browser tests for Tide. Run: CHROME_PATH=/path/to/chrome npm run test:e2e
 // Most tests control time with page.clock so a 25-minute session takes milliseconds; the animation tests use real time.
-import { test, before, after } from "node:test";
+import { test, before, after, afterEach } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import { chromium } from "playwright-core";
@@ -9,22 +9,27 @@ import { createServer } from "../scripts/serve.js";
 const t = (name, fn) => test(name, { timeout: 60_000 }, fn); // a hang is reported against the test that hung
 
 let browser, server, base;
+const opened = []; // every context a test opens, closed after the test even when it failed, so one failure cannot starve the next tests of CPU
 before(async () => {
   server = createServer();
   await new Promise((r) => server.listen(0, "127.0.0.1", r));
   base = `http://127.0.0.1:${server.address().port}/`;
   browser = await chromium.launch({ executablePath: process.env.CHROME_PATH, args: ["--no-sandbox", "--disable-gpu"] });
 });
+afterEach(async () => { for (const c of opened.splice(0)) await c.close().catch((e) => console.error("could not close a test context:", e.message)); });
 after(async () => { await browser?.close(); await new Promise((r) => server.close(r)); });
 
 async function open({ clock = true, ...ctxOpts } = {}) {
   const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, ...ctxOpts });
+  opened.push(context);
   const page = await context.newPage();
   const problems = [];
   page.on("console", (m) => { if (["error", "warning"].includes(m.type())) problems.push(m.text()); });
   page.on("pageerror", (e) => problems.push("pageerror: " + e.message));
-  if (clock) await page.clock.install();
+  // A fake clock that is paused moves only when a test moves it, so every number in a test is exact.
+  if (clock) await page.clock.install({ time: new Date("2026-01-01T09:00:00Z") });
   await page.goto(base);
+  if (clock) await page.clock.pauseAt(new Date("2026-01-01T09:01:00Z"));
   await page.waitForFunction(() => window.__tide);
   if (clock) await page.clock.runFor(300);
   return { context, page, problems };
@@ -224,6 +229,7 @@ t("a running session is not cut short by changing its length", async () => {
 
 t("it still works when the browser refuses to store anything", async () => {
   const context = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  opened.push(context);
   await context.addInitScript(() => { Object.defineProperty(window, "localStorage", { get() { throw new Error("blocked"); } }); });
   const page = await context.newPage();
   const problems = []; page.on("pageerror", (e) => problems.push(e.message));
@@ -357,6 +363,7 @@ t("200% text zoom and a short window still work: controls reachable, no overlap 
 
 t("the page serves only its own files and loads nothing from elsewhere", async () => {
   const context = await browser.newContext();
+  opened.push(context);
   const page = await context.newPage();
   const urls = []; page.on("request", (r) => urls.push(r.url()));
   await page.goto(base); await page.waitForTimeout(800);
