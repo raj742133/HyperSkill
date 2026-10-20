@@ -15,7 +15,7 @@ Tenancy: none (nothing stored on a server).
 - Honour reduced motion: no animation loop, no rolling digits.
 - Every colour world keeps white text at 3:1 or better (a test enforces it).
 - Never weaken a test to get green; a skipped test needs a written reason.
-- The deployed copy lives in `site/tide/` at the repository root: after changing a file here, copy it (`index.html` with `/tide/` asset paths); a site test fails when they differ.
+- The deployed copy lives in `site/tide/` at the repository root: after changing a file here, run `python3 scripts/sync_tide.py` from the repository root; a site test fails when they differ.
 - Run `npm run lint && npm test` before saying a task is done, and show the output.
 
 ## Commands

@@ -7,9 +7,9 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const TYPES = { ".html": "text/html; charset=utf-8", ".css": "text/css; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".svg": "image/svg+xml" };
-// The same policy the deployed site sends: the page needs nothing but its own files and makes no requests of its own.
+// The strict policy the deployed site sends for /tide (see vercel.json): the page needs nothing but its own files and makes no requests of its own.
 const CSP = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'";
-const PUBLIC = new Set(["index.html", "styles.css", "app.js", "timer.js", "liquid.js", "favicon.svg"]);
+const PUBLIC = new Set(["index.html", "styles.css", "app.js", "timer.js", "liquid.js", "favicon.svg", "privacy.html", "legal.css"]);
 
 /** One JSON line per request: id, method, path (the query string is dropped), status, milliseconds. Nothing from the visitor is logged. */
 const log = (entry) => console.log(JSON.stringify({ level: "info", time: new Date().toISOString(), ...entry }));

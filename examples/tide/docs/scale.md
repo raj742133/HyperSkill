@@ -9,6 +9,8 @@ All numbers were measured on 2026-10-20 on one shared machine (the test client a
 |---|---|---|---|---|---|
 | 47,754 | 4,767 | 0 | 8.3 ms | 19.3 ms | 28.2 ms |
 
+Two more runs of `bash scripts/loadtest-local.sh` (5 seconds each, taken later while other work was running on the same machine) gave 3,220 and 3,194 requests per second, p50 13.1 and 12.5 ms, p95 26.1 and 27.9 ms, p99 35.9 and 45.2 ms, 0 errors. **Expect a spread of about 30% between runs on this machine**; the first run is the best case.
+
 This is the dev server (`scripts/serve.js`), which reads each file from disk on every request. The deployed site is static files on Vercel's network and is **not load tested**: hammering someone else's production host is not appropriate, and its limits are the host's.
 
 ## Two instances side by side

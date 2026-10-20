@@ -15,17 +15,17 @@ Scope: the Tide page (static files) and its small local dev server. No accounts,
 2. **Local storage**: read at load. A tampered value is parsed defensively (bad JSON or wrong types fall back to defaults).
 3. **The URL**: the page reads nothing from the query string or fragment.
 4. **The host's static files** and the response headers the host sends.
-5. **The dev server** (`scripts/serve.js`): local only (127.0.0.1), allow-list of six files, GET only.
+5. **The dev server** (`scripts/serve.js`): local only (127.0.0.1), allow-list of eight files, GET only.
 6. **The supply chain**: two dev-only npm packages and GitHub Actions. Nothing is shipped from npm to visitors.
 
 ## Threats and mitigations
 | Threat | Mitigation | Evidence |
 |---|---|---|
-| Script injection through a field or stored value | No `innerHTML` with user data; numbers only; a strict Content-Security-Policy (`script-src 'self'`, `connect-src 'none'`) | xss probe test; CSP test |
+| Script injection through a field or stored value | No `innerHTML` with user data; numbers only; a strict Content-Security-Policy on `/tide` (`script-src 'self'`, `connect-src 'none'`, `font-src 'none'`), set by its own rule in `vercel.json` (the site's broader policy allows fonts and same-origin requests for other pages and is deliberately not applied to `/tide`) | Browser test "script-injection probe" (payloads in the fields and in tampered stored settings); CSP tests in `tests/serve.test.js` and `tests/test_site.py` |
 | The page quietly starts contacting another site | `connect-src 'none'` stops any request; a browser test fails on any request after load | privacy browser test |
-| Path traversal on the dev server | File allow-list, no path joining from the URL | server test (`/../package.json` is 404) |
+| Path traversal on the dev server | File allow-list (eight files), matched against the raw URL with no decoding, so no encoded form reaches a file | server test (`/../package.json` is 404) |
 | A tampered local-storage value breaks the page | Parsed with fallbacks; blocked or empty storage is tested | browser test (storage refused) |
-| A secret is committed | Pre-commit and CI secret scan, history scan | `scripts/secret-scan.sh`, CI step |
+| A secret is committed | CI secret scan of the working tree and history. A pre-commit hook exists but is **opt-in**: it only runs after `git config core.hooksPath examples/tide/.githooks` | `scripts/secret-scan.sh`, CI step |
 | A vulnerable dependency | `npm audit` in CI, weekly Dependabot PRs; dev-only, so none reaches visitors | CI, `.github/dependabot.yml` |
 | A malicious change to the deployed files | Changes only by pull request; a test fails when the deployed copy differs from the source. **Branch protection is not configured by this repo and should be on** | site test; open item |
 | Clickjacking | `frame-ancestors 'none'` | site header |

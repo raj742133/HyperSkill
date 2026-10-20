@@ -113,6 +113,7 @@ function render(force = false) {
     setDigits(text);
     $("spoken").textContent = spoken(s.remainingMs);
     document.title = titleFor(s, text);
+    if (reduced) liquid.refresh(); // with reduced motion there is no animation loop, so redraw the glass as each second passes
     lastSecond = sec;
   }
   if (s.status !== lastStatus || s.mode !== lastMode || force) {
@@ -121,7 +122,7 @@ function render(force = false) {
     $("go").textContent = s.status === "running" ? "Pause" : s.status === "paused" ? "Resume" : s.status === "done" ? "Start " + MODES[timer.suggestNext()].label.toLowerCase() : "Start";
     $("caption").textContent = caption(s);
     document.querySelectorAll("#modes button").forEach((b) => { const on = b.dataset.mode === s.mode; b.setAttribute("aria-checked", String(on)); b.tabIndex = on ? 0 : -1; });
-    if (s.mode !== lastMode) liquid.refresh();
+    if (s.mode !== lastMode) { liquid.refresh(); setTimeout(() => liquid.refresh(), 1000); } // again once the 0.9 s colour change has finished
     lastStatus = s.status; lastMode = s.mode;
   }
 }
@@ -172,6 +173,10 @@ addEventListener("keydown", (e) => {
   const a = document.activeElement, onButton = a?.matches("button") && a.checkVisibility?.() !== false; // a hidden button (the dialog just closed) cannot act, so it must not swallow the key
   const k = e.key.toLowerCase();
   if (k === " " && !onButton) { e.preventDefault(); act("toggle"); }
+  else if ("r123".includes(k) && k.length === 1 && ["running", "paused"].includes(timer.snapshot().status)) {
+    // One stray key next to Space must not throw away a session in progress: the Reset button and the mode buttons still can.
+    $("live").textContent = "A session is in progress. Use the Reset button or a mode button to stop it.";
+  }
   else if (k === "r") act("reset");
   else if (k === "1") act("focus"); else if (k === "2") act("short"); else if (k === "3") act("long");
   else if (k === "m") toggleSound();

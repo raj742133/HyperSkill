@@ -21,7 +21,7 @@ test("the dev server answers health, the page, and a 404 for anything else", asy
   await new Promise((r) => server.listen(0, "127.0.0.1", r));
   t.after(() => new Promise((r) => server.close(r)));
   const base = `http://127.0.0.1:${server.address().port}`;
-  assert.deepEqual(await (await fetch(base + "/api/health")).json(), { status: "ok", files: 6 });
+  assert.deepEqual(await (await fetch(base + "/api/health")).json(), { status: "ok", files: 8 });
   assert.deepEqual(await (await fetch(base + "/api/health/live")).json(), { status: "ok" });
   const page = await fetch(base + "/");
   assert.equal(page.status, 200);
@@ -58,10 +58,10 @@ test("every request gets an id, one JSON log line carries it, and nothing from t
 
 test("health says degraded with the missing file names when the page's files are not all there", async () => {
   const { health } = await import("../scripts/serve.js");
-  assert.deepEqual(health().body, { status: "ok", files: 6 });
+  assert.deepEqual(health().body, { status: "ok", files: 8 });
   const fs = await import("node:fs"), os = await import("node:os"), path = await import("node:path");
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "tide-health-"));
-  for (const f of ["index.html", "styles.css", "app.js", "timer.js", "favicon.svg"]) fs.writeFileSync(path.join(dir, f), "x");
+  for (const f of ["index.html", "styles.css", "app.js", "timer.js", "favicon.svg", "privacy.html", "legal.css"]) fs.writeFileSync(path.join(dir, f), "x");
   const h = health(dir);
   assert.equal(h.code, 503);
   assert.deepEqual(h.body, { status: "degraded", missing: ["liquid.js"] });

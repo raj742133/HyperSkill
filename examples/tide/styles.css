@@ -43,7 +43,7 @@ body { transition: --sky-a .9s ease, --sky-b .9s ease, --liq-a .9s ease, --liq-b
 .modes button { font: 600 14px var(--sans); color: var(--muted); background: transparent; border: 0; border-radius: 999px; min-height: 44px; padding: 0 16px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: color .25s, background .25s, transform .25s; }
 .modes button:hover { color: var(--ink); }
 .modes button[aria-checked="true"] { color: #0a0f2a; background: #fff; box-shadow: 0 6px 24px rgba(0,0,0,.35); }
-kbd { font: 600 11px var(--mono); border: 1px solid currentColor; border-radius: 5px; padding: 0 5px; opacity: .6; }
+kbd { font: 600 11px var(--mono); border: 1px solid currentColor; border-radius: 5px; padding: 0 5px; opacity: .85; }
 .icon { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.16); color: var(--ink); cursor: pointer; backdrop-filter: blur(14px); transition: background .2s, transform .2s; }
 .icon:hover { background: rgba(255,255,255,.16); transform: translateY(-1px); }
 .icon svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
@@ -63,9 +63,7 @@ body[data-status="done"] .vessel { animation: ding .9s cubic-bezier(.2,.8,.2,1);
 .digits { display: flex; justify-content: center; align-items: baseline; font: 500 clamp(54px, 15vmin, 128px)/1 var(--display); font-variant-numeric: tabular-nums; letter-spacing: -.02em; filter: drop-shadow(0 2px 14px rgba(0,0,0,.4)); } /* on the row, not the cells: a cell clips its own shadow into a hard box */
 .d { position: relative; display: inline-block; width: .6em; height: 1.05em; overflow: hidden; text-align: center; }
 .d span { position: absolute; inset: 0; display: block; }
-.colon { width: .3em; text-align: center; }
-body[data-status="running"] .colon { animation: blink 1s steps(1, end) infinite; }
-@keyframes blink { 50% { opacity: .25; } }
+.colon { width: .3em; text-align: center; transform: translateY(-.1em); } /* optically centred on the digits, and solid: a blinking colon is a distraction while you focus */
 .caption { justify-self: center; margin: 10px auto 0; padding: 4px 14px; border-radius: 999px; background: rgba(5, 8, 28, .55); backdrop-filter: blur(6px); font: 600 13px var(--mono); letter-spacing: .14em; text-transform: uppercase; color: #fff; }
 
 .controls { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
@@ -104,3 +102,11 @@ dialog .row { display: flex; gap: 10px; margin-top: 18px; } dialog .primary { mi
   .magnet { transform: none !important; } * { transition-duration: .01ms !important; }
 }
 @media (forced-colors: active) { .primary, .ghost, .modes button[aria-checked="true"] { border-color: CanvasText; } }
+
+dialog input::selection { background: #9ad9ff; color: #0b1030; } /* a selected value stays readable */
+kbd + kbd { margin-left: 4px; }
+.controls { flex-wrap: nowrap; }
+.controls button { min-width: 0; }
+.legal { margin: 4px 0 0; text-align: center; font-size: 13px; }
+.legal a { color: var(--muted); }
+.legal a:focus-visible { outline: 3px solid #fff; outline-offset: 3px; border-radius: 3px; }

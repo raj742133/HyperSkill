@@ -158,8 +158,11 @@ t("keyboard: 1 2 3 switch worlds, R resets, S opens lengths, M toggles sound; sh
   await page.keyboard.press("2"); assert.equal(await mode(page), "short"); assert.equal(await digits(page), "05:00");
   await page.keyboard.press("3"); assert.equal(await mode(page), "long"); assert.equal(await digits(page), "15:00");
   await page.keyboard.press("1"); await page.keyboard.press("Space"); await advance(page, 5000);
-  await page.keyboard.press("r");
+  await page.locator("#reset").click(); // a running session is stopped on purpose, with the button (the R key is ignored then: see the next tests)
   assert.deepEqual([await status(page), await digits(page)], ["idle", "25:00"]);
+  await page.keyboard.press("3"); await page.keyboard.press("r"); // when nothing is running, R resets the shown mode
+  assert.deepEqual([await mode(page), await status(page), await digits(page)], ["long", "idle", "15:00"]);
+  await page.keyboard.press("1");
   assert.equal(await page.locator("#sound").getAttribute("aria-pressed"), "false");
   await page.keyboard.press("m");
   assert.equal(await page.locator("#sound").getAttribute("aria-pressed"), "true");
@@ -351,6 +354,34 @@ t("script-injection probe: payloads in the fields and in tampered stored setting
   assert.equal(await page.evaluate(() => window.__xss), undefined, "nothing ran");
   assert.equal(await page.locator("img[src='x']").count(), 0, "no injected element in the page");
   assert.deepEqual(problems.filter((p) => !/cannot be parsed, or is out of range/.test(p)), [], "only the browser's own complaint about text in a number field (the test forced it)");
+  await context.close();
+});
+
+t("reduced motion still shows progress: the glass drains as time passes and the colour matches the mode", async () => {
+  const { context, page } = await open({ reducedMotion: "reduce" });
+  const level = () => page.evaluate(() => window.__tide.liquid.stats().level);
+  await page.keyboard.press("Space");
+  await advance(page, 1_000);
+  const early = await level();
+  await jump(page, 10 * 60_000);
+  const later = await level();
+  assert.ok(early > 0.95, `full at the start (${early})`);
+  assert.ok(later < 0.65 && later > 0.45, `about 60% after 10 of 25 minutes (${later})`);
+  await context.close();
+});
+
+t("single keys cannot wipe a running session: 1 2 3 and R are ignored with a message, the buttons still work", async () => {
+  const { context, page } = await open();
+  await page.keyboard.press("Space");
+  await advance(page, 5_000);
+  for (const k of ["2", "3", "r"]) await page.keyboard.press(k);
+  assert.equal(await status(page), "running", "still running");
+  assert.equal(await page.evaluate(() => window.__tide.timer.snapshot().mode), "focus", "still the focus mode");
+  assert.match(await page.locator("#live").textContent(), /A session is in progress/);
+  await page.locator("#reset").click();
+  assert.equal(await status(page), "idle", "the Reset button still stops it");
+  await page.keyboard.press("2");
+  assert.equal(await page.evaluate(() => window.__tide.timer.snapshot().mode), "short", "when idle the keys switch modes");
   await context.close();
 });
 
