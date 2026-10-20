@@ -51,7 +51,8 @@ test("loads cleanly: 25:00, focus selected, the glass is drawn, no console error
   assert.equal(await page.title(), "Tide: a focus timer");
   const s = await canvasStats(page);
   assert.ok(s.nonEmpty > 200 && s.colours > 8, `the canvas is drawn: ${JSON.stringify(s)}`);
-  assert.ok(await level(page) > 0.9, "the glass starts full");
+  await page.clock.runFor(2500); // the glass fills up as an intro
+  assert.ok(await level(page) > 0.9, "the glass ends the intro full");
   assert.deepEqual(problems, []);
   await context.close();
 });

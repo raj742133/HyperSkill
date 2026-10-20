@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node scripts/serve.js",
     "test": "node --test tests/*.test.js",
-    "test:e2e": "node --test --test-concurrency=1 e2e/*.e2e.js",
+    "test:e2e": "node --test --test-concurrency=1 --test-timeout=40000 e2e/*.e2e.js",
     "lint": "for f in timer.js liquid.js app.js scripts/serve.js; do node --check \"$f\" || exit 1; done"
   },
   "devDependencies": {
