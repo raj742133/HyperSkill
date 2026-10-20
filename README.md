@@ -12,6 +12,8 @@
 
 <img src="docs/img/site-hero.png" alt="The HyperSkill site: the headline, the install command and a terminal showing the tracker refusing to advance a phase" width="860">
 
+<img src="docs/img/site-hero-phone-dark.png" alt="The same site on a phone in dark mode, which follows the phone's setting" width="300">
+
 </div>
 
 HyperSkill takes a product from **idea to shipped, monitored and promoted** in nine gated phases. One conductor skill (`/hyperskill`) decides which phase you are in, hands the work to that phase's skill, asks you the decisions that are yours, and **refuses to advance a phase until its checks have evidence**.
@@ -113,7 +115,7 @@ python3 scripts/hyperskill.py advance
 
 ## Real runs
 
-HyperSkill was run end to end on two small products. Both live in this repo, with their gate records, decisions, reviews and tests.
+HyperSkill was run end to end on three small products. All live in this repo, with their gate records, decisions, reviews and tests.
 
 ### DueSoon: all nine phases ([`examples/duesoon`](examples/duesoon))
 
@@ -130,19 +132,23 @@ A tool to write payment reminders for Indian freelancers. Four parallel research
 </tr>
 </table>
 
-39 unit and API tests, 17 browser tests (a test fails if the form data is sent anywhere), and 16 of 16 mutation checks killed. Its research is [`docs/research.md`](examples/chaser/docs/research.md), the design review [`docs/design-review.md`](examples/chaser/docs/design-review.md). The foundation and product gates of this run are not closed yet.
+**The owner then decided to keep it free**, so the pricing button, waitlist and counters were removed and it is now a plain static page ([live](https://hyperskill-hazel.vercel.app/chaser)). Today: 25 unit tests, 16 browser tests (a test fails if the page makes any request after it loads), and 11 of 11 mutation checks killed. Its research is [`docs/research.md`](examples/chaser/docs/research.md), the design review [`docs/design-review.md`](examples/chaser/docs/design-review.md). The foundation and product gates of this run are not closed yet.
+
+### Tide: all nine phases, and the later phases found real bugs ([`examples/tide`](examples/tide))
+
+A focus timer shaped like a glass of water ([live](https://hyperskill-hazel.vercel.app/tide)). Built first, then run through the whole pipeline afterwards to see whether the ship, harden, operate, launch and scale phases hold up. 68 checks: **40 passed with evidence, 28 waived with written reasons** (most need a host, a monitoring provider or a person that a sandbox does not have). Independent reviewers and the harden checks found problems the tests had missed: corrupt saved settings made the display read `NaN:NaN`; with reduced motion the glass never drained; a stray key wiped a running session; a clock set back could extend a session; the live security policy was looser than the threat model said; and the pre-commit hook skipped file names with spaces. Each was fixed with a test. Today: 22 unit tests, 28 browser tests (accessibility included), all 10 mutation checks killed, a load test and a cost model with real numbers. Not tested: a real phone, a real screen reader, the deployed host under load.
 
 ## What is and is not verified
 
 Verified:
 
 - The plugin installs from GitHub into a clean config, and `/hyperskill` ran headless from an install of the same plugin (two separate tests, not one end-to-end run).
-- The tracker and the integration resolver are covered by 103 tests; `claude plugin validate .` passes.
+- The tracker and the integration resolver are covered by 105 tests; `claude plugin validate .` passes.
 - Two full runs on real code, described above, with the failures they exposed.
 
 Not verified, so do not rely on it yet:
 
-- It has been run only by its author, on two small products. Nobody else has used it.
+- It has been run only by its author, on three small products. Nobody else has used it.
 - The video instructions (`hs-launch`) were checked against the installed HyperFrames documentation, not executed.
 - Third-party skills are read at README level and not pinned to a version. Read a skill before enabling it; installed skills run with your agent's permissions.
 - The reference text was rewritten in original wording from guides that state no licence. That is not a legal clearance (see [`docs/sources.md`](docs/sources.md)).
@@ -163,7 +169,7 @@ site/                  the static launch site (Vercel; vercel.json); site/live i
 examples/duesoon/      full nine-phase run
 examples/chaser/       research, plan and build of the second run
 docs/                  sources, integration review, README images
-tests/                 103 tests for the tracker, resolver, activity log, hook, live server, structure and site
+tests/                 105 tests for the tracker, resolver, activity log, hook, live server, structure and site
 ```
 
 ## Develop
