@@ -14,7 +14,7 @@
 
 7. **Six more repositories** (hypit, openui, ponytail, SlopMonster, rea, api-anything), read at README level on 2026-10-19. See `docs/integrations-review.md`.
 
-8. **Anatomy** (`wheresryan22/anatomy`, MIT, copyright "Ryan"), read on 2026-10-21 from a shallow clone: `README.md`, `SKILL.md`, `SECURITY.md` and `LICENSE`. Its scripts and kit were not read or audited. It is listed in `integrations.json` as an opt-in provider for the `explainer-figure` slot. **`skills/hs-figure` is a separate, original implementation**: the idea of explaining a concept as a working, finely made object is credited to Anatomy, but no code or text was copied, and the object (the lock chambers), the geometry kit, the overlap audit and the browser check were written for HyperSkill. The author of this kit had read Anatomy's README and SKILL.md first, so it is not a clean-room design.
+8. **Anatomy** (`wheresryan22/anatomy`, MIT, copyright 2026 Ryan), read on 2026-10-21. The owner asked for their own version of it, so **the whole skill is bundled unmodified in `skills/anatomy`** (174 files, about 27 MB, upstream commit `1482e84`, recorded in `skills/anatomy/UPSTREAM.md`). The MIT licence allows this provided its copyright and permission notice stay with the copy, so the upstream `LICENSE` is kept in that folder. Read before bundling: `README.md`, `SKILL.md`, `SECURITY.md`, `LICENSE`, and a skim of every script for network use (only `127.0.0.1`, for Chrome's debug port), process spawning (Chrome and node; `gh` and `git` only in the gallery `publish.mjs`, which runs only when called) and deletes (its own temporary profiles). That is not a line-by-line audit. It is registered in `integrations.json` as the built-in provider of the `explainer-figure` slot. An earlier, smaller figure kit written for HyperSkill was removed in favour of the full copy (it is in the git history).
 
 ## Licensing status (updated 2026-10-19)
 
@@ -25,7 +25,7 @@ HyperSkill's own code and text are under the MIT licence (`LICENSE`, copyright l
 **What this is not.** The rewrites were done by a model that had already read the originals, so it is not a clean-room reimplementation, and nobody has compared the old and new text for similarity. The gate items themselves (`gates.json`) are short practice checklists. If you want certainty, ask the authors for permission or have a person review the diff of those files against the sources before you publish. Facts, command names and flags are not copyrightable but may still be wrong; see below.
 
 **Still true:**
-- Third-party skills are referenced, never vendored. Re-vet and pin a version before enabling any; `onetake` is PolyForm Noncommercial and must not be used on a commercial project; `claude-opus5.5-video` states no licence.
+- Third-party skills are referenced, never vendored, **with one exception: Anatomy (item 8), which is bundled in full with its licence.** Re-vet and pin a version before enabling any; `onetake` is PolyForm Noncommercial and must not be used on a commercial project; `claude-opus5.5-video` states no licence.
 - The kit's fonts and sound effects are not in this repository; check each file's licence before bundling any.
 - Installing the plugin from a local folder copies untracked files too (for example `examples/duesoon/node_modules`); installing from the GitHub source copies tracked files only.
 

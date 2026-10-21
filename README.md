@@ -82,13 +82,13 @@ What it does **not** do: it shows what Claude Code reports to hooks (files, comm
 
 ## Figures
 
-`/hyperskill-figure <idea>` builds an interactive figure that explains an idea as a working machine, from the real data. It is a capability other phases call through the `explainer-figure` slot (the plan phase to check an architecture can be explained, the product phase for docs and landing visuals, the launch phase for promo), not a tenth phase.
+`/hyperskill-figure <idea>` builds an interactive figure that explains an idea as a real, finely made working object: a cache key becomes a pin-tumbler lock, a rate limiter becomes a turnstile. It uses **Anatomy**, a skill by Ryan ([`wheresryan22/anatomy`](https://github.com/wheresryan22/anatomy), MIT) that is **bundled in full** in [`skills/anatomy`](skills/anatomy), so it works as soon as the plugin is installed. Its own README, kit, nine worked examples and checks come with it, unmodified; [`skills/anatomy/UPSTREAM.md`](skills/anatomy/UPSTREAM.md) records the exact upstream commit.
 
-<img src="docs/img/figure-canal.png" alt="An isometric figure: nine lock chambers climb away from the viewer, one per HyperSkill phase, each labelled; water fills the first chambers, their gates are open with green lamps, and a small boat floats in the third" width="860">
+<img src="skills/anatomy/.github/assets/raptor-engine-firing.webp" alt="An isometric drawing of a Raptor 2 rocket engine hanging in a test stand, firing: a red exhaust plume drawn by a WebGL shader pours onto the stand's base plate" width="640">
 
-<img src="docs/img/figure-canal-zoom.png" alt="A close view of the figure: engraved phase labels lie on the signs in perspective, translucent water, a red boat and green and amber gate lamps" width="420">
+<sub>`skills/anatomy/examples/raptor-engine`, by the Anatomy author.</sub>
 
-The worked example is HyperSkill itself: a boat climbs nine lock chambers, one per phase, and a chamber fills only as its checks pass, so the boat cannot move on until the evidence is in. Every number (9 phases, 72 checks, the checks per phase) is read from `skills/hyperskill/gates.json`. It is built with a small zero-dependency isometric kit (`skills/hs-figure/kit`), checked three ways: unit tests, an audit that no part passes through another, and a real-browser check of keyboard use, reduced motion, dark mode and a phone width. The richer [Anatomy](https://github.com/wheresryan22/anatomy) skill (WebGL, 3D) is listed as an opt-in provider for figures that need it.
+It is a capability that other phases call through the `explainer-figure` slot, not a tenth phase: the plan phase uses it to check an architecture can be explained, the product phase for docs and landing visuals, the launch phase for promo. It needs Node 20.10 or later, plus Chrome or Chromium for its checks, and it adds about 27 MB to the plugin (mostly built example pages).
 
 ## Install
 
@@ -109,7 +109,7 @@ Then, in a project:
 | `/hyperskill-status` | Show every phase and its open checks |
 | `/hyperskill-gate [phase]` | Walk the gate for a phase (default: the current one) |
 | `/hyperskill-live` | Open the live view of what is being made, tested and decided |
-| `/hyperskill-figure <idea>` | Build an interactive isometric figure that explains an idea, from real data, checked in a browser |
+| `/hyperskill-figure <idea>` | Build a crafted, interactive isometric figure that explains an idea, with the bundled Anatomy skill |
 
 Requires Python 3 (standard library only) for the tracker. The launch phase also needs Node 22+, FFmpeg and, for speech-timed video, whisper-cpp.
 
@@ -171,7 +171,7 @@ Not verified, so do not rely on it yet:
 .claude-plugin/        plugin and marketplace manifests
 skills/hyperskill/     the conductor, gates.json (72 checks), integrations.json (the registry)
 skills/hs-*/           one skill per phase, with references/
-skills/hs-figure/      a capability, not a phase: the figure kit, a worked example and its checks
+skills/anatomy/        a full copy of the Anatomy skill (MIT, by Ryan) for explainer figures: a capability, not a phase
 agents/                hs-researcher, hs-reviewer (read-only)
 commands/              /hyperskill, /hyperskill-status, /hyperskill-gate, /hyperskill-live, /hyperskill-figure
 hooks/                 hooks.json: records files, commands and test results for the live view
@@ -196,4 +196,4 @@ The site is static: import the repository in Vercel and `vercel.json` does the r
 
 ## Licence and sources
 
-MIT, see [`LICENSE`](LICENSE). Where the guidance came from, and what is still unresolved, is in [`docs/sources.md`](docs/sources.md).
+MIT, see [`LICENSE`](LICENSE). The bundled [`skills/anatomy`](skills/anatomy) is a separate work by Ryan, also MIT, with its own [`LICENSE`](skills/anatomy/LICENSE) kept beside it. Where the guidance came from, and what is still unresolved, is in [`docs/sources.md`](docs/sources.md).
