@@ -82,4 +82,4 @@ Every build task follows `references/working-loop.md`: read project files, plan,
 
 ## 6. Commands
 
-`/hyperskill` start or resume - `/hyperskill-status` show state - `/hyperskill-gate [phase]` run the gate for a phase (default: current) - `/hyperskill-live` open the live view of everything being made, tested and decided.
+`/hyperskill` start or resume - `/hyperskill-status` show state - `/hyperskill-gate [phase]` run the gate for a phase (default: current) - `/hyperskill-figure <idea>` build an interactive explainer figure - `/hyperskill-live` open the live view of everything being made, tested and decided.

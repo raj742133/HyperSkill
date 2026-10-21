@@ -3,13 +3,13 @@ window.HS = {
  "counts": {
   "phases": 9,
   "gateItems": 72,
-  "slots": 31,
-  "providers": 32,
-  "tests": 108
+  "slots": 32,
+  "providers": 33,
+  "tests": 116
  },
  "policyCounts": {
   "recommended": 11,
-  "opt-in": 12,
+  "opt-in": 13,
   "blocked-if-commercial": 1,
   "reference-only": 6,
   "unreviewed": 2
@@ -54,7 +54,8 @@ window.HS = {
    "slots": [
     "coding-discipline",
     "plan-review",
-    "ui-library-choice"
+    "ui-library-choice",
+    "explainer-figure"
    ],
    "gate": [
     {
@@ -165,7 +166,8 @@ window.HS = {
     "design-system-generation",
     "icons",
     "implementation-discipline",
-    "copy-review"
+    "copy-review",
+    "explainer-figure"
    ],
    "gate": [
     {
@@ -368,7 +370,8 @@ window.HS = {
     "video-captions",
     "video-overlay",
     "voiceover",
-    "copy-review"
+    "copy-review",
+    "explainer-figure"
    ],
    "gate": [
     {
@@ -901,6 +904,24 @@ window.HS = {
     "can import cookies from local browser profiles and stores credentials under ~/.api-anything",
     "automating sites you do not own can breach their terms of service",
     "not needed by any phase: prefer official APIs"
+   ]
+  },
+  {
+   "id": "anatomy",
+   "name": "Anatomy",
+   "repo": "wheresryan22/anatomy",
+   "kind": "skill",
+   "license": "MIT",
+   "policy": "opt-in",
+   "slots": [
+    "explainer-figure"
+   ],
+   "risks": [
+    "its checks start headless Chrome from local scripts: read them before enabling",
+    "about 27 MB with example images: install through the CLI, do not clone it into a project",
+    "needs Node 20.10 or later, plus Chrome or Chromium for the checks",
+    "the 3D mode is marked beta by its author",
+    "builds are long: its own guidance quotes hours for larger figures, so agree the size with the owner first"
    ]
   }
  ],
