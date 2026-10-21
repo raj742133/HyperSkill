@@ -7,8 +7,3 @@ __pycache__/
 node_modules/
 renders/
 .DS_Store
-
-# built figure pages (the example writes them next to its script unless --out is given)
-skills/hs-figure/examples/canal/canal.html
-skills/hs-figure/examples/canal/figure.css
-skills/hs-figure/examples/canal/figure.js
