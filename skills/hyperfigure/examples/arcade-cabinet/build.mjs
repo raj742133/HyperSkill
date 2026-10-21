@@ -258,9 +258,9 @@ board("cp.front", [[174, 170], [178, 170], [178, 180.89], [174, 181.94]], -XI, X
 board("cp.bottom", [[152, 168], [174, 170], [174, 174], [152, 172]], -XI, XI, { tone: "lo" });
 {
   const m = planeMatrix([0, 125.02, 338], [1, 0, 0], [0, 0, -1]);
-  const sc = 1.7;
-  const w = (7 * 8 - 3) * sc;
-  const art = `<g class="ac-marquee" transform="${m}"><path class="ac-marquee-art" d="${SCREEN.text("HYPERFIGURE", -w / 2, -6, sc)}"/><rect class="ac-marquee-frame" x="-56" y="-13.6" width="112" height="27.2" rx="2"/></g>`;
+  const sc = 1.15;
+  const w = (11 * 8 - 3) * sc;
+  const art = `<g class="ac-marquee" transform="${m}"><path class="ac-marquee-art" d="${SCREEN.text("HYPERFIGURE", -w / 2, -4, sc)}"/><rect class="ac-marquee-frame" x="-56" y="-13.6" width="112" height="27.2" rx="2"/></g>`;
   board("marquee.plexi", [[123, 322], [125, 322], [125, 354], [123, 354]], -XI, XI, { tone: "faint" }, { extra: art });
 }
 const TUBE_F = G.frameOf([-46, 110, 338], [1, 0, 0], [0, 1, 0], [0, 0, 1]);
