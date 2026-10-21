@@ -655,30 +655,28 @@
         "not needed by any phase: prefer official APIs"
       ]
     },
-    "anatomy": {
-      "name": "Anatomy (bundled copy, skills/anatomy)",
-      "repo": "wheresryan22/anatomy",
+    "hyperfigure": {
+      "name": "Hyperfigure (bundled, skills/hyperfigure)",
       "kind": "skill",
       "license": "MIT",
       "policy": "recommended",
       "builtin": true,
       "install": [
-        "already bundled in this plugin at skills/anatomy; standalone: npx skills add wheresryan22/anatomy -g"
+        "already bundled in this plugin at skills/hyperfigure; standalone: copy the folder into a skills folder"
       ],
       "detect": {
         "skills": [
-          "anatomy"
+          "hyperfigure"
         ]
       },
-      "provides": "Crafted, interactive isometric figures that explain a technical idea as a working object: many small precise parts in SVG, WebGL shader layers and an optional 3D mode, nine worked examples, a drawing kit, audits, printable sheets. Also runs in Antigravity, OpenCode, Codex and MiniMax Code.",
-      "vetted": "2026-10-21: full copy of upstream commit 1482e84 (unmodified, see skills/anatomy/UPSTREAM.md). README, SKILL.md, SECURITY.md and LICENSE read; scripts skimmed for network use (only 127.0.0.1 for Chrome's debug port), process spawning (Chrome and node; gh and git only in the gallery publish script when run) and deletes (its own temporary profiles). Not a line-by-line audit.",
+      "provides": "Crafted, interactive isometric figures that explain a technical idea as a working object: many small precise parts in SVG, WebGL shader layers and an optional 3D mode, nine worked examples, a drawing kit, audits, printable sheets. Derived from Anatomy by Ryan (MIT).",
+      "vetted": "2026-10-21: derived from Anatomy (wheresryan22/anatomy, commit 1482e84, MIT) by renaming and removing its gallery-publishing flow; the rest is unchanged (see skills/hyperfigure/NOTICE.md). The original's scripts were skimmed for network use (only 127.0.0.1 for Chrome's debug port), process spawning (Chrome and node) and deletes (its own temporary profiles); not a line-by-line audit. Its own regression suite passes on this version.",
       "risks": [
         "its checks start headless Chrome from local scripts and talk to it over localhost",
         "needs Node 20.10 or later, plus Chrome or Chromium for the checks",
         "adds about 27 MB to the plugin (mostly built example pages)",
-        "the 3D mode is marked beta by its author",
-        "builds are long: its own guidance quotes hours for larger figures, so agree the size with the owner first",
-        "scripts/publish.mjs runs git and gh when you call it, to prepare a pull request to the author's community gallery: it is never run for you"
+        "the 3D mode is marked beta by the original author",
+        "builds are long: its own guidance quotes hours for larger figures, so agree the size with the owner first"
       ]
     }
   },
@@ -881,7 +879,7 @@
     },
     "explainer-figure": {
       "providers": [
-        "anatomy"
+        "hyperfigure"
       ],
       "fallback": "a plain Mermaid or hand-written SVG diagram, with no interaction (see the diagramming guidance for artifacts)"
     }

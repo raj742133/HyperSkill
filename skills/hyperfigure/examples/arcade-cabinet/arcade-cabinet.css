@@ -1,0 +1,44 @@
+.ac-stage{touch-action:pan-y}
+.ac-stage:focus{outline:none}
+.ac-stage:focus-visible{outline:1px solid var(--hyperfigure-muted);outline-offset:6px}
+.ac-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+[data-part="tray"],.it[data-name^="door"]{cursor:pointer}
+
+.ac-slot{fill:var(--hyperfigure-shade-0);stroke:var(--hyperfigure-lo);stroke-width:.5px;vector-effect:non-scaling-stroke}
+
+.ac-glass{fill:var(--hyperfigure-shade-0);transition:fill .6s var(--hyperfigure-ease)}
+.ac-glass[data-on]{fill:var(--hyperfigure-lit-shade)}
+.ac-bezel{fill:var(--hyperfigure-shade-1);fill-rule:evenodd}
+.ac-glare{fill:var(--hyperfigure-lit);opacity:.045;pointer-events:none}
+.ac-px{fill:var(--hyperfigure-lit)}
+.ac-dim{opacity:.35}
+.ac-scan{fill:none;stroke:var(--hyperfigure-paper);stroke-width:.14;opacity:.55}
+.ac-dot{fill:var(--hyperfigure-lit)}
+
+.ac-lamp[data-on]>.iso-solid>.iso-top,.ac-lamp[data-blink]>.iso-solid>.iso-top{fill:var(--hyperfigure-lit-top)}
+.ac-lamp[data-on]>.iso-solid>.iso-shade,.ac-lamp[data-blink]>.iso-solid>.iso-shade{fill:var(--hyperfigure-lit-shade)}
+.ac-lamp[data-on]>.iso-solid>.iso-edge,.ac-lamp[data-blink]>.iso-solid>.iso-edge{stroke:var(--hyperfigure-lit)}
+[data-button="p1"].ac-lamp[data-on]:not([data-blink])>.iso-solid>.iso-top,[data-button="p2"].ac-lamp[data-on]>.iso-solid>.iso-top{fill:var(--hyperfigure-top)}
+[data-button="p1"].ac-lamp[data-on]:not([data-blink])>.iso-solid>.iso-shade,[data-button="p2"].ac-lamp[data-on]>.iso-solid>.iso-shade{fill:var(--hyperfigure-shade-2)}
+[data-button="p1"].ac-lamp[data-on]:not([data-blink])>.iso-solid>.iso-edge,[data-button="p2"].ac-lamp[data-on]>.iso-solid>.iso-edge{stroke:var(--hyperfigure-hi)}
+.ac-led circle{opacity:.18;transition:opacity .3s var(--hyperfigure-ease)}
+.ac-led[data-on] circle{opacity:1;fill:var(--hyperfigure-lit)}
+[data-button][data-down]>.iso-solid>.iso-edge{stroke:var(--hyperfigure-lit)}
+
+.it[data-name="marquee.tube"][data-on]>.iso-solid>.iso-top,.it[data-name="marquee.tube"][data-on]>.iso-solid>.iso-shade{fill:var(--hyperfigure-lit-top);stroke:var(--hyperfigure-lit-top)}
+.it[data-name="marquee.tube"][data-on]>.iso-solid>.iso-edge{stroke:var(--hyperfigure-lit)}
+.it[data-name="marquee.plexi"][data-on]>.iso-solid>.iso-shade,.it[data-name="marquee.plexi"][data-on]>.iso-solid>.iso-top{fill:var(--hyperfigure-lit-shade)}
+
+.it[data-hot] .tb-body,.it[data-hot] .tb-shine,.it[data-hot] .tb-shade{fill:var(--hyperfigure-lit)}
+.it[data-hot] .iso-edge{stroke:var(--hyperfigure-lit)}
+
+.ac-window{fill:var(--hyperfigure-shade-0);stroke:var(--hyperfigure-lo);stroke-width:.4px;vector-effect:non-scaling-stroke}
+.ac-digits{fill:var(--hyperfigure-hi);font-family:var(--hyperfigure-mono)}
+
+.ac-fan-hole{fill:var(--hyperfigure-shade-0)}
+.ac-blade{fill:var(--hyperfigure-shade-2);stroke:var(--hyperfigure-lo);stroke-width:.4px;vector-effect:non-scaling-stroke}
+.ac-fan-hub{fill:var(--hyperfigure-top);stroke:var(--hyperfigure-mid);stroke-width:.5px;vector-effect:non-scaling-stroke}
+.ac-guard{fill:none;stroke:var(--hyperfigure-mid);stroke-width:.5px;vector-effect:non-scaling-stroke}
+.ac-marquee-art{fill:var(--hyperfigure-shade-3);transition:fill .2s var(--hyperfigure-ease)}
+.ac-marquee[data-on] .ac-marquee-art{fill:var(--hyperfigure-lit)}
+.ac-marquee-frame{fill:none;stroke:var(--hyperfigure-lo);stroke-width:.5px;vector-effect:non-scaling-stroke}
