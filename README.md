@@ -82,11 +82,11 @@ What it does **not** do: it shows what Claude Code reports to hooks (files, comm
 
 ## Figures
 
-`/hyperskill-figure <idea>` builds an interactive figure that explains an idea as a real, finely made working object: a cache key becomes a pin-tumbler lock, a rate limiter becomes a turnstile. It uses **Anatomy**, a skill by Ryan ([`wheresryan22/anatomy`](https://github.com/wheresryan22/anatomy), MIT) that is **bundled in full** in [`skills/anatomy`](skills/anatomy), so it works as soon as the plugin is installed. Its own README, kit, nine worked examples and checks come with it, unmodified; [`skills/anatomy/UPSTREAM.md`](skills/anatomy/UPSTREAM.md) records the exact upstream commit.
+`/hyperskill-figure <idea>` builds an interactive figure that explains an idea as a real, finely made working object: a cache key becomes a pin-tumbler lock, a rate limiter becomes a turnstile. It uses **Hyperfigure**, bundled in [`skills/hyperfigure`](skills/hyperfigure), so it works as soon as the plugin is installed. It comes with a drawing kit (SVG, WebGL and an optional 3D mode), nine worked examples, audits and printable sheets. Hyperfigure is derived from Anatomy by Ryan (MIT); [`skills/hyperfigure/NOTICE.md`](skills/hyperfigure/NOTICE.md) says what was changed and where it came from.
 
-<img src="skills/anatomy/.github/assets/raptor-engine-firing.webp" alt="An isometric drawing of a Raptor 2 rocket engine hanging in a test stand, firing: a red exhaust plume drawn by a WebGL shader pours onto the stand's base plate" width="640">
+<img src="skills/hyperfigure/assets/raptor-engine-firing.webp" alt="An isometric drawing of a Raptor 2 rocket engine hanging in a test stand, firing: a red exhaust plume drawn by a WebGL shader pours onto the stand's base plate" width="640">
 
-<sub>`skills/anatomy/examples/raptor-engine`, by the Anatomy author.</sub>
+<sub>`skills/hyperfigure/examples/raptor-engine`.</sub>
 
 It is a capability that other phases call through the `explainer-figure` slot, not a tenth phase: the plan phase uses it to check an architecture can be explained, the product phase for docs and landing visuals, the launch phase for promo. It needs Node 20.10 or later, plus Chrome or Chromium for its checks, and it adds about 27 MB to the plugin (mostly built example pages).
 
@@ -109,7 +109,7 @@ Then, in a project:
 | `/hyperskill-status` | Show every phase and its open checks |
 | `/hyperskill-gate [phase]` | Walk the gate for a phase (default: the current one) |
 | `/hyperskill-live` | Open the live view of what is being made, tested and decided |
-| `/hyperskill-figure <idea>` | Build a crafted, interactive isometric figure that explains an idea, with the bundled Anatomy skill |
+| `/hyperskill-figure <idea>` | Build a crafted, interactive isometric figure that explains an idea, with the bundled Hyperfigure skill |
 
 Requires Python 3 (standard library only) for the tracker. The launch phase also needs Node 22+, FFmpeg and, for speech-timed video, whisper-cpp.
 
@@ -171,7 +171,7 @@ Not verified, so do not rely on it yet:
 .claude-plugin/        plugin and marketplace manifests
 skills/hyperskill/     the conductor, gates.json (72 checks), integrations.json (the registry)
 skills/hs-*/           one skill per phase, with references/
-skills/anatomy/        a full copy of the Anatomy skill (MIT, by Ryan) for explainer figures: a capability, not a phase
+skills/hyperfigure/    the figure skill, derived from Anatomy (MIT, by Ryan): a capability, not a phase
 agents/                hs-researcher, hs-reviewer (read-only)
 commands/              /hyperskill, /hyperskill-status, /hyperskill-gate, /hyperskill-live, /hyperskill-figure
 hooks/                 hooks.json: records files, commands and test results for the live view
@@ -196,4 +196,4 @@ The site is static: import the repository in Vercel and `vercel.json` does the r
 
 ## Licence and sources
 
-MIT, see [`LICENSE`](LICENSE). The bundled [`skills/anatomy`](skills/anatomy) is a separate work by Ryan, also MIT, with its own [`LICENSE`](skills/anatomy/LICENSE) kept beside it. Where the guidance came from, and what is still unresolved, is in [`docs/sources.md`](docs/sources.md).
+MIT, see [`LICENSE`](LICENSE). The bundled [`skills/hyperfigure`](skills/hyperfigure) is derived from Anatomy by Ryan (also MIT); its own [`LICENSE`](skills/hyperfigure/LICENSE) keeps Ryan's copyright notice and adds this project's, as the licence requires. Where the guidance came from, and what is still unresolved, is in [`docs/sources.md`](docs/sources.md).
