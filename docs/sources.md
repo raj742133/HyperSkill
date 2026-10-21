@@ -14,6 +14,8 @@
 
 7. **Six more repositories** (hypit, openui, ponytail, SlopMonster, rea, api-anything), read at README level on 2026-10-19. See `docs/integrations-review.md`.
 
+8. **Anatomy** (`wheresryan22/anatomy`, MIT, copyright "Ryan"), read on 2026-10-21 from a shallow clone: `README.md`, `SKILL.md`, `SECURITY.md` and `LICENSE`. Its scripts and kit were not read or audited. It is listed in `integrations.json` as an opt-in provider for the `explainer-figure` slot. **`skills/hs-figure` is a separate, original implementation**: the idea of explaining a concept as a working, finely made object is credited to Anatomy, but no code or text was copied, and the object (the lock chambers), the geometry kit, the overlap audit and the browser check were written for HyperSkill. The author of this kit had read Anatomy's README and SKILL.md first, so it is not a clean-room design.
+
 ## Licensing status (updated 2026-10-19)
 
 HyperSkill's own code and text are under the MIT licence (`LICENSE`, copyright line names the GitHub owner; change it to your legal name if you prefer).

@@ -654,6 +654,47 @@
         "automating sites you do not own can breach their terms of service",
         "not needed by any phase: prefer official APIs"
       ]
+    },
+    "hyperskill-figure": {
+      "name": "HyperSkill figure kit (built in)",
+      "kind": "builtin",
+      "license": "MIT",
+      "policy": "recommended",
+      "detect": {
+        "skills": [
+          "hs-figure"
+        ]
+      },
+      "builtin": true,
+      "provides": "Interactive isometric SVG figures from a zero-dependency kit: boxes, cylinders, four-tone shading, exact painter's order for boxes, a framed card, calm motion, an overlap audit and a real-browser check. One finished example (examples/canal).",
+      "risks": [
+        "isometric SVG only: no WebGL layers and no true 3D",
+        "the real-browser check needs Chrome or Chromium and playwright-core"
+      ]
+    },
+    "anatomy": {
+      "name": "Anatomy",
+      "repo": "wheresryan22/anatomy",
+      "kind": "skill",
+      "license": "MIT",
+      "policy": "opt-in",
+      "install": [
+        "npx skills add wheresryan22/anatomy -g"
+      ],
+      "detect": {
+        "skills": [
+          "anatomy"
+        ]
+      },
+      "provides": "A far larger figure skill: crafted interactive isometric figures with many parts in SVG, WebGL shader layers and an optional 3D mode, eight worked examples, a drawing kit and audits. Also runs in Antigravity, OpenCode, Codex and MiniMax Code.",
+      "vetted": "2026-10-21 from README.md, SKILL.md, SECURITY.md and LICENSE of a shallow clone. Its scripts were not audited.",
+      "risks": [
+        "its checks start headless Chrome from local scripts: read them before enabling",
+        "about 27 MB with example images: install through the CLI, do not clone it into a project",
+        "needs Node 20.10 or later, plus Chrome or Chromium for the checks",
+        "the 3D mode is marked beta by its author",
+        "builds are long: its own guidance quotes hours for larger figures, so agree the size with the owner first"
+      ]
     }
   },
   "slots": {
@@ -852,6 +893,13 @@
         "slopmonster"
       ],
       "fallback": "re-read the copy for filler, vague claims and AI tells; keep every claim traceable to a real feature"
+    },
+    "explainer-figure": {
+      "providers": [
+        "hyperskill-figure",
+        "anatomy"
+      ],
+      "fallback": "a plain Mermaid or hand-written SVG diagram, with no interaction (see the diagramming guidance for artifacts)"
     }
   }
 }

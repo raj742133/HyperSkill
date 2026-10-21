@@ -89,7 +89,8 @@
       "slots": [
         "coding-discipline",
         "plan-review",
-        "ui-library-choice"
+        "ui-library-choice",
+        "explainer-figure"
       ]
     },
     {
@@ -214,7 +215,8 @@
         "design-system-generation",
         "icons",
         "implementation-discipline",
-        "copy-review"
+        "copy-review",
+        "explainer-figure"
       ]
     },
     {
@@ -445,7 +447,8 @@
         "video-captions",
         "video-overlay",
         "voiceover",
-        "copy-review"
+        "copy-review",
+        "explainer-figure"
       ]
     },
     {
