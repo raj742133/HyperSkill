@@ -12,6 +12,9 @@ import unittest
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SCRIPTS = os.path.join(ROOT, "scripts")
 sys.path.insert(0, SCRIPTS)
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import _auth  # noqa: E402,F401  (signs test clients in to the dashboard)
+from _auth import confirm_items, seed_docs, write_state  # noqa: E402,F401
 import hs_live  # noqa: E402
 
 TRACKER = os.path.join(SCRIPTS, "hyperskill.py")
@@ -129,6 +132,7 @@ class SelectionTests(unittest.TestCase):
         tracker(self.p, "catalog", "unselect", "concepts/ci-cd", "tells/purple-and-black-palette")
         tracker(self.p, "catalog", "select", "fixes/add-a-favicon")  # product phase
         ids = ",".join(i["id"] for i in json.load(open(os.path.join(ROOT, "skills", "hyperskill", "gates.json"), encoding="utf-8"))["phases"][0]["gate"])
+        confirm_items(self.p, cur)
         tracker(self.p, "gate", cur, "--waive", ids, "--reason", "test run")
         out = tracker(self.p, "advance").stdout
         self.assertIn("advanced: research -> plan", out)
@@ -139,8 +143,9 @@ class SelectionTests(unittest.TestCase):
         # a research-phase pick: add a tracked item whose phase is research by selecting while current is research? use CLI set on a real item
         st = self.state()
         st["extras"]["concepts/dns"]["phase"] = "research"
-        json.dump(st, open(os.path.join(self.p, ".hyperskill", "state.json"), "w"))
+        write_state(self.p, st)
         ids = ",".join(i["id"] for i in json.load(open(os.path.join(ROOT, "skills", "hyperskill", "gates.json"), encoding="utf-8"))["phases"][0]["gate"])
+        confirm_items(self.p, "research")
         tracker(self.p, "gate", "research", "--waive", ids, "--reason", "test run")
         r = tracker(self.p, "advance", check=False)
         self.assertNotEqual(r.returncode, 0)
@@ -169,7 +174,7 @@ class SelectionTests(unittest.TestCase):
         st = self.state()
         st["current"] = "plan"
         st["extras"]["concepts/webhooks"]["phase"] = "plan"
-        json.dump(st, open(os.path.join(self.p, ".hyperskill", "state.json"), "w"))
+        write_state(self.p, st)
         r = subprocess.run([sys.executable, HOOK, "start"], input=json.dumps({"cwd": self.p}), capture_output=True, text=True,
                            env=dict(os.environ, HYPERSKILL_NO_LIVE="1", HOME=EMPTY_HOME))
         ctx = json.loads(r.stdout)["hookSpecificOutput"]["additionalContext"]

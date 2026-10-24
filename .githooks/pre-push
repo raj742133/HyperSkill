@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# Runs the repository's checks before anything is pushed. Skip once with: git push --no-verify
+exec "$(git rev-parse --show-toplevel)/scripts/check.sh"

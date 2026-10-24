@@ -124,7 +124,7 @@
         <p>Design tells to avoid, production concepts people forget, site fixes, features to add, Sitewright heroes, sign-in backgrounds, components and effects, interactive figures, UI UX Pro Max styles, fonts and palettes. Each has a picture or short clip so you can see it. Whatever you tick becomes a check in its phase that has to be fixed or waived with a reason before the phase can end.</p>
       </div>
     </div>
-    <p class="fine">Local only: the page listens on 127.0.0.1, every action needs a per-run key, and it never starts Claude unless you launch it with <code>--allow-run</code>. Tried on Linux only.</p>
+    <p class="fine">Local and locked: the page listens on 127.0.0.1 only and answers only the browser you signed in with (the key is in a file only you can read), every action needs a second per-run key, and it never starts Claude unless you launch it with <code>--allow-run</code>. Tried on Linux only.</p>
   </section>
 
   <section class="packs" id="packs" aria-labelledby="packs-h">
@@ -217,6 +217,7 @@
       <h2 id="limits-h">What it cannot promise.</h2>
     </div>
     <ul class="limit-list">
+      <li>The recorded state is signed and Claude is kept out of its files and keys, so a hand-edit is caught and shown to you. That is tamper-evidence, not a sandbox: an agent with full shell access to your account could still find a way around the hook, and evidence is checked for being real, not for being good.</li>
       <li>Gates are reported by the model. <code>--run</code> makes many of them machine-checked; items like &ldquo;the owner read every line&rdquo; still rely on honesty.</li>
       <li>The guidance has not yet been dogfooded on a real product end to end. Expect some phases to need trimming.</li>
       <li>HyperSkill is MIT-licensed. Some of the source material it was written from has no stated licence and the reference text was rewritten, not cleared; read the licensing status in <code>docs/sources.md</code> in the <a href="https://github.com/raj742133/HyperSkill">repository</a>.</li>

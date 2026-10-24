@@ -12,6 +12,8 @@ import unittest
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SCRIPTS = os.path.join(ROOT, "scripts")
 sys.path.insert(0, SCRIPTS)
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import _auth  # noqa: E402,F401  (signs test clients in to the dashboard)
 import hs_activity as activity  # noqa: E402
 import hs_live  # noqa: E402
 
@@ -92,6 +94,9 @@ class LiveServerTests(unittest.TestCase):
         self.assertIn("na", [i["state"] for i in harden["items"]])
 
     def test_state_changes_after_a_check_is_passed(self):
+        os.makedirs(os.path.join(self.p, "docs"), exist_ok=True)
+        with open(os.path.join(self.p, "docs", "research.md"), "w", encoding="utf-8") as f:
+            f.write("risks\n")
         subprocess.run([sys.executable, TRACKER, "--root", self.p, "gate", "research", "--pass", "risks-listed", "--evidence", "docs/research.md section 6: 5 risks"], check=True, capture_output=True)
         st = json.loads(self.get("/live/state.json")[2])
         self.assertEqual(st["phases"][0]["done"], 1)

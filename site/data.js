@@ -5,7 +5,7 @@ window.HS = {
   "gateItems": 72,
   "slots": 33,
   "providers": 33,
-  "tests": 275,
+  "tests": 309,
   "packs": 14,
   "picks": 803
  },
@@ -940,12 +940,12 @@ window.HS = {
   },
   {
    "cmd": "hyperskill gate research --pass problem-statement",
-   "out": "[x] problem-statement      Problem, target user and the job they hire the product for are written down in docs/research.md\n      passed: docs/research.md section 1 read and confirmed by owner",
-   "ok": true
+   "out": "error: --pass: the evidence names files that are not in this project: docs/research.md. Write the file, or say what you actually saw. Nothing recorded.",
+   "ok": false
   },
   {
    "cmd": "hyperskill advance",
-   "out": "error: gate not clear for 'research'. Open items: alternatives-mapped, user-evidence, risks-listed, go-no-go",
+   "out": "error: gate not clear for 'research'. Open items: problem-statement, alternatives-mapped, user-evidence, risks-listed, go-no-go",
    "ok": false
   },
   {

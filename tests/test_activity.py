@@ -8,6 +8,8 @@ import unittest
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SCRIPTS = os.path.join(ROOT, "scripts")
 sys.path.insert(0, SCRIPTS)
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from _auth import confirm_items, seed_docs  # noqa: E402
 import hs_activity as activity  # noqa: E402
 
 TRACKER = os.path.join(SCRIPTS, "hyperskill.py")
@@ -148,6 +150,7 @@ class TrackerLogsItsActionsTests(unittest.TestCase):
         self.tmp = tempfile.TemporaryDirectory()
         self.p = self.tmp.name
         self.assertEqual(run(self.p, "init", "--name", "demo", "--tenancy", "user").returncode, 0)
+        seed_docs(self.p)
 
     def tearDown(self):
         self.tmp.cleanup()
@@ -167,7 +170,7 @@ class TrackerLogsItsActionsTests(unittest.TestCase):
         self.assertEqual(events(self.p)[2]["n"], 1)
 
     def test_a_passing_command_records_the_check_and_its_test_counts(self):
-        cmd = "echo '# tests 5'; echo '# pass 5'; echo '# fail 0'"
+        cmd = "python3 -c \"print('# tests 5'); print('# pass 5'); print('# fail 0')\""
         self.assertEqual(run(self.p, "gate", "research", "--run", "problem-statement", "--cmd", cmd).returncode, 0)
         evs = events(self.p)
         test = next(e for e in evs if e["type"] == "test")
@@ -177,7 +180,7 @@ class TrackerLogsItsActionsTests(unittest.TestCase):
         self.assertIn("Problem, target user", gp["label"])
 
     def test_a_failing_command_records_a_failed_check(self):
-        r = run(self.p, "gate", "research", "--run", "problem-statement", "--cmd", "echo '# tests 3'; echo '# pass 2'; echo '# fail 1'; exit 1")
+        r = run(self.p, "gate", "research", "--run", "problem-statement", "--cmd", "python3 -c \"print('# tests 3'); print('# pass 2'); print('# fail 1'); raise SystemExit(1)\"")
         self.assertNotEqual(r.returncode, 0)
         evs = events(self.p)
         self.assertIn("check_failed", [e["type"] for e in evs])
@@ -202,6 +205,7 @@ class TrackerLogsItsActionsTests(unittest.TestCase):
         self.assertEqual(refused["type"], "refused")
         self.assertIn("problem-statement", refused["open"])
         ids = "problem-statement,alternatives-mapped,user-evidence,risks-listed,go-no-go"
+        confirm_items(self.p, "research")
         run(self.p, "gate", "research", "--pass", ids, "--evidence", "docs/research.md section 1: all five")
         self.assertEqual(run(self.p, "advance").returncode, 0)
         adv = events(self.p)[-1]

@@ -48,9 +48,12 @@ import argparse
 import contextlib
 import datetime
 import glob
+import hashlib
+import hmac
 import json
 import os
 import re
+import secrets
 import shutil
 import subprocess
 import sys
@@ -86,10 +89,77 @@ def state_file(root):
     return os.path.join(root, ".hyperskill", "state.json")
 
 
-def load_state(root):
+def secret_file(root):
+    return os.path.join(root, ".hyperskill", "secret.key")
+
+
+def sig_file(root):
+    return os.path.join(root, ".hyperskill", "state.sig")
+
+
+def _secret(root):
+    """This project's signing secret, made on first use. Only this user can read it, and the hook refuses to let Claude read it."""
+    path = secret_file(root)
+    try:
+        with open(path, encoding="utf-8") as f:
+            value = f.read().strip()
+        if value:
+            return value.encode()
+    except OSError:
+        pass
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    value = secrets.token_hex(32)
+    fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+    with os.fdopen(fd, "w", encoding="utf-8") as f:
+        f.write(value)
+    return value.encode()
+
+
+def _sign(root, data):
+    return hmac.new(_secret(root), data, hashlib.sha256).hexdigest()
+
+
+def integrity(root):
+    """('ok'|'unsigned'|'tampered'|'damaged'|'missing', message). Looks only; changes nothing."""
     path = state_file(root)
     if not os.path.exists(path):
-        die("no HyperSkill state here. Run: hyperskill.py init")
+        return "missing", "no HyperSkill state here. Run: hyperskill.py init"
+    with open(path, "rb") as f:
+        data = f.read()
+    try:
+        st = json.loads(data.decode("utf-8"))
+    except ValueError as exc:
+        have = os.path.exists(path + ".bak")
+        return "damaged", ("state.json cannot be read (%s). %s" % (str(exc)[:80], "Run `hyperskill.py repair --restore` to go back to the last good copy." if have
+                                                                  else "There is no earlier copy to restore; fix the file by hand or re-run `hyperskill.py init --force`."))
+    try:
+        with open(sig_file(root), encoding="utf-8") as f:
+            sig = f.read().strip()
+    except OSError:
+        sig = None
+    if sig is None:
+        if isinstance(st, dict) and st.get("signed"):
+            return "tampered", "state.sig is missing although this project's state is signed: the state may have been changed outside HyperSkill commands."
+        return "unsigned", "state is not signed yet"
+    if not hmac.compare_digest(sig, _sign(root, data)):
+        return "tampered", "state.json does not match its signature: it was changed outside HyperSkill commands."
+    return "ok", ""
+
+
+def load_state(root):
+    path = state_file(root)
+    kind, why = integrity(root)
+    if kind == "missing":
+        die(why)
+    if kind in ("damaged", "tampered"):
+        if kind == "tampered":
+            try:
+                activity.append(root, "refused", "state.json was changed outside HyperSkill commands; commands are refused until a person accepts or restores it")
+            except OSError:
+                pass
+            why += (" Nothing was recorded or passed from it. If you made the change yourself, run `hyperskill.py repair --accept`; "
+                    "to go back to the last copy HyperSkill wrote, run `hyperskill.py repair --restore`. (The dashboard offers both.)")
+        die(why)
     with open(path, encoding="utf-8") as f:
         st = json.load(f)
     st.setdefault("commercial", True)
@@ -102,11 +172,27 @@ def load_state(root):
 def save_state(root, st):
     path = state_file(root)
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    tmp = path + ".tmp"
-    with open(tmp, "w", encoding="utf-8") as f:
-        json.dump(st, f, indent=2)
-        f.write("\n")
+    st["signed"] = True
+    data = (json.dumps(st, indent=2) + "\n").encode("utf-8")
+    if os.path.exists(path):
+        try:
+            with open(path, "rb") as f:
+                before = f.read()
+            json.loads(before.decode("utf-8"))
+            with open(path + ".bak", "wb") as f:
+                f.write(before)  # the last good copy, for `repair --restore`
+        except (OSError, ValueError):
+            pass
+    tmp, sig_tmp = path + ".tmp", sig_file(root) + ".tmp"
+    with open(tmp, "wb") as f:
+        f.write(data)
+    with open(sig_tmp, "w", encoding="utf-8") as f:
+        f.write(_sign(root, data) + "\n")
     os.replace(tmp, path)
+    os.replace(sig_tmp, sig_file(root))
+    if not os.path.exists(path + ".bak"):
+        with open(path + ".bak", "wb") as f:
+            f.write(data)
 
 
 @contextlib.contextmanager
@@ -192,6 +278,50 @@ def evidence_is_concrete(text):
                           r"|\b\d+(\.\d+)?\s*(tests?|requests?|ms|s|%|checks?|files?|findings?|pass(ed)?|fail(ed)?)\b", t))
 
 
+CITED = re.compile(r"(?<![\w/.:-])((?:[\w.-]+/)*[\w-][\w.-]*\.(?:md|js|jsx|mjs|ts|tsx|py|json|yml|yaml|html|css|sh|sql|txt|png|jpg|jpeg|svg|pdf|toml|go|rs|rb|php|java))\b")
+SKIP_DIRS = {"node_modules", ".git", "__pycache__", ".venv", "venv", "dist", "build", ".next"}
+
+
+def missing_cited_files(root, text):
+    """Files named in the evidence that are not in the project. A claim about a file that does not exist is not evidence."""
+    plain = re.sub(r"`[^`]*`|https?://\S+", " ", text)  # commands and links are not files of this project
+    missing, bare = [], []
+    for m in CITED.finditer(plain):
+        name = m.group(1)
+        if re.fullmatch(r"\d[\d.]*", name.split(".")[0]) or name.lower().startswith(("e.g", "i.e")):
+            continue
+        if os.path.exists(os.path.join(root, name)):
+            continue
+        (missing if "/" in name else bare).append(name)
+    if bare:  # a bare file name is fine when it exists anywhere in the project
+        want, seen = set(bare), set()
+        for dirpath, dirs, files in os.walk(root):
+            dirs[:] = [d for d in dirs if d not in SKIP_DIRS]
+            seen.update(want.intersection(files))
+            if seen == want:
+                break
+        missing += sorted(want - seen)
+    return sorted(set(missing))
+
+
+TRIVIAL = re.compile(r"^\s*(true|:|exit\s+0|echo\b.*|printf\b.*|sleep\b.*|test\s+1|\[\s+1\s+\])\s*$")
+
+
+def trivial_command(cmd):
+    """A command that cannot fail proves nothing: `true`, `echo ok`, `anything || true`. Returns why, or None."""
+    text = cmd.strip()
+    if re.search(r"\|\|\s*(true|:|exit\s+0)\b|;\s*(true|:|exit\s+0)\s*$", text):
+        return "it ends in `|| true` or `; true`, so it passes whatever the real command does"
+    parts = [x for x in re.split(r"&&|;|\|\|", text) if x.strip()]
+    if not parts or all(TRIVIAL.match(x) for x in parts):
+        return "it only prints something or does nothing, so it passes whether or not the work exists"
+    return None
+
+
+def confirmed(st, phase, item):
+    return "%s/%s" % (phase, item) in st.get("confirmations", {})
+
+
 def vacuous_negated_check(cmd):
     """`! grep ...` passes when the file does not exist. Require a positive existence guard next to it."""
     negated = re.search(r"(^|[;&|(]|&&)\s*!\s*(\w+\s+)*?(grep|rg|egrep|fgrep)\b", cmd)
@@ -217,6 +347,9 @@ def cmd_init(args):
         "log": [],
     }
     st["phases"][phases[0]["id"]]["status"] = "active"
+    for stale in (secret_file(args.root), sig_file(args.root)):  # a fresh start gets a fresh secret
+        if os.path.exists(stale):
+            os.remove(stale)
     if not args.no_karpathy:  # the coding rules are tiny (one 3 KB skill) and are meant to be always on, so they are the one default
         st["integrations"]["enabled"].append(DEFAULT_ON)
         install_pack(args.root, st, DEFAULT_ON)
@@ -295,6 +428,12 @@ def cmd_gate(args):
             die("--run needs --cmd COMMAND.")
         if args.run_id not in valid:
             die("'%s' is not a gate item of phase %s" % (args.run_id, ph["id"]))
+        why_trivial = trivial_command(args.cmd)
+        if why_trivial:
+            die("this command proves nothing: %s. Run the real check (the tests, a grep that must match, a build). Nothing recorded." % why_trivial)
+        need = [i for i in ph["gate"] if i["id"] == args.run_id and i.get("confirm") and not confirmed(st, ph["id"], i["id"])]
+        if need:
+            die("'%s' needs the user's own confirmation first: ask them to press Confirm on it in the dashboard (Checks), then record it." % args.run_id)
         if vacuous_negated_check(args.cmd):
             die("this check negates a grep (`! grep ...`), which also passes when the file or directory does not exist. "
                 "Add a positive guard, e.g. `test -d src && ! grep -rn PATTERN src`. Nothing recorded.")
@@ -324,9 +463,15 @@ def cmd_gate(args):
             die("--pass needs --evidence (what was run / seen). No evidence, no pass.")
         if not evidence_is_concrete(args.evidence):
             die("--pass: " + EVIDENCE_HINT + " If you cannot point at anything, waive the item with a reason instead.")
+        gone = missing_cited_files(args.root, args.evidence)
+        if gone:
+            die("--pass: the evidence names files that are not in this project: %s. Write the file, or say what you actually saw. Nothing recorded." % ", ".join(gone))
         for gid in csv(args.pass_ids):
             if gid not in valid:
                 die("'%s' is not a gate item of phase %s" % (gid, ph["id"]))
+            if any(i["id"] == gid and i.get("confirm") and not confirmed(st, ph["id"], gid) for i in ph["gate"]):
+                die("'%s' needs the user's own confirmation: ask them to press Confirm on it in the dashboard (Checks), then pass it with your evidence. "
+                    "Their word cannot come from you." % gid)
             rec[gid] = {"state": "passed", "evidence": args.evidence.strip(), "at": now()}
             activity.append(args.root, "gate_pass", "%s/%s passed" % (ph["id"], gid), phase=ph["id"], item=gid,
                             label=next((item_text(st, i) for i in ph["gate"] if i["id"] == gid), gid), evidence=args.evidence.strip())
@@ -337,10 +482,29 @@ def cmd_gate(args):
         for gid in csv(args.waive_ids):
             if gid not in valid:
                 die("'%s' is not a gate item of phase %s" % (gid, ph["id"]))
+            if any(i["id"] == gid and i.get("confirm") and not confirmed(st, ph["id"], gid) for i in ph["gate"]):
+                die("'%s' is about what the user knows or decided, so it cannot be waived on their behalf. Ask them to Confirm it in the dashboard, or, if no person "
+                    "is available, mark that with `config --unavailable human` and use --waive-unavailable (it stays on the launch to-do list)." % gid)
             rec[gid] = {"state": "waived", "reason": args.reason.strip(), "at": now()}
             activity.append(args.root, "gate_waive", "%s/%s waived" % (ph["id"], gid), phase=ph["id"], item=gid,
                             label=next((item_text(st, i) for i in ph["gate"] if i["id"] == gid), gid), reason=args.reason.strip())
             touched.append(gid)
+    if args.confirm_id:
+        want = (os.environ.get("HYPERSKILL_CONFIRM_KEY") or "").strip()
+        try:
+            with open(os.path.join(args.root, ".hyperskill", "live.key"), encoding="utf-8") as f:
+                have = f.read().strip()
+        except OSError:
+            have = ""
+        if not have or not hmac.compare_digest(want, have):
+            die("only the person using the dashboard can confirm: press Confirm on the check there. (This command needs the dashboard's key, which Claude does not have.)")
+        if args.confirm_id not in valid:
+            die("'%s' is not a gate item of phase %s" % (args.confirm_id, ph["id"]))
+        if not any(i["id"] == args.confirm_id and i.get("confirm") for i in ph["gate"]):
+            die("'%s' does not need a confirmation" % args.confirm_id)
+        st.setdefault("confirmations", {})["%s/%s" % (ph["id"], args.confirm_id)] = {"at": now(), "by": "the user, in the dashboard", "note": (args.reason or "")[:300]}
+        activity.append(args.root, "note", "%s/%s confirmed by the user in the dashboard" % (ph["id"], args.confirm_id), phase=ph["id"], item=args.confirm_id)
+        touched.append(args.confirm_id)
     if args.waive_unavailable:
         if not st["unavailable"]:
             die("nothing is marked unavailable. Set it with: hyperskill.py config --unavailable host,provider,device,human")
@@ -504,6 +668,13 @@ def cmd_live(args):
     if args.stop:
         print("stopped" if hs_live.stop(args.root) else "no live view is running for this project")
         return
+    if args.open:
+        url = hs_live.ensure(args.root, args.port)
+        path = hs_live.open_in_browser(args.root) if url else None
+        import time
+        time.sleep(0.4)  # let the opener thread start before this process exits
+        print("opened %s in your browser (signed in)" % url if path else "could not open the live view; if one is running, open .hyperskill/open.html yourself")
+        return
     if args.ensure:
         url = hs_live.ensure(args.root, args.port)
         print(url or "could not start the live view")
@@ -650,6 +821,45 @@ def cmd_preview(args):
                 print("(none yet: `preview add NAME --url http://localhost:3000` or `--path index.html`)")
     except hs_preview.PreviewError as exc:
         die(str(exc))
+
+
+def cmd_repair(args):
+    root = args.root
+    kind, why = integrity(root)
+    if kind == "missing":
+        die(why)
+    path = state_file(root)
+    if args.accept:
+        if kind == "damaged":
+            die(why)
+        with open(path, "rb") as f:
+            data = f.read()
+        st = json.loads(data.decode("utf-8"))
+        st["signed"] = True
+        save_state(root, st)
+        activity.append(root, "note", "A person accepted state.json as it is (it had been changed outside HyperSkill commands)" if kind == "tampered" else "State re-signed by a person")
+        print("accepted: state.json is signed again as it is now")
+        return
+    if args.restore:
+        bak = path + ".bak"
+        if not os.path.exists(bak):
+            die("there is no earlier copy (state.json.bak) to restore.")
+        with open(bak, "rb") as f:
+            data = f.read()
+        try:
+            st = json.loads(data.decode("utf-8"))
+        except ValueError:
+            die("the earlier copy is damaged too.")
+        st["signed"] = True
+        if os.path.exists(path):
+            shutil.copyfile(path, path + ".rejected")  # keep what was there, so nothing is lost by restoring
+        save_state(root, st)
+        activity.append(root, "note", "A person restored state.json from the last copy HyperSkill wrote")
+        print("restored from state.json.bak (the file you replaced is kept as state.json.rejected)")
+        return
+    print("state: %s%s" % (kind, " - " + why if why else ""))
+    if kind != "ok":
+        print("fix: `repair --accept` (keep the file as it is now) or `repair --restore` (go back to the last copy HyperSkill wrote)")
 
 
 def cmd_work(args):
@@ -1064,6 +1274,7 @@ def build_parser():
     p.add_argument("--run", dest="run_id")
     p.add_argument("--cmd")
     p.add_argument("--timeout", type=int, default=600)
+    p.add_argument("--confirm", dest="confirm_id", help="record the user's own confirmation of a check (dashboard only: needs its key)")
     p.add_argument("--waive-unavailable", dest="waive_unavailable", action="store_true",
                    help="waive every open item that needs something marked unavailable (recorded with the reason)")
     p.set_defaults(fn=cmd_gate)
@@ -1111,6 +1322,11 @@ def build_parser():
     p.add_argument("action", nargs="?", choices=["list", "add", "remove"])
     p.add_argument("target", nargs="?")
     p.set_defaults(fn=cmd_inputs)
+
+    p = sub.add_parser("repair", help="check that the project's state is intact; accept an outside change or restore the last good copy")
+    p.add_argument("--accept", action="store_true", help="keep state.json as it is and sign it again")
+    p.add_argument("--restore", action="store_true", help="go back to state.json.bak, the last copy HyperSkill wrote")
+    p.set_defaults(fn=cmd_repair)
 
     p = sub.add_parser("work", help="split a phase's work into tasks for helper agents: who does what, at which model and effort, what runs together")
     p.add_argument("action", nargs="?", choices=("add", "plan", "start", "done", "fail", "drop", "list", "policy", "tune", "stats", "tier"))
@@ -1190,6 +1406,7 @@ def build_parser():
     p.add_argument("--read-only", dest="read_only", action="store_true", help="no buttons: show only")
     p.add_argument("--allow-run", dest="allow_run", action="store_true", help="let the dashboard's chat box start Claude on this project (off unless you ask)")
     p.add_argument("--stop", action="store_true", help="stop this project's running live view")
+    p.add_argument("--open", action="store_true", help="open the dashboard in your browser, signed in (starts it if needed)")
     p.add_argument("--ensure", action="store_true", help="start it in the background if it is not running; print its address")
     p.add_argument("--idle-hours", dest="idle_hours", type=float, default=0, help="stop by itself after this long with no page open (0 = never)")
     p.add_argument("--port", type=int, default=4777)

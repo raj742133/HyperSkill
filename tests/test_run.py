@@ -14,6 +14,8 @@ import zipfile
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SCRIPTS = os.path.join(ROOT, "scripts")
 sys.path.insert(0, SCRIPTS)
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import _auth  # noqa: E402,F401  (signs test clients in to the dashboard)
 import hs_inputs  # noqa: E402
 import hs_live  # noqa: E402
 import hs_run  # noqa: E402

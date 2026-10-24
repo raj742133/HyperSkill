@@ -11,6 +11,9 @@ import unittest
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SCRIPTS = os.path.join(ROOT, "scripts")
 sys.path.insert(0, SCRIPTS)
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import _auth  # noqa: E402,F401  (signs test clients in to the dashboard)
+from _auth import confirm_items, seed_docs  # noqa: E402,F401
 import hs_live  # noqa: E402
 
 TRACKER = os.path.join(SCRIPTS, "hyperskill.py")
@@ -115,6 +118,7 @@ class PlanTests(unittest.TestCase):
         self.assertEqual([x["id"] for x in st["pulled"]], ["taste-skill"])
         # clear the research gate with waivers so advance can run
         ids = ",".join(i["id"] for i in load("gates.json")["phases"][0]["gate"])
+        confirm_items(self.p, "research")
         tracker(self.p, "gate", "research", "--waive", ids, "--reason", "test run")
         out = tracker(self.p, "advance").stdout
         self.assertIn("skills not decided in research: deep-research", out)
@@ -125,6 +129,7 @@ class PlanTests(unittest.TestCase):
     def test_a_pull_the_next_phase_still_wants_is_kept(self):
         tracker(self.p, "skills", "pull", "karpathy-skills", "--why", "discipline")
         ids = ",".join(i["id"] for i in load("gates.json")["phases"][0]["gate"])
+        confirm_items(self.p, "research")
         tracker(self.p, "gate", "research", "--waive", ids, "--reason", "test run")
         out = tracker(self.p, "advance").stdout
         self.assertNotIn("released", out)

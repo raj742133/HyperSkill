@@ -5,6 +5,9 @@ import sys
 import tempfile
 import unittest
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from _auth import confirm_items, seed_docs  # noqa: E402
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SCRIPT = os.path.join(ROOT, "scripts", "hyperskill.py")
 GATES = os.path.join(ROOT, "skills", "hyperskill", "gates.json")
@@ -24,6 +27,7 @@ class GateTests(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.p = self.tmp.name
+        seed_docs(self.p)
         self.assertEqual(run(self.p, "init", "--name", "demo").returncode, 0)
 
     def tearDown(self):
@@ -54,6 +58,7 @@ class GateTests(unittest.TestCase):
     def test_full_walk_through_every_phase(self):
         for ph in gates():
             ids = ",".join(i["id"] for i in ph["gate"])
+            confirm_items(self.p, ph["id"])
             self.assertEqual(run(self.p, "gate", ph["id"], "--pass", ids, "--evidence", "docs/evidence.md: ran `make check`, 12 tests pass").returncode, 0)
             r = run(self.p, "advance")
             self.assertEqual(r.returncode, 0, r.stderr)
@@ -62,6 +67,7 @@ class GateTests(unittest.TestCase):
 
     def test_waived_items_clear_the_gate(self):
         ids = [i["id"] for i in gates()[0]["gate"]]
+        confirm_items(self.p, "research")
         run(self.p, "gate", "research", "--pass", ",".join(ids[:-1]), "--evidence", "docs/evidence.md: ran `make check`, 12 tests pass")
         run(self.p, "gate", "research", "--waive", ids[-1], "--reason", "n/a")
         self.assertEqual(run(self.p, "advance").returncode, 0)
@@ -72,6 +78,7 @@ class GateTests(unittest.TestCase):
         self.assertEqual(self.state()["current"], "plan")
         run(self.p, "skip", "foundation", "--reason", "static site")
         ids = ",".join(i["id"] for i in gates()[1]["gate"])
+        confirm_items(self.p, "plan")
         run(self.p, "gate", "plan", "--pass", ids, "--evidence", "docs/evidence.md: ran `make check`, 12 tests pass")
         run(self.p, "advance")
         self.assertEqual(self.state()["current"], "product")
@@ -107,6 +114,7 @@ class DogfoodFixTests(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.p = self.tmp.name
+        seed_docs(self.p)
 
     def tearDown(self):
         self.tmp.cleanup()
@@ -174,9 +182,13 @@ class DogfoodFixTests(unittest.TestCase):
     def test_existing_state_without_new_fields_still_loads(self):
         run(self.p, "init")
         st = self.state()
-        del st["tenancy"], st["unavailable"]
+        del st["tenancy"], st["unavailable"], st["signed"]  # a project made before state signing existed
         with open(os.path.join(self.p, ".hyperskill", "state.json"), "w", encoding="utf-8") as f:
             json.dump(st, f)
+        os.remove(os.path.join(self.p, ".hyperskill", "state.sig"))
+        self.assertEqual(run(self.p, "status").returncode, 0)
+        self.assertEqual(run(self.p, "gate", "research", "--pass", "problem-statement", "--evidence", "docs/research.md section 1").returncode, 0)
+        self.assertTrue(self.state()["signed"], "the first command that saves state signs it")
         self.assertEqual(run(self.p, "status").returncode, 0)
 
     def test_waive_unavailable_records_each_waiver_with_its_reason(self):
@@ -218,6 +230,7 @@ class IntegrationBase(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.p = self.tmp.name
+        seed_docs(self.p)
         self.home = os.path.join(self.p, "home")
         os.makedirs(self.home)
         self.proj = os.path.join(self.p, "proj")
@@ -308,18 +321,19 @@ class RunGateTests(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.p = self.tmp.name
+        seed_docs(self.p)
         run(self.p, "init")
 
     def tearDown(self):
         self.tmp.cleanup()
 
     def test_passing_command_records_evidence(self):
-        r = run(self.p, "gate", "research", "--run", "problem-statement", "--cmd", "echo proof-123")
+        r = run(self.p, "gate", "research", "--run", "problem-statement", "--cmd", "test -f docs/research.md && cat docs/research.md")
         self.assertEqual(r.returncode, 0, r.stderr)
         with open(os.path.join(self.p, ".hyperskill", "state.json"), encoding="utf-8") as f:
             rec = json.load(f)["phases"]["research"]["gate"]["problem-statement"]
         self.assertTrue(rec["ran"])
-        self.assertIn("proof-123", rec["evidence"])
+        self.assertIn("test evidence", rec["evidence"])
 
     def test_failing_command_leaves_item_open(self):
         r = run(self.p, "gate", "research", "--run", "problem-statement", "--cmd", "exit 3")

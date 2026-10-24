@@ -192,12 +192,53 @@ def context_reply(event, text):
     print(json.dumps({"hookSpecificOutput": {"hookEventName": event, "additionalContext": text}}))
 
 
+SECRET_NAMES = re.compile(r"\.hyperskill/(secret\.key|live\.key|open\.html)|(^|/)(secret\.key|live\.key|open\.html)\b")
+STATE_NAMES = re.compile(r"\.hyperskill/(state\.json|state\.sig|state\.json\.bak|state\.json\.rejected|work-nudge\.json|run\.json|chat\.jsonl|activity\.jsonl)")
+ONLY_TRACKER = re.compile(r"^\s*(python3?\s+)?\S*hyperskill\.py\b[^;&|<>`$()\n]*$")
+
+
+def protected(root, data):
+    """Why this tool call may not touch HyperSkill's own files (its state, signature, keys), or None. The state changes only through hyperskill.py,
+    and the dashboard's key stays with the person: both are what make a recorded pass mean something."""
+    tool = data.get("tool_name") or ""
+    inp = data.get("tool_input") or {}
+    if not isinstance(inp, dict):
+        return None
+    inside = os.path.join(root, ".hyperskill")
+    if tool in FILE_TOOLS or tool == "Read":
+        path = os.path.abspath(inp.get("file_path") or inp.get("notebook_path") or "")
+        if path == inside or path.startswith(inside + os.sep):
+            name = os.path.basename(path)
+            if tool == "Read":
+                if name in ("secret.key", "live.key", "open.html"):
+                    return "That file holds a key that belongs to the person using the dashboard. Do not read it."
+                return None
+            return ("HyperSkill's own files (%s) change only through `hyperskill.py` commands. Use the tracker, for example `hyperskill.py gate`, "
+                    "or ask the user to run `hyperskill.py repair` if something is wrong." % ".hyperskill/")
+    if tool == "Grep":
+        path = os.path.abspath(inp.get("path") or root)
+        if path == inside or path.startswith(inside + os.sep):
+            return "Searching inside .hyperskill/ is not allowed: it holds keys. Use the tracker commands to look at state."
+    if tool == "Bash":
+        cmd = inp.get("command") or ""
+        if SECRET_NAMES.search(cmd):
+            return "That command names a file with a key that belongs to the person using the dashboard. Do not read or move it."
+        if STATE_NAMES.search(cmd) and not ONLY_TRACKER.match(cmd):
+            return ("That command touches HyperSkill's own files in .hyperskill/. They change only through `hyperskill.py` commands; "
+                    "to look, use `hyperskill.py status`, `gate` or `event`.")
+    return None
+
+
 def steer(data, when):
     """Dashboard controls: refuse work while paused, and hand over instructions typed in the dashboard (once each)."""
     root = activity.find_root(data.get("cwd") or os.environ.get("CLAUDE_PROJECT_DIR"))
     if not root:
         return
     if when == "gate":
+        refusal = protected(root, data)
+        if refusal:
+            print(json.dumps({"hookSpecificOutput": {"hookEventName": "PreToolUse", "permissionDecision": "deny", "permissionDecisionReason": refusal}}))
+            return
         cmd = (data.get("tool_input") or {}).get("command") or ""
         if control.is_paused(root) and not control.ALLOWED_WHILE_PAUSED.search(cmd):
             print(json.dumps({"hookSpecificOutput": {"hookEventName": "PreToolUse", "permissionDecision": "deny",

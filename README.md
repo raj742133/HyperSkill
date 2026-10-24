@@ -105,7 +105,7 @@ How it works:
 - **Secrets are masked before they are written**: `TOKEN=...`, `Authorization` headers, `ghp_...`-style keys, URLs with passwords, long hex or base64 strings. Files outside the project are logged by name only, and the project folder shows as `.`.
 - **It only runs inside a HyperSkill project.** Outside one (no `.hyperskill/state.json` above the working directory) the hook does nothing, and it always exits 0 so it cannot block a tool call. The log is private (mode 0600), ignored by git, and rotated at 5 MB. To turn the recording off, uninstall the plugin or remove `hooks/hooks.json`.
 
-What it does **not** do: it shows what Claude Code reports to hooks (files, commands, results), not Claude's reasoning. The "Right now" card is only as accurate as Claude's own announcements. Helper-agent events are tested but I have not seen them in a real session. It has been tried on Linux only.
+What it does **not** do: it shows what Claude Code reports to hooks (files, commands, results), not Claude's reasoning. The "Right now" card is only as accurate as Claude's own announcements. It has been tried on Linux only.
 
 ### Run it from the dashboard
 
@@ -124,6 +124,19 @@ Until now the dashboard watched and steered a Claude session you had open. With 
   How it is kept honest: a helper dispatched with a task id (`T3: ...`) marks that task running the moment it starts, by a hook, so the board never lags; the tracker takes a lock, so several helpers and hooks can call it at once without overwriting each other; when a helper returns, Claude is reminded that its report is a claim to verify; a session that resumes is handed the open tasks and the next wave; and after eight file edits in a phase with no tasks, Claude gets one reminder to split the work (never repeated, silent when helpers are off). Nothing can force Claude to split work, so *Always split* adds an explicit instruction to the run. The scoring numbers are my judgement, so `work stats` shows how often each tier was right first time on **your** project and suggests changes, and `work tune --kind build --score 3` changes a starting score for that project only. A new run mode, *Edit files and run tests, lint and type checks*, lets helpers (and Claude) run `npm test`, `pytest`, `node --test` and similar, and nothing else in the shell.
 - **It is never on by accident.** The dashboard that starts automatically cannot run Claude. You turn it on by starting it yourself with `--allow-run` (stop the automatic one first with `hyperskill.py live --stop`). Without it the same box queues your message for the Claude session you have open. It uses your own Claude Code login and counts against your own usage, and the page is local and key-protected like the other controls.
 - **Verified for real.** I ran it end to end against a real Claude Code: a message from the browser started a run, Claude read an attached requirements file and wrote ten requirements and twelve questions into the brief with the tracker, in 33 seconds for about $0.14, and a second message resumed the same conversation. In edits-only mode a shell command outside the tracker was refused. The shell-commands mode and long runs have been tested only with a stand-in `claude` program, not yet in a real long run.
+
+## Safety and tamper-evidence
+
+HyperSkill's promise is that a pass means something, so the parts that record passes defend themselves. This is **tamper-evident and accident-proof, not a sandbox**: it stops an agent that is sloppy or tempted to take a shortcut, and it shows you when something was changed behind your back. It does not stop a person, or a process that already has your shell and your files, from doing anything you could do yourself.
+
+- **The dashboard is locked to your browser.** The page and every endpoint (state, events, previews, project files) answer only a browser that holds the session cookie. The key that issues it lives in `.hyperskill/live.key` (readable only by you), and the browser is opened through a private local file so the key never appears in a process list. A `curl` from another process, or another account on the same computer, gets a "locked" page. The address Claude is told has no key in it. `hyperskill.py live --open` signs your browser in.
+- **State is signed.** `state.json` carries an HMAC made with a secret in `.hyperskill/secret.key`. If the file is edited by hand or by anything other than a `hyperskill.py` command, every command refuses to run and the dashboard shows a banner with two choices: keep the change, or go back to the last copy HyperSkill wrote (`hyperskill.py repair --accept` or `--restore`; what you replaced is kept as `state.json.rejected`). A damaged file gets the same restore path instead of a traceback. Every save keeps the previous good copy.
+- **Claude cannot edit or read those files.** A hook refuses writes to `.hyperskill/`, reads of the keys, and shell commands that touch them unless the command is only a `hyperskill.py` call.
+- **Evidence has to be real.** A `--pass` that names a file that does not exist is refused, and a `--run` command that cannot fail (`true`, `echo ok`, `anything || true`) is refused. This does not prove the evidence is *good*, only that it is not invented out of nothing.
+- **What a person knows only a person can confirm.** Four checks (`go-no-go`, `system-design-read`, `architecture-explained`, `promo-rendered`) cannot be passed or waived by Claude until you press **Confirm** on them in the dashboard. With no person available, mark that with `config --unavailable human` and the check stays on the launch to-do list.
+- **Checks before you push.** `scripts/check.sh` runs the tests, the plugin validator, shell and JavaScript syntax and checks that the generated site data is current. `scripts/install-git-hooks.sh` makes it run before every `git push`; `.github/workflows/ci.yml` runs the same script on GitHub when Actions is available.
+
+What this still does not cover: a determined agent with full shell access can find ways around a hook (the hook looks at the command text), the commands inside a backticked `--pass` evidence are not run, Windows is untested, and anything running as you can read your key file.
 
 ## Figures
 
@@ -215,7 +228,7 @@ A focus timer shaped like a glass of water ([live](https://hyperskill-hazel.verc
 Verified:
 
 - The plugin installs from GitHub into a clean config, and `/hyperskill` ran headless from an install of the same plugin (two separate tests, not one end-to-end run).
-- The tracker and the integration resolver are covered by 275 tests; `claude plugin validate .` passes.
+- The tracker and the integration resolver are covered by 309 tests; `claude plugin validate .` passes.
 - Two full runs on real code, described above, with the failures they exposed.
 
 Not verified, so do not rely on it yet:
@@ -248,7 +261,7 @@ site/                  the static launch site (Vercel; vercel.json); site/live i
 examples/duesoon/      full nine-phase run
 examples/chaser/       research, plan and build of the second run
 docs/                  sources, integration review, README images
-tests/                 275 tests for the tracker, resolver, hook, dashboard server and its controls, skill plan, catalogue, brief, previews, structure and site
+tests/                 309 tests for the tracker, resolver, hook, dashboard server and its controls, skill plan, catalogue, brief, previews, structure and site
 ```
 
 ## Develop

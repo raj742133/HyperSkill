@@ -9,6 +9,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from test_run import Base, EMPTY_HOME, ROOT, SCRIPTS, free_port, tracker  # noqa: E402
 
 sys.path.insert(0, SCRIPTS)
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import _auth  # noqa: E402,F401  (signs test clients in to the dashboard)
 import hs_live  # noqa: E402
 import hs_work as W  # noqa: E402
 

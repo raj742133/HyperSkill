@@ -29,7 +29,8 @@
           "text": "A go / pivot / stop recommendation is recorded and the user has confirmed it",
           "needs": [
             "human"
-          ]
+          ],
+          "confirm": true
         }
       ],
       "slots": [
@@ -48,7 +49,8 @@
           "text": "docs/system-design.md exists and the user has read every line",
           "needs": [
             "human"
-          ]
+          ],
+          "confirm": true
         },
         {
           "id": "tenancy-explicit",
@@ -67,7 +69,8 @@
           "text": "Every box in the architecture diagram can be explained by the user",
           "needs": [
             "human"
-          ]
+          ],
+          "confirm": true
         },
         {
           "id": "deps-justified",
@@ -432,7 +435,8 @@
           "text": "Promo video(s) rendered and played back end to end by the user",
           "needs": [
             "human"
-          ]
+          ],
+          "confirm": true
         },
         {
           "id": "asset-licences",

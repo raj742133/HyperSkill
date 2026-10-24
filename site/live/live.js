@@ -82,7 +82,19 @@
   let queued = false;
   const schedule = () => { if (!queued) { queued = true; requestAnimationFrame(() => { queued = false; drawAll(); }); } };
 
-  function drawAll() { drawFeed(); drawNow(); drawRail(); drawPanels(); drawControls(); drawKit(); drawExtras(); drawIdea(); drawChat(); drawWork(); drawPreview(); drawAttach(); }
+  function drawBroken() {
+    const b = $("banner");
+    b.hidden = false; b.replaceChildren();
+    b.append(el("b", "", "The project's state was changed outside HyperSkill. "), el("span", "", state.broken.why + " Nothing is recorded or passed until you decide: "));
+    if (controlOn()) {
+      const keep = el("button", "btn", "I made this change: keep it"), back = el("button", "btn", "Go back to the last good copy");
+      keep.type = back.type = "button";
+      keep.addEventListener("click", () => api("state_accept")); back.addEventListener("click", () => api("state_restore"));
+      b.append(keep, " ", back);
+    }
+  }
+  function drawAll() {
+    if (state.broken) { drawBroken(); return; } drawFeed(); drawNow(); drawRail(); drawPanels(); drawControls(); drawKit(); drawExtras(); drawIdea(); drawChat(); drawWork(); drawPreview(); drawAttach(); }
 
   function drawFeed() {
     const list = $("feed");
@@ -139,9 +151,15 @@
     for (const i of openItems.slice(0, 12)) {
       const li = el("li", "", i.text);
       if (i.needs) li.append(el("span", "need", `needs ${i.needs.join("+")}`));
+      if (i.confirm) li.append(el("span", "need", i.confirm === "confirmed" ? "you confirmed this" : "waiting for your confirmation"));
       if (canAct) {
         const btns = el("span", "item-btns");
-        for (const kind of ["pass", "waive"]) { const b = el("button", "", kind === "pass" ? "Pass" : "Waive"); b.type = "button"; b.addEventListener("click", () => { editing = { id: i.id, kind, value: "" }; drawPanels(); const f = document.getElementById("item-input"); if (f) f.focus(); }); btns.append(b); }
+        if (i.confirm === "needed") {
+          const c = el("button", "go", "Confirm"); c.type = "button"; c.title = "Only you can say this is true; Claude cannot record it for you.";
+          c.addEventListener("click", () => { if (window.confirm("Confirm: " + i.text + "\n\nPress OK only if this is true.")) api("confirm", { phase: cur.id, item: i.id }); });
+          btns.append(c);
+        }
+        for (const kind of i.confirm === "needed" ? ["pass"] : ["pass", "waive"]) { const b = el("button", "", kind === "pass" ? "Pass" : "Waive"); b.type = "button"; b.addEventListener("click", () => { editing = { id: i.id, kind, value: "" }; drawPanels(); const f = document.getElementById("item-input"); if (f) f.focus(); }); btns.append(b); }
         li.append(btns);
         if (editing && editing.id === i.id) li.append(itemForm(cur.id, i));
       }

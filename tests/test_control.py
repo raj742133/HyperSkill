@@ -11,6 +11,8 @@ import unittest
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SCRIPTS = os.path.join(ROOT, "scripts")
 sys.path.insert(0, SCRIPTS)
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import _auth  # noqa: E402,F401  (signs test clients in to the dashboard)
 import hs_control  # noqa: E402
 import hs_live  # noqa: E402
 
@@ -190,8 +192,8 @@ class AutoStartTests(unittest.TestCase):
     def up(self, url):
         c = http.client.HTTPConnection(url.split("//")[1].rstrip("/"), timeout=5)
         try:
-            c.request("GET", "/live/state.json")
-            return c.getresponse().status == 200
+            c.request("GET", "/live/state.json", headers={"X-Anonymous": "1"})
+            return c.getresponse().status == 401  # up, and locked to anyone without the key
         except OSError:
             return False
         finally:
