@@ -1,63 +1,64 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 230" role="img" aria-labelledby="t d">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 250" role="img" aria-labelledby="t d">
 <title id="t">The nine HyperSkill phases</title>
 <desc id="d">Research, plan, foundation, product, ship, harden, operate, launch and scale. Each phase ends at a gate that needs evidence before the next phase starts.</desc>
-<rect width="1000" height="230" rx="14" fill="#15110f"/>
-<style>text{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;fill:#f2ede3}.n{font-size:11px;fill:#e5412a;font-weight:700}.t{font-size:12.5px;font-weight:700}.g{font-size:10px;fill:#a89f92}.s{font-size:13px;fill:#f2ede3}.k{font-size:11px;fill:#8fd19a}</style>
-<text class="s" x="28" y="34" style="font-size:15px;font-weight:700">idea</text>
-<text class="s" x="972" y="34" text-anchor="end" style="font-size:15px;font-weight:700">shipped, monitored, promoted</text>
-<rect x="28.0" y="56" width="96.0" height="104" rx="8" fill="#241d19" stroke="#3a312b"/>
-<text class="n" x="38.0" y="78">0</text>
-<text class="t" x="38.0" y="104">research</text>
-<text class="g" x="38.0" y="126">5 checks</text>
-<text class="g" x="38.0" y="146">hs-research</text>
-<path d="M125.0 100 L129.0 94 L133.0 100 L129.0 106 Z" fill="#e5412a"/>
-<rect x="134.0" y="56" width="96.0" height="104" rx="8" fill="#241d19" stroke="#3a312b"/>
-<text class="n" x="144.0" y="78">1</text>
-<text class="t" x="144.0" y="104">plan</text>
-<text class="g" x="144.0" y="126">9 checks</text>
-<text class="g" x="144.0" y="146">hs-plan</text>
-<path d="M231.0 100 L235.0 94 L239.0 100 L235.0 106 Z" fill="#e5412a"/>
-<rect x="240.0" y="56" width="96.0" height="104" rx="8" fill="#241d19" stroke="#3a312b"/>
-<text class="n" x="250.0" y="78">2</text>
-<text class="t" x="250.0" y="104">foundation</text>
-<text class="g" x="250.0" y="126">11 checks</text>
-<text class="g" x="250.0" y="146">hs-foundation</text>
-<path d="M337.0 100 L341.0 94 L345.0 100 L341.0 106 Z" fill="#e5412a"/>
-<rect x="346.0" y="56" width="96.0" height="104" rx="8" fill="#241d19" stroke="#3a312b"/>
-<text class="n" x="356.0" y="78">3</text>
-<text class="t" x="356.0" y="104">product</text>
-<text class="g" x="356.0" y="126">9 checks</text>
-<text class="g" x="356.0" y="146">hs-product</text>
-<path d="M443.0 100 L447.0 94 L451.0 100 L447.0 106 Z" fill="#e5412a"/>
-<rect x="452.0" y="56" width="96.0" height="104" rx="8" fill="#241d19" stroke="#3a312b"/>
-<text class="n" x="462.0" y="78">4</text>
-<text class="t" x="462.0" y="104">ship</text>
-<text class="g" x="462.0" y="126">11 checks</text>
-<text class="g" x="462.0" y="146">hs-ship</text>
-<path d="M549.0 100 L553.0 94 L557.0 100 L553.0 106 Z" fill="#e5412a"/>
-<rect x="558.0" y="56" width="96.0" height="104" rx="8" fill="#241d19" stroke="#3a312b"/>
-<text class="n" x="568.0" y="78">5</text>
-<text class="t" x="568.0" y="104">harden</text>
-<text class="g" x="568.0" y="126">10 checks</text>
-<text class="g" x="568.0" y="146">hs-harden</text>
-<path d="M655.0 100 L659.0 94 L663.0 100 L659.0 106 Z" fill="#e5412a"/>
-<rect x="664.0" y="56" width="96.0" height="104" rx="8" fill="#241d19" stroke="#3a312b"/>
-<text class="n" x="674.0" y="78">6</text>
-<text class="t" x="674.0" y="104">operate</text>
-<text class="g" x="674.0" y="126">8 checks</text>
-<text class="g" x="674.0" y="146">hs-operate</text>
-<path d="M761.0 100 L765.0 94 L769.0 100 L765.0 106 Z" fill="#e5412a"/>
-<rect x="770.0" y="56" width="96.0" height="104" rx="8" fill="#241d19" stroke="#3a312b"/>
-<text class="n" x="780.0" y="78">7</text>
-<text class="t" x="780.0" y="104">launch</text>
-<text class="g" x="780.0" y="126">5 checks</text>
-<text class="g" x="780.0" y="146">hs-launch</text>
-<path d="M867.0 100 L871.0 94 L875.0 100 L871.0 106 Z" fill="#e5412a"/>
-<rect x="876.0" y="56" width="96.0" height="104" rx="8" fill="#241d19" stroke="#3a312b"/>
-<text class="n" x="886.0" y="78">8</text>
-<text class="t" x="886.0" y="104">scale</text>
-<text class="g" x="886.0" y="126">4 checks</text>
-<text class="g" x="886.0" y="146">hs-scale</text>
-<text class="s" x="28" y="196">&#9670; Between phases sits a gate. Every check needs evidence or a written reason to waive it.</text>
-<text class="g" x="28" y="216">72 checks in all. `hyperskill advance` refuses while any check is open.</text>
+<rect width="1000" height="250" fill="#fff8e1"/>
+<style>text{font-family:"Space Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;fill:#000}.n{font-size:12px;font-weight:700}.t{font-size:13px;font-weight:700}.g{font-size:10.5px}.s{font-size:15px;font-weight:700}</style>
+<text class="s" x="28" y="36">IDEA</text>
+<text class="s" x="972" y="36" text-anchor="end">SHIPPED, MONITORED, PROMOTED</text>
+<rect x="32.0" y="64" width="97.8" height="110" fill="#000"/>
+<rect x="28.0" y="60" width="97.8" height="110" fill="#ffe14d" stroke="#000" stroke-width="3"/>
+<text class="n" x="38.0" y="84" style="fill:#000">0</text>
+<text class="t" x="38.0" y="112" style="fill:#000">research</text>
+<text class="g" x="38.0" y="136" style="fill:#000">5 checks</text>
+<text class="g" x="38.0" y="154" style="fill:#000">hs-research</text>
+<rect x="137.8" y="64" width="97.8" height="110" fill="#000"/>
+<rect x="133.8" y="60" width="97.8" height="110" fill="#ff4fa3" stroke="#000" stroke-width="3"/>
+<text class="n" x="143.8" y="84" style="fill:#000">1</text>
+<text class="t" x="143.8" y="112" style="fill:#000">plan</text>
+<text class="g" x="143.8" y="136" style="fill:#000">9 checks</text>
+<text class="g" x="143.8" y="154" style="fill:#000">hs-plan</text>
+<rect x="243.6" y="64" width="97.8" height="110" fill="#000"/>
+<rect x="239.6" y="60" width="97.8" height="110" fill="#b6ff3b" stroke="#000" stroke-width="3"/>
+<text class="n" x="249.6" y="84" style="fill:#000">2</text>
+<text class="t" x="249.6" y="112" style="fill:#000">foundation</text>
+<text class="g" x="249.6" y="136" style="fill:#000">11 checks</text>
+<text class="g" x="249.6" y="154" style="fill:#000">hs-foundation</text>
+<rect x="349.3" y="64" width="97.8" height="110" fill="#000"/>
+<rect x="345.3" y="60" width="97.8" height="110" fill="#3b5bff" stroke="#000" stroke-width="3"/>
+<text class="n" x="355.3" y="84" style="fill:#fff">3</text>
+<text class="t" x="355.3" y="112" style="fill:#fff">product</text>
+<text class="g" x="355.3" y="136" style="fill:#fff">9 checks</text>
+<text class="g" x="355.3" y="154" style="fill:#fff">hs-product</text>
+<rect x="455.1" y="64" width="97.8" height="110" fill="#000"/>
+<rect x="451.1" y="60" width="97.8" height="110" fill="#ffe14d" stroke="#000" stroke-width="3"/>
+<text class="n" x="461.1" y="84" style="fill:#000">4</text>
+<text class="t" x="461.1" y="112" style="fill:#000">ship</text>
+<text class="g" x="461.1" y="136" style="fill:#000">11 checks</text>
+<text class="g" x="461.1" y="154" style="fill:#000">hs-ship</text>
+<rect x="560.9" y="64" width="97.8" height="110" fill="#000"/>
+<rect x="556.9" y="60" width="97.8" height="110" fill="#ff4fa3" stroke="#000" stroke-width="3"/>
+<text class="n" x="566.9" y="84" style="fill:#000">5</text>
+<text class="t" x="566.9" y="112" style="fill:#000">harden</text>
+<text class="g" x="566.9" y="136" style="fill:#000">10 checks</text>
+<text class="g" x="566.9" y="154" style="fill:#000">hs-harden</text>
+<rect x="666.7" y="64" width="97.8" height="110" fill="#000"/>
+<rect x="662.7" y="60" width="97.8" height="110" fill="#b6ff3b" stroke="#000" stroke-width="3"/>
+<text class="n" x="672.7" y="84" style="fill:#000">6</text>
+<text class="t" x="672.7" y="112" style="fill:#000">operate</text>
+<text class="g" x="672.7" y="136" style="fill:#000">8 checks</text>
+<text class="g" x="672.7" y="154" style="fill:#000">hs-operate</text>
+<rect x="772.4" y="64" width="97.8" height="110" fill="#000"/>
+<rect x="768.4" y="60" width="97.8" height="110" fill="#3b5bff" stroke="#000" stroke-width="3"/>
+<text class="n" x="778.4" y="84" style="fill:#fff">7</text>
+<text class="t" x="778.4" y="112" style="fill:#fff">launch</text>
+<text class="g" x="778.4" y="136" style="fill:#fff">5 checks</text>
+<text class="g" x="778.4" y="154" style="fill:#fff">hs-launch</text>
+<rect x="878.2" y="64" width="97.8" height="110" fill="#000"/>
+<rect x="874.2" y="60" width="97.8" height="110" fill="#ffe14d" stroke="#000" stroke-width="3"/>
+<text class="n" x="884.2" y="84" style="fill:#000">8</text>
+<text class="t" x="884.2" y="112" style="fill:#000">scale</text>
+<text class="g" x="884.2" y="136" style="fill:#000">4 checks</text>
+<text class="g" x="884.2" y="154" style="fill:#000">hs-scale</text>
+<text class="s" x="28" y="208">&#9670; BETWEEN PHASES SITS A GATE. EVERY CHECK NEEDS EVIDENCE OR A WRITTEN REASON TO WAIVE IT.</text>
+<text class="g" x="28" y="230">72 checks in all. `hyperskill advance` refuses while any check is open.</text>
 </svg>

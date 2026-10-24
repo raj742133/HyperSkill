@@ -8,7 +8,7 @@
 [![Claude Code plugin](https://img.shields.io/badge/Claude%20Code-plugin-e5412a)](#install)
 [![Python 3, standard library only](https://img.shields.io/badge/python-3%20stdlib%20only-3a312b)](scripts/hyperskill.py)
 
-[**Live site**](https://hyperskill-hazel.vercel.app) · [Install](#install) · [How it works](#how-it-works) · [The dashboard](#watch-it-work-and-steer-it) · [Screens](#screens) · [Real runs](#real-runs) · [Limits](#what-is-and-is-not-verified)
+[**Live site**](https://hyperskill-hazel.vercel.app) · [Install](#install) · [How it works](#how-it-works) · [The dashboard](#watch-it-work-and-steer-it) · [Screens](#screens) · [Limits](#what-is-and-is-not-verified)
 
 <img src="docs/img/site-hero.png" alt="The HyperSkill site: the headline, the install command and a terminal showing the tracker refusing to advance a phase" width="860">
 
@@ -97,7 +97,7 @@ Phases ask for capabilities (a design direction, a security audit, video, browse
 
 Of the 822 items, 530 have a picture or a clip and the 192 palettes show their colour swatches: **real recordings** of Sitewright's own effects, figures and components (hero backgrounds, headline animations, buttons, cards, reveals, extras, ready-made looks, all 22 figures and all 58 components, plus stills of its generated pages); **rendered cards** for UI UX Pro Max's 74 font pairings; **screenshots** of the Hyperfigure example figures; and **diagrams drawn for this project** for the design tells (avoid and instead), the 111 production concepts, the site fixes and add-ons, UI UX Pro Max's 34 landing-page patterns (section wireframes) and 88 styles (palette and keywords). Clips play on hover and open larger from the enlarge button. The other 89 show text only: the skills inside the packs, Impeccable's commands, the two Sitewright themes, its MFA and publishing pages (the demo build did not include them), the plain and default hero backgrounds, and two Hyperfigure examples that have no built page. `scripts/capture_previews.mjs`, `render_pages.mjs` and `build_previews.py` regenerate all of it.
 
-<img src="docs/img/dashboard-picker.webp" alt="The picker: the design tells to avoid, each card showing a before and after picture" width="430"> <img src="docs/img/dashboard-clip.webp" alt="A recorded Sitewright hero background opened large from the picker" width="430">
+<img src="docs/img/dashboard-picker.webp" alt="The picker: the design tells to avoid, each card showing a before and after picture" width="430"> <img src="docs/img/dashboard-clip.webp" alt="A recorded style demo opened large from the picker, with Try the live demo" width="430">
 
 Saving a selection queues a message for Claude, the session hook hands it the picks for the current phase, and `advance` prints the next phase's picks. The lists of tells, fixes, add-ons and concepts are written in this repository's own words (the topics come from the owner's notes); Sitewright's and UI UX Pro Max's entries are read from the bundled packs.
 
@@ -237,31 +237,6 @@ hyperskill.py place add ITEM --where PAGE/SECTION | place check --close   # wher
 hyperskill.py pause | resume | say "instruction"                   # steer Claude through the plugin hook
 hyperskill.py config --autolive on|off                             # dashboard auto-start
 ```
-
-## Real runs
-
-HyperSkill was run end to end on three small products. All live in this repo, with their gate records, decisions, reviews and tests.
-
-### DueSoon: all nine phases ([`examples/duesoon`](examples/duesoon))
-
-A student deadline tracker. 72 checks: **49 passed with evidence, 23 waived with written reasons** (about ten of those because a sandbox cannot deploy, rehearse a rollback or wire alerts). 66 unit and integration tests, 17 browser tests including keyboard and accessibility, 12 of 13 mutation checks killed. An independent security review found a real login-limit bypass (padding the email with spaces gave a fresh budget), which was fixed with a regression test. The honest verdict is in [`docs/prelaunch.md`](examples/duesoon/docs/prelaunch.md): **not launch-ready**. What worked and what was too heavy in HyperSkill itself is in [`docs/dogfood/REPORT.md`](examples/duesoon/docs/dogfood/REPORT.md); those findings became the tenancy, `unavailable` and evidence rules above.
-
-### Chaser: research that said "pivot" ([`examples/chaser`](examples/chaser))
-
-A tool to write payment reminders for Indian freelancers. Four parallel researchers read the market, the pain, the alternatives and the legal risk, and the research ended in an unwelcome answer: **free tools already include reminders, the demand evidence is old, and nobody is shown paying.** The recommendation was *do not build the app*; build one free page that tests demand, with pass and stop conditions written in advance. A skeptical reviewer then found three high-severity flaws in the first design (the "waitlist" tested curiosity, not willingness to pay; the success ratio could not be computed from the counters; the privacy promise was overstated). All were fixed before any code. The result, with the generated text checked against a list of phrases it must never contain:
-
-<table>
-<tr>
-<td align="center"><img src="docs/img/chaser-form.png" alt="Chaser on a phone: a short form for one unpaid invoice" width="300"></td>
-<td align="center"><img src="docs/img/chaser-results.png" alt="Chaser's results: a check-before-you-send summary and three messages, with the suggested one marked" width="300"></td>
-</tr>
-</table>
-
-**The owner then decided to keep it free**, so the pricing button, waitlist and counters were removed and it is now a plain static page ([live](https://hyperskill-hazel.vercel.app/chaser)). Today: 25 unit tests, 16 browser tests (a test fails if the page makes any request after it loads), and 11 of 11 mutation checks killed. Its research is [`docs/research.md`](examples/chaser/docs/research.md), the design review [`docs/design-review.md`](examples/chaser/docs/design-review.md). The foundation and product gates of this run are not closed yet.
-
-### Tide: all nine phases, and the later phases found real bugs ([`examples/tide`](examples/tide))
-
-A focus timer shaped like a glass of water ([live](https://hyperskill-hazel.vercel.app/tide)). Built first, then run through the whole pipeline afterwards to see whether the ship, harden, operate, launch and scale phases hold up. 68 checks: **40 passed with evidence, 28 waived with written reasons** (most need a host, a monitoring provider or a person that a sandbox does not have). Independent reviewers and the harden checks found problems the tests had missed: corrupt saved settings made the display read `NaN:NaN`; with reduced motion the glass never drained; a stray key wiped a running session; a clock set back could extend a session; the live security policy was looser than the threat model said; and the pre-commit hook skipped file names with spaces. Each was fixed with a test. Today: 22 unit tests, 28 browser tests (accessibility included), all 10 mutation checks killed, a load test and a cost model with real numbers. Not tested: a real phone, a real screen reader, the deployed host under load.
 
 ## What is and is not verified
 
