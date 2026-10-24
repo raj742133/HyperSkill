@@ -160,3 +160,11 @@ progress { flex: 1 1 160px; height: 8px; accent-color: var(--accent); }
 .fd-kind { font: 700 11px var(--mono); text-transform: uppercase; letter-spacing: .06em; border: 1px solid currentColor; border-radius: 999px; padding: 0 8px; }
 .fd-kind[data-k="gap"] { color: var(--warn); } .fd-kind[data-k="conflict"] { color: var(--bad); } .fd-kind[data-k="suggestion"] { color: var(--go); }
 .fd-proposed { margin: 3px 0 0; font-size: .88rem; color: var(--ink); overflow-wrap: anywhere; }
+.chat-log { list-style: none; margin: 10px 0; padding: 0 4px 0 0; max-height: 420px; overflow: auto; display: flex; flex-direction: column; gap: 8px; }
+.chat-log li { max-width: 88%; padding: 9px 12px; border-radius: 12px; font-size: .94rem; white-space: pre-wrap; overflow-wrap: anywhere; border: 1px solid var(--rule); }
+.chat-log li[data-r="user"] { align-self: flex-end; background: #e9dccb; } .chat-log li[data-r="claude"] { align-self: flex-start; background: var(--panel); }
+.chat-log li[data-r="system"] { align-self: center; color: var(--muted); font: 12px var(--mono); border-style: dashed; max-width: 96%; }
+.chat-form textarea { width: 100%; box-sizing: border-box; font: inherit; color: var(--ink); background: var(--bg, transparent); border: 1px solid var(--rule); border-radius: 10px; padding: 10px 12px; resize: vertical; }
+.chat-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; margin-top: 8px; } .chat-spacer { flex: 1 1 auto; }
+.chat-row select { font: inherit; color: var(--ink); background: var(--bg, transparent); border: 1px solid var(--rule); border-radius: 8px; padding: 6px 8px; display: block; margin-top: 3px; max-width: 100%; }
+.attach { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--rule); } .attach input[type=file] { display: block; margin: 8px 0; font: inherit; }

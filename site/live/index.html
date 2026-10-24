@@ -62,6 +62,27 @@
     <progress id="r-bar" max="100" value="0" aria-label="Replay position"></progress>
   </div>
 
+  <section id="chat" class="integ" aria-labelledby="chat-h" hidden>
+    <h2 id="chat-h" class="eyebrow">Chat with Claude <span id="chat-state" class="count"></span></h2>
+    <p id="chat-note" class="sub"></p>
+    <ol id="chat-log" class="chat-log" aria-live="polite"></ol>
+    <form id="chat-form" class="chat-form">
+      <textarea id="chat-text" rows="3" maxlength="4000" placeholder="Tell Claude what to do, or answer it. For example: start the project from my brief."></textarea>
+      <div class="chat-row">
+        <label class="sub">What it may do
+          <select id="chat-mode"><option value="edits">Edit files and use the tracker (safer)</option><option value="build">Also run shell commands here (npm, git, tests)</option></select>
+        </label>
+        <label class="sub">Spend limit
+          <select id="chat-budget"><option value="1">$1</option><option value="3" selected>$3</option><option value="10">$10</option></select>
+        </label>
+        <span class="chat-spacer"></span>
+        <button type="button" id="chat-new" class="btn">New conversation</button>
+        <button type="button" id="chat-stop" class="btn warn" hidden>Stop</button>
+        <button type="submit" id="chat-send" class="btn go">Send</button>
+      </div>
+    </form>
+  </section>
+
   <section id="idea" class="integ" aria-labelledby="idea-h" hidden>
     <h2 id="idea-h" class="eyebrow">Your idea <span id="idea-ver" class="count"></span></h2>
     <p class="sub">Paste everything you know: what it is, who it is for, must-haves, look and feel. Your words decide <b>what</b> gets built; HyperSkill decides <b>how</b> (phases, checks, evidence). It will not rewrite your idea behind your back: gaps, conflicts and improvements come back as questions below, and you answer them.</p>
@@ -70,6 +91,11 @@
       <textarea id="idea-text" rows="9" maxlength="20000" placeholder="Example: A site for my coffee roastery. Landing page, staff login with authenticator codes, and a dashboard of customer orders. Brown and amber, calm, no stock photos."></textarea>
       <div class="kit-bar"><span id="idea-status" role="status" aria-live="polite"></span><button type="submit" class="btn go" id="idea-save">Save and have Claude read it</button></div>
     </form>
+    <div id="attach" class="attach">
+      <label for="attach-file" class="sub">Or attach files: requirements, specs, notes, designs (markdown, text, Word, PDF, CSV, JSON, HTML, images; up to 15 MB each). They stay in this project's <code>.hyperskill/inputs</code> folder and Claude reads them.</label>
+      <input type="file" id="attach-file" multiple accept=".md,.markdown,.txt,.pdf,.docx,.csv,.json,.yaml,.yml,.toml,.html,.htm,.png,.jpg,.jpeg,.webp,.gif">
+      <ul id="attach-list" class="xt-list"></ul>
+    </div>
     <div id="idea-found" hidden>
       <h3 class="kit-title">What Claude found <span id="idea-open" class="count"></span></h3>
       <ul id="idea-list" class="xt-list"></ul>

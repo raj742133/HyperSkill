@@ -30,6 +30,7 @@ Usage:
   hyperskill.py skills pull ID [--why T] [--user-approved]   install a bundled skill for this phase (opt-in ones need the user's yes)
   hyperskill.py skills use|skip SLOT --why TEXT     record the decision for the phase;  skills release [PHASE]
   hyperskill.py live [--port 4777] [--read-only]    open the live dashboard (127.0.0.1 only; it can also control the flow)
+  hyperskill.py live --allow-run                    also let the dashboard chat box run Claude here (your login and usage; never started automatically)
   hyperskill.py live --ensure | --stop              start it in the background (what the session hook does) / stop it
   hyperskill.py config --autolive on|off            start the dashboard automatically when a session opens (default on)
   hyperskill.py pause | resume                      stop / allow Claude's file writes and commands (needs the plugin hook)
@@ -477,7 +478,7 @@ def cmd_live(args):
         url = hs_live.ensure(args.root, args.port)
         print(url or "could not start the live view")
         return
-    hs_live.serve(args.root, args.port, open_browser=not args.no_open, control=not args.read_only, idle_hours=args.idle_hours)
+    hs_live.serve(args.root, args.port, open_browser=not args.no_open, control=not args.read_only, idle_hours=args.idle_hours, allow_run=args.allow_run)
 
 
 def cmd_skills(args):
@@ -499,6 +500,9 @@ def cmd_skills(args):
         save_state(args.root, st)
         print("pulled %s: %s" % (args.target, ("installed " + ", ".join(copied)) if copied else "nothing new to install")
               + ("; left your own %s alone" % ", ".join(kept) if kept else ""))
+        rb = load_integrations()["providers"][args.target].get("requires_binary")
+        if rb and not shutil.which(rb):
+            print("note: these skills drive the `%s` command, which is not installed. Tell the user to install it: %s" % (rb, "; ".join(load_integrations()["providers"][args.target].get("install", [])[-1:])))
         return
     if action in ("use", "skip"):
         if not args.target:
@@ -531,7 +535,7 @@ def cmd_brief(args):
         print("brief saved (version %d). Now extract the requirements and any gaps, conflicts or suggestions." % v)
         return
     if a == "show":
-        print(brief.summary(st) or "(no brief yet: paste one in the dashboard or `hyperskill.py brief set --file idea.md`)")
+        print(brief.summary(st, root=args.root) or "(no brief yet: paste one in the dashboard or `hyperskill.py brief set --file idea.md`)")
         return
     if a == "finding":
         sub = t
@@ -564,6 +568,31 @@ def cmd_brief(args):
             print("%-4s %-10s %-9s %s" % (i, f["kind"], f["state"], f["text"][:90]))
         for i, r in st.get("requirements", {}).items():
             print("%-4s requirement %-9s %s" % (i, r["state"], r["text"][:90]))
+
+
+def cmd_inputs(args):
+    import hs_inputs
+    load_state(args.root)
+    a = args.action or "list"
+    try:
+        if a == "add":
+            if not args.target:
+                die("give the path of a file to attach.")
+            with open(args.target, "rb") as f:
+                name = hs_inputs.add(args.root, os.path.basename(args.target), f.read())
+            activity.append(args.root, "note", "Attached input file " + name)
+            print("attached %s" % name)
+        elif a == "remove":
+            hs_inputs.remove(args.root, args.target or "")
+            print("removed")
+        else:
+            rows = hs_inputs.listing(args.root)
+            for r in rows:
+                print("%-40s %8d bytes  %s" % (r["name"], r["size"], "text extracted" if r["text"] else "original only"))
+            if not rows:
+                print("(no attached files)")
+    except (hs_inputs.InputError, OSError) as exc:
+        die(str(exc))
 
 
 def cmd_place(args):
@@ -763,6 +792,8 @@ def provider_state(pid, prov, st, names):
     else:
         installed = any(n in names for n in det.get("skills", [])) or \
             any(shutil.which(b) for b in det.get("binaries", []))
+    if prov.get("requires_binary") and not shutil.which(prov["requires_binary"]):
+        installed = False  # the skills alone do nothing: they drive a command-line tool that has to be on this computer
     enabled = pid in st["integrations"]["enabled"]
     disabled = pid in st["integrations"]["disabled"]
     policy = prov.get("policy", "unreviewed")
@@ -956,6 +987,11 @@ def build_parser():
     p.add_argument("--answer", default="")
     p.set_defaults(fn=cmd_brief)
 
+    p = sub.add_parser("inputs", help="files attached as project input (requirements, specs, notes)")
+    p.add_argument("action", nargs="?", choices=["list", "add", "remove"])
+    p.add_argument("target", nargs="?")
+    p.set_defaults(fn=cmd_inputs)
+
     p = sub.add_parser("place", help="where each picked Sitewright component or figure is used")
     p.add_argument("action", nargs="?", choices=["list", "add", "check"])
     p.add_argument("target", nargs="?")
@@ -1002,6 +1038,7 @@ def build_parser():
 
     p = sub.add_parser("live", help="open the live dashboard (127.0.0.1 only; it can also control the flow)")
     p.add_argument("--read-only", dest="read_only", action="store_true", help="no buttons: show only")
+    p.add_argument("--allow-run", dest="allow_run", action="store_true", help="let the dashboard's chat box start Claude on this project (off unless you ask)")
     p.add_argument("--stop", action="store_true", help="stop this project's running live view")
     p.add_argument("--ensure", action="store_true", help="start it in the background if it is not running; print its address")
     p.add_argument("--idle-hours", dest="idle_hours", type=float, default=0, help="stop by itself after this long with no page open (0 = never)")

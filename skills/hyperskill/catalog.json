@@ -11737,6 +11737,26 @@
      "skill": "karpathy-guidelines"
     },
     {
+     "id": "skills/open-code-review-open-code-review-delegate",
+     "name": "open-code-review: open-code-review-delegate",
+     "desc": "> Delegation mode for open-code-review (OCR). Instead of OCR calling an LLM endpoint, this skill instructs the host agent to perform the code review itself, using OCR only for deterministic engineering: file selection and rule resolution. Use when the host age",
+     "phase": "product",
+     "mode": "build",
+     "sub": "open-code-review",
+     "pack": "open-code-review",
+     "skill": "open-code-review-delegate"
+    },
+    {
+     "id": "skills/open-code-review-open-code-review",
+     "name": "open-code-review: open-code-review",
+     "desc": "> Performs AI-powered code review on Git changes using the `ocr` CLI from alibaba/open-code-review. Use when the user asks to review code, review a pull request, review staged/unstaged changes, review a commit, or compare branches for code quality issues. Prod",
+     "phase": "product",
+     "mode": "build",
+     "sub": "open-code-review",
+     "pack": "open-code-review",
+     "skill": "open-code-review"
+    },
+    {
      "id": "skills/ponytail-ponytail-audit",
      "name": "ponytail: ponytail-audit",
      "desc": "> Quality audit of a whole repo: bugs, security holes, what breaks under real load, risky code without tests, slow paths, and what to delete, merge or split. Ranked, each finding explained in plain English. One-shot report, changes nothing. Use for \"audit this",

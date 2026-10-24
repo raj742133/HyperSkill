@@ -194,7 +194,7 @@ def idea_brief(root):
     try:
         import hyperskill as core
         import hs_brief
-        text = hs_brief.summary(core.load_state(root))
+        text = hs_brief.summary(core.load_state(root), root=root)
         return ("HyperSkill brief. " + text) if text else None
     except (Exception, SystemExit):
         return None
@@ -218,6 +218,13 @@ def autostart(root):
     """Start the dashboard in the background when the project allows it. Never raises, never takes long."""
     if os.environ.get("HYPERSKILL_NO_LIVE"):
         return None
+    if os.environ.get("HYPERSKILL_RUN"):  # a run started from the dashboard: that dashboard is already up, never start another
+        try:
+            import hs_live
+            info = hs_live.read_live(root)
+            return info["url"] if info else None
+        except Exception:
+            return None
     try:
         with open(os.path.join(root, ".hyperskill", "state.json"), encoding="utf-8") as f:
             if json.load(f).get("autolive") is False:

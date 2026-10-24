@@ -13,6 +13,7 @@ Standard library only.
 """
 import json
 import os
+import shutil
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ORCH_PATH = os.path.join(HERE, "..", "skills", "hyperskill", "orchestration.json")
@@ -38,9 +39,16 @@ def plan(core, root, st, phase_id, names=None):
         ready = next((r for r in provs if r["installed"] and r["allowed"]), None)
         first = next((r for r in provs if r["allowed"]), None)
         ask = next((r for r in provs if r["why"].startswith("opt-in")), None)
-        status, detail = "fallback", res["fallback"]
+        status, detail, note = "fallback", res["fallback"], ""
         if first and first["installed"]:
             status, detail = "ready", first["id"]
+        elif first and reg["providers"][first["id"]].get("requires_binary") and not shutil.which(reg["providers"][first["id"]]["requires_binary"]):
+            # its skills are only half of it: the command-line tool is missing, so settle for the next provider and say what the user could add
+            note = "the `%s` command is not installed: %s" % (reg["providers"][first["id"]]["requires_binary"], reg["providers"][first["id"]]["install"][-1])
+            if ready:
+                status, detail = "ready", ready["id"]
+            else:
+                status, detail = "install", first["id"]
         elif first and core.pack_skills(first["id"]):  # the preferred provider is bundled: pulling it beats settling for a lower one
             status, detail = "pull", first["id"]
         elif ready:
@@ -53,7 +61,7 @@ def plan(core, root, st, phase_id, names=None):
         rows.append({"slot": ent["slot"], "need": ent["need"], "when": ent["when"], "why": ent["why"], "status": status,
                      "provider": detail if status != "fallback" else None, "detail": detail,
                      "options": [r["id"] for r in provs], "decision": d["decision"] if d else None,
-                     "decision_why": d.get("why") if d else None, "decision_provider": d.get("provider") if d else None})
+                     "decision_why": d.get("why") if d else None, "decision_provider": d.get("provider") if d else None, "note": note})
     rows.sort(key=lambda r: NEED_ORDER.get(r["need"], 9))
     return rows
 
@@ -68,6 +76,8 @@ def render(phase_id, rows, short=False):
         if r["decision"]:
             dec = "  => %s%s: %s" % (r["decision"].upper(), " (" + r["decision_provider"] + ")" if r["decision_provider"] else "", r["decision_why"])
         out.append("- [%s] %s -> %s (%s)%s" % (r["need"], r["slot"], who, tag, dec))
+        if r.get("note"):
+            out.append("    note: " + r["note"])
         if not short:
             out.append("    when: %s. why: %s." % (r["when"], r["why"]))
     return "\n".join(out)

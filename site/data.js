@@ -5,7 +5,7 @@ window.HS = {
   "gateItems": 72,
   "slots": 33,
   "providers": 33,
-  "tests": 194
+  "tests": 214
  },
  "policyCounts": {
   "recommended": 11,
@@ -578,16 +578,18 @@ window.HS = {
   },
   {
    "id": "open-code-review",
-   "name": "Open Code Review (ocr)",
+   "name": "Open Code Review (Alibaba): bundled skills, needs the ocr CLI",
    "repo": "alibaba/open-code-review",
-   "kind": "cli",
+   "kind": "skill+cli",
    "license": "Apache-2.0",
    "policy": "opt-in",
    "slots": [
     "code-review"
    ],
    "risks": [
-    "normal mode needs an LLM provider key and sends changed file contents to that provider - prefer delegation mode for private code"
+    "standard mode (`ocr review`) sends changed file contents to the LLM provider you configure with `ocr config provider`: for private code use the delegate skill, which needs no key and sends nothing out",
+    "the CLI is a separate binary that npm's postinstall downloads from GitHub releases (checksum pattern in its package.json): install it deliberately, outside HyperSkill",
+    "its findings are input to the review, not a verdict: triage them like any reviewer's, fix real ones with a regression test, and the gates still decide"
    ]
   },
   {

@@ -82,7 +82,7 @@
   let queued = false;
   const schedule = () => { if (!queued) { queued = true; requestAnimationFrame(() => { queued = false; drawAll(); }); } };
 
-  function drawAll() { drawFeed(); drawNow(); drawRail(); drawPanels(); drawControls(); drawKit(); drawExtras(); drawIdea(); }
+  function drawAll() { drawFeed(); drawNow(); drawRail(); drawPanels(); drawControls(); drawKit(); drawExtras(); drawIdea(); drawChat(); drawAttach(); }
 
   function drawFeed() {
     const list = $("feed");
@@ -438,6 +438,67 @@
     }
   }
 
+  /* ---------- chat: talk to Claude, or run it, from here ---------- */
+  let chatSig = "";
+  function drawChat() {
+    const box = $("chat"), r = state.run;
+    box.hidden = !(mode === "live" && r && controlOn());
+    if (box.hidden) return;
+    const can = r.allowed && r.available;
+    $("chat-state").textContent = r.running ? "· Claude is working" : (can ? "· ready" : "· messages are queued");
+    $("chat-note").textContent = can
+      ? "Each message starts or continues a headless Claude run in this project, using your own Claude login and usage. You choose per message whether it may run shell commands."
+      : (r.allowed ? "The `claude` command was not found on this computer, so messages are queued for an open Claude session instead."
+        : "Messages here are queued for the Claude session you have open, and it reads them at its next step. To let this box start Claude itself, stop the dashboard and start it with: hyperskill.py live --allow-run");
+    $("chat-mode").disabled = $("chat-budget").disabled = !can; $("chat-new").hidden = !can || !r.session; $("chat-send").disabled = r.running;
+    $("chat-stop").hidden = !r.running;
+    const sig = JSON.stringify([r.messages.length, r.messages.length ? r.messages[r.messages.length - 1].ts : "", r.running, r.last]);
+    if (sig === chatSig) return;
+    chatSig = sig;
+    const log = $("chat-log"), atEnd = log.scrollTop + log.clientHeight >= log.scrollHeight - 30;
+    log.replaceChildren();
+    for (const m of r.messages) { const li = el("li", "", m.text); li.dataset.r = m.role; log.append(li); }
+    if (r.running) { const li = el("li", "", "Claude is working..."); li.dataset.r = "system"; log.append(li); }
+    else if (r.last && r.last.cost != null) { const li = el("li", "", `Finished: ${r.last.turns || "?"} steps, ${r.last.seconds || 0} s, about $${Number(r.last.cost).toFixed(2)}`); li.dataset.r = "system"; log.append(li); }
+    if (atEnd || r.running) log.scrollTop = log.scrollHeight;
+  }
+  function wireChat() {
+    $("chat-form").addEventListener("submit", async (ev) => {
+      ev.preventDefault();
+      const t = $("chat-text").value, r = state.run || {};
+      if (!t.trim()) return;
+      const ok = r.allowed && r.available
+        ? await api("run_start", { text: t, mode: $("chat-mode").value, budget: Number($("chat-budget").value) })
+        : await api("say", { text: t });
+      if (ok) $("chat-text").value = "";
+    });
+    $("chat-stop").addEventListener("click", () => api("run_stop"));
+    $("chat-new").addEventListener("click", () => api("run_new"));
+  }
+
+  /* ---------- attached files ---------- */
+  function drawAttach() {
+    const list = $("attach-list"), rows = state.inputs || [], sig = JSON.stringify(rows) + controlOn();
+    if (list.dataset.sig === sig) return;
+    list.dataset.sig = sig; list.replaceChildren();
+    $("attach-file").disabled = !controlOn();
+    for (const f of rows) {
+      const li = el("li"), head = el("div", "xt-head");
+      head.append(el("b", "", f.name), el("span", "sub", `${Math.max(1, Math.round(f.size / 1024))} KB · ${f.text ? "text extracted" : "original only (Claude reads it directly)"}`));
+      if (controlOn()) { const b = el("button", "chip", "Remove"); b.type = "button"; b.addEventListener("click", () => api("input_remove", { name: f.name })); head.append(b); }
+      li.append(head); list.append(li);
+    }
+  }
+  async function upload(file) {
+    try {
+      const r = await fetch(`/live/upload?name=${encodeURIComponent(file.name)}`, { method: "POST", headers: { "Content-Type": "application/octet-stream", "X-HS-Token": token }, body: await file.arrayBuffer() });
+      const j = await r.json(); say(j.output || (r.ok ? "attached" : "refused"), !(r.ok && j.ok));
+    } catch (err) { say("Could not upload " + file.name, true); }
+  }
+  function wireAttach() {
+    $("attach-file").addEventListener("change", async (ev) => { for (const f of ev.target.files) await upload(f); ev.target.value = ""; await refreshState(); });
+  }
+
   /* ---------- the idea: paste a brief, see what Claude found, answer ---------- */
   function drawIdea() {
     const on = controlOn(), box = $("idea");
@@ -534,7 +595,7 @@
   function startLive() {
     setMode("live");
     $("foot").textContent = controlOn() ? "Controls act on this project only, through the same tracker commands a person would type. Nothing leaves this computer." : "Read-only view of this project's .hyperskill/activity.jsonl. It never leaves this computer.";
-    wireControls(); wireKit(); wireIdea(); loadCatalog();
+    wireControls(); wireKit(); wireIdea(); wireChat(); wireAttach(); loadCatalog();
     const es = new EventSource("/live/events");
     es.onopen = () => setMode("live");
     es.onerror = () => setMode("offline", "Reconnecting");

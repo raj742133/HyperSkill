@@ -46,8 +46,9 @@ It exists because coding agents are good at saying "done". They are less good at
 - **The project's shape is set once.** `init --tenancy user|organization|none` makes organisation-only checks not apply and rewords the rest.
 - **Decisions stay yours.** Stack, tenancy model, providers and limits are asked, not assumed, then written to `docs/decisions/NNNN-*.md` so a later session cannot quietly change them.
 - **Fresh-eyes reviews.** Design stress tests, security reviews and design critiques run in a read-only reviewer with no stake in the code. Their reports are findings, not instructions.
+- **You can run it from the dashboard.** Start the project in chat once, or never: with `hyperskill.py live --allow-run` the dashboard has a chat box that runs Claude on your project (your own login and usage, a spend limit per message, a stop button, edits-only by default), and you can attach requirement files (markdown, text, Word, PDF, CSV, JSON, images) that Claude reads ([details](#run-it-from-the-dashboard)).
 - **You can watch it work, and steer it.** A hook and the tracker write an activity log, and a local dashboard (it starts by itself) shows it as it happens. From the same page you pass or waive checks, pause Claude, send it instructions, switch skills on and off, paste your idea and answer the questions it raises, and pick the parts to build with ([details](#watch-it-work-and-steer-it)).
-- **It picks and loads the right skill for each phase, and says why.** Thirteen third-party skill packs (Impeccable, taste-skill, UI UX Pro Max, Sitewright, HyperFrames, Superpowers and others) are bundled, off until needed. Each phase has a plan that says which skill to use, when and why; Claude pulls only what the phase needs, records every use or skip with a reason, and the pack is released when the phase ends ([details](#it-orchestrates-other-skills-and-does-not-trust-them-blindly)).
+- **It picks and loads the right skill for each phase, and says why.** Fourteen third-party skill packs (Impeccable, taste-skill, UI UX Pro Max, Sitewright, HyperFrames, Superpowers and others) are bundled, off until needed. Each phase has a plan that says which skill to use, when and why; Claude pulls only what the phase needs, records every use or skip with a reason, and the pack is released when the phase ends ([details](#it-orchestrates-other-skills-and-does-not-trust-them-blindly)).
 - **Your idea decides what; HyperSkill decides how.** Paste a brief, answer the gaps and conflicts it finds, tick what to use from 800 catalogued options with pictures (Sitewright's effects and components, design styles, palettes, fonts, 111 production concepts, design tells to avoid), and those picks become checks that must be done with evidence or waived.
 - **State lives in files.** `.hyperskill/state.json`, `CLAUDE.md` and `docs/` let any new session resume where the last one stopped.
 
@@ -55,7 +56,7 @@ It exists because coding agents are good at saying "done". They are less good at
 
 Phases ask for capabilities (a design direction, a security audit, video, browser verification) called **slots**. `skills/hyperskill/integrations.json` maps **33 slots** to **37 reviewed providers** (built-in Claude features, built-in HyperSkill kits and third-party skills and tools), each with licence, risks and a policy: 15 recommended, 13 opt-in, 6 reference-only, 2 unreviewed, 1 blocked on commercial projects. `hyperskill.py integrations` resolves each slot against what is actually installed. The rules:
 
-- **Thirteen of them are bundled** in [`packs/`](packs) (unmodified copies with their licences and a pinned commit: Sitewright (your own site generator), Impeccable, taste-skill, Emil Kowalski's skills, Karpathy guidelines, UI UX Pro Max, Cloudflare security-audit, SlopMonster, HyperFrames, Superpowers, Ponytail, /watch, better-icons). They load nothing until you switch them on: `hyperskill.py integrations enable <id>` (or `enable --all` for the recommended ones, or the button in the dashboard) copies the skills into the project's `.claude/skills`, and `disable` removes exactly those. Tools whose licence forbids redistribution (Hypit, Onetake, MiroFish) or that are not skills (gstack, CLIs, hosted services) are not bundled and stay external.
+- **Fourteen of them are bundled** in [`packs/`](packs) (unmodified copies with their licences and a pinned commit: Sitewright (your own site generator), Open Code Review (Alibaba's code-review skills), Impeccable, taste-skill, Emil Kowalski's skills, Karpathy guidelines, UI UX Pro Max, Cloudflare security-audit, SlopMonster, HyperFrames, Superpowers, Ponytail, /watch, better-icons). They load nothing until you switch them on: `hyperskill.py integrations enable <id>` (or `enable --all` for the recommended ones, or the button in the dashboard) copies the skills into the project's `.claude/skills`, and `disable` removes exactly those. **Open Code Review** (Alibaba) is bundled as its two skills only: the `ocr` program they drive is a separate binary you install yourself (`npm install -g @alibaba-group/open-code-review`). Once it is on your PATH it becomes the preferred `code-review` provider, and its *delegate* skill is the safe default (the program only picks files and resolves language rules; Claude does the reviewing, so no extra key and nothing goes to a third party). Its standard mode sends changed code to whichever LLM you configure, which is why it is opt-in. Without the program the built-in review stays, and the plan tells you what to install. Tools whose licence forbids redistribution (Hypit, Onetake, MiroFish) or that are not skills (gstack, CLIs, hosted services) are not bundled and stay external.
 - **One is on by default: the Karpathy coding rules.** `hyperskill.py init` installs them (3 KB), the session hook hands them to Claude at every session start so they apply even when the skill never triggers, and the independent reviewer checks diffs against them (every changed line traces to the task, no speculative code). Decline with `init --no-karpathy` or `integrations disable karpathy-skills`.
 - Nothing is installed without asking (`bash scripts/install-skills.sh --dry-run` prints the exact commands for the external ones).
 - Opt-in tools stay off until you run `integrations enable <id>`.
@@ -105,6 +106,16 @@ How it works:
 - **It only runs inside a HyperSkill project.** Outside one (no `.hyperskill/state.json` above the working directory) the hook does nothing, and it always exits 0 so it cannot block a tool call. The log is private (mode 0600), ignored by git, and rotated at 5 MB. To turn the recording off, uninstall the plugin or remove `hooks/hooks.json`.
 
 What it does **not** do: it shows what Claude Code reports to hooks (files, commands, results), not Claude's reasoning. The "Right now" card is only as accurate as Claude's own announcements. Helper-agent events are tested but I have not seen them in a real session. It has been tried on Linux only.
+
+### Run it from the dashboard
+
+Until now the dashboard watched and steered a Claude session you had open. With `hyperskill.py live --allow-run` it can also **start Claude itself**, so you can run `/hyperskill` once in chat, or skip chat entirely: open the dashboard, attach your requirements, and talk to Claude in its chat box.
+
+- **Attach files.** In the "Your idea" box, attach requirement documents, specs or notes (markdown, text, Word, PDF, CSV, JSON, YAML, HTML and images, up to 15 MB each). They are saved privately under `.hyperskill/inputs/` (never served back, never run), the text of Word, HTML and text files is extracted next to them (PDF too when `pdftotext` is installed), and Claude reads them, PDFs and images through its own Read tool. They appear in the brief that Claude is handed, and Claude turns them into requirements and questions for you.
+- **Chat with Claude.** Each message runs a headless `claude -p` in your project folder with this plugin loaded for that run, and later messages resume the same conversation, so it behaves like a chat. Replies appear in the box as they arrive, and the work shows in the activity feed as usual.
+- **You choose what it may do, per message.** *Edit files and use the tracker* (the default) lets it edit files and run only HyperSkill's tracker; every other shell command is denied. *Also run shell commands here* adds any shell command in the project (npm, git, tests), with the rights of your user account. There is no mode that skips permission checks. Each message has a spend limit ($1, $3 or $10), there is one run at a time, a 30 minute limit and a Stop button.
+- **It is never on by accident.** The dashboard that starts automatically cannot run Claude. You turn it on by starting it yourself with `--allow-run` (stop the automatic one first with `hyperskill.py live --stop`). Without it the same box queues your message for the Claude session you have open. It uses your own Claude Code login and counts against your own usage, and the page is local and key-protected like the other controls.
+- **Verified for real.** I ran it end to end against a real Claude Code: a message from the browser started a run, Claude read an attached requirements file and wrote ten requirements and twelve questions into the brief with the tracker, in 33 seconds for about $0.14, and a second message resumed the same conversation. In edits-only mode a shell command outside the tracker was refused. The shell-commands mode and long runs have been tested only with a stand-in `claude` program, not yet in a real long run.
 
 ## Figures
 
@@ -196,7 +207,7 @@ A focus timer shaped like a glass of water ([live](https://hyperskill-hazel.verc
 Verified:
 
 - The plugin installs from GitHub into a clean config, and `/hyperskill` ran headless from an install of the same plugin (two separate tests, not one end-to-end run).
-- The tracker and the integration resolver are covered by 194 tests; `claude plugin validate .` passes.
+- The tracker and the integration resolver are covered by 214 tests; `claude plugin validate .` passes.
 - Two full runs on real code, described above, with the failures they exposed.
 
 Not verified, so do not rely on it yet:
@@ -221,7 +232,7 @@ skills/hyperfigure/    the figure skill, derived from Anatomy (MIT, by Ryan): a 
 agents/                hs-researcher, hs-reviewer (read-only)
 commands/              /hyperskill, /hyperskill-status, /hyperskill-gate, /hyperskill-live, /hyperskill-figure
 hooks/                 hooks.json: records the work for the live view; pause and instructions from the dashboard
-packs/                 13 bundled skill packs (unmodified, licensed, off until enabled)
+packs/                 14 bundled skill packs (unmodified, licensed, off until enabled)
 site/live/previews/    the catalogue's pictures and clips (about 5 MB)
 scripts/               hyperskill.py (state, gates, integrations), hs_hook.py, hs_live.py, hs_control.py, hs_skills.py, hs_catalog.py, hs_brief.py, build_catalog.py, hs_activity.py, vendor_packs.py,
                        make_replay.py, install-skills.sh, build_site.py
@@ -229,7 +240,7 @@ site/                  the static launch site (Vercel; vercel.json); site/live i
 examples/duesoon/      full nine-phase run
 examples/chaser/       research, plan and build of the second run
 docs/                  sources, integration review, README images
-tests/                 194 tests for the tracker, resolver, hook, dashboard server and its controls, skill plan, catalogue, brief, previews, structure and site
+tests/                 214 tests for the tracker, resolver, hook, dashboard server and its controls, skill plan, catalogue, brief, previews, structure and site
 ```
 
 ## Develop
