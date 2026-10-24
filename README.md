@@ -88,7 +88,7 @@ Phases ask for capabilities (a design direction, a security audit, video, browse
 
 <sub>The "Your idea" box. In this screenshot the findings were added by hand to show the screen; in use, Claude adds them after reading the brief.</sub>
 
-**Pick what to use, from the dashboard.** [`catalog.json`](skills/hyperskill/catalog.json) (801 items, built by `scripts/build_catalog.py` from the bundled packs) lists everything a person can choose, and the dashboard shows it as a picker with search, checkboxes, colour swatches and a live-gallery link:
+**Pick what to use, from the dashboard.** [`catalog.json`](skills/hyperskill/catalog.json) (822 items, built by `scripts/build_catalog.py` from the bundled packs) lists everything a person can choose, and the dashboard shows it as a picker with search, checkboxes, colour swatches and a live-gallery link:
 
 - **Sitewright, in full:** its 7 modules, 12 hero backgrounds, 10 sign-in backgrounds, 8 headline animations, button, card and scroll effects, 4 page extras, 7 ready-made looks, 22 interactive line figures and 58 components (16 charts among them), plus the theme. Your picks become the exact `site.json` fragment (`hyperskill.py catalog sitewright`).
 - **UI UX Pro Max:** 88 visual styles, 34 landing-page patterns, 74 font pairings and 192 colour palettes (with swatches).
@@ -306,7 +306,7 @@ site/                  the static launch site (Vercel; vercel.json); site/live i
 examples/duesoon/      full nine-phase run
 examples/chaser/       research, plan and build of the second run
 docs/                  sources, integration review, README images
-tests/                 329 tests for the tracker, resolver, hook, dashboard server and its controls, skill plan, catalogue, brief, previews, structure and site
+tests/                 348 tests for the tracker, resolver, hook, dashboard server and its controls, skill plan, catalogue, brief, previews, structure and site
 ```
 
 ## Develop
