@@ -22,6 +22,8 @@ Usage:
   hyperskill.py event TEXT [--kind building|testing|reviewing|waiting|done]
                                                     tell the live view what is happening right now
   hyperskill.py live [--port 4777] [--read-only]    open the live dashboard (127.0.0.1 only; it can also control the flow)
+  hyperskill.py live --ensure | --stop              start it in the background (what the session hook does) / stop it
+  hyperskill.py config --autolive on|off            start the dashboard automatically when a session opens (default on)
   hyperskill.py pause | resume                      stop / allow Claude's file writes and commands (needs the plugin hook)
   hyperskill.py say TEXT                            queue an instruction that Claude receives on its next step
   hyperskill.py integrations [list] [--json]        vetted external skills and what is installed
@@ -189,8 +191,15 @@ def cmd_init(args):
 
 def cmd_config(args):
     st = load_state(args.root)
+    if args.autolive is not None:
+        st["autolive"] = args.autolive == "on"
+        save_state(args.root, st)
+        activity.append(args.root, "config", "Dashboard auto-start " + args.autolive)
+        print("autolive: " + args.autolive)
+        if args.tenancy is None and args.unavailable is None:
+            return
     if args.tenancy is None and args.unavailable is None:
-        print("tenancy: %s\nunavailable: %s" % (st["tenancy"], ", ".join(st["unavailable"]) or "(nothing)"))
+        print("tenancy: %s\nunavailable: %s\nautolive: %s" % (st["tenancy"], ", ".join(st["unavailable"]) or "(nothing)", "on" if st.get("autolive", True) else "off"))
         return
     if args.tenancy is not None:
         st["tenancy"] = check_tenancy(args.tenancy)
@@ -422,7 +431,14 @@ def cmd_event(args):
 
 def cmd_live(args):
     import hs_live
-    hs_live.serve(args.root, args.port, open_browser=not args.no_open, control=not args.read_only)
+    if args.stop:
+        print("stopped" if hs_live.stop(args.root) else "no live view is running for this project")
+        return
+    if args.ensure:
+        url = hs_live.ensure(args.root, args.port)
+        print(url or "could not start the live view")
+        return
+    hs_live.serve(args.root, args.port, open_browser=not args.no_open, control=not args.read_only, idle_hours=args.idle_hours)
 
 
 def cmd_pause(args):
@@ -657,6 +673,7 @@ def build_parser():
     p = sub.add_parser("config", help="show or change tenancy and what this environment lacks")
     p.add_argument("--tenancy", choices=TENANCIES)
     p.add_argument("--unavailable", help="comma list: host,provider,device,human (or 'none')")
+    p.add_argument("--autolive", choices=("on", "off"), help="start the dashboard automatically when a session opens")
     p.set_defaults(fn=cmd_config)
 
     p = sub.add_parser("status")
@@ -709,6 +726,9 @@ def build_parser():
 
     p = sub.add_parser("live", help="open the live dashboard (127.0.0.1 only; it can also control the flow)")
     p.add_argument("--read-only", dest="read_only", action="store_true", help="no buttons: show only")
+    p.add_argument("--stop", action="store_true", help="stop this project's running live view")
+    p.add_argument("--ensure", action="store_true", help="start it in the background if it is not running; print its address")
+    p.add_argument("--idle-hours", dest="idle_hours", type=float, default=0, help="stop by itself after this long with no page open (0 = never)")
     p.add_argument("--port", type=int, default=4777)
     p.add_argument("--no-open", action="store_true", help="do not try to open a browser")
     p.set_defaults(fn=cmd_live)

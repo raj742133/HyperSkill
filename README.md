@@ -65,7 +65,7 @@ Details: [`skills/hyperskill/references/integrations.md`](skills/hyperskill/refe
 
 ## Watch it work
 
-Run `/hyperskill-live` and a page opens at `http://127.0.0.1:4777/` that shows what is being made, tested and decided **as it happens**: a "Right now" card, the nine phases with their progress, a live activity feed, the checks still open, the latest test run with its pass and fail counts, the files touched and the decisions recorded.
+**It starts by itself.** When a session opens in a HyperSkill project, the plugin starts the dashboard in the background (or reuses the one already running) and Claude tells you the address, usually `http://127.0.0.1:4777/`. It stops after 4 hours with no page open, or when you run `hyperskill.py live --stop`; turn the auto-start off with `hyperskill.py config --autolive off` (or set `HYPERSKILL_NO_LIVE=1`). You can also run `/hyperskill-live` yourself, and a page opens at `http://127.0.0.1:4777/` that shows what is being made, tested and decided **as it happens**: a "Right now" card, the nine phases with their progress, a live activity feed, the checks still open, the latest test run with its pass and fail counts, the files touched and the decisions recorded.
 
 <img src="docs/img/live-view.png" alt="The live view during a recorded session: Right now, the nine phases, an activity feed with a refused advance, a passed check and files written, and panels for tests and open checks" width="860">
 
@@ -156,7 +156,7 @@ A focus timer shaped like a glass of water ([live](https://hyperskill-hazel.verc
 Verified:
 
 - The plugin installs from GitHub into a clean config, and `/hyperskill` ran headless from an install of the same plugin (two separate tests, not one end-to-end run).
-- The tracker and the integration resolver are covered by 135 tests; `claude plugin validate .` passes.
+- The tracker and the integration resolver are covered by 140 tests; `claude plugin validate .` passes.
 - Two full runs on real code, described above, with the failures they exposed.
 
 Not verified, so do not rely on it yet:
@@ -184,7 +184,7 @@ site/                  the static launch site (Vercel; vercel.json); site/live i
 examples/duesoon/      full nine-phase run
 examples/chaser/       research, plan and build of the second run
 docs/                  sources, integration review, README images
-tests/                 135 tests for the tracker, resolver, activity log, hook, live server, structure and site
+tests/                 140 tests for the tracker, resolver, activity log, hook, live server, structure and site
 ```
 
 ## Develop

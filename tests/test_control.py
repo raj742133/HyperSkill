@@ -166,6 +166,73 @@ class SteeringTests(unittest.TestCase):
         self.assertIsNone(hs_control.push(self.p, "one too many"))
 
 
+class AutoStartTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.p = self.tmp.name
+        tracker(self.p, "init", "--name", "demo")
+
+    def tearDown(self):
+        tracker(self.p, "live", "--stop", check=False)
+        self.tmp.cleanup()
+
+    def start(self, env=None):
+        payload = json.dumps({"cwd": self.p, "source": "startup"})
+        r = subprocess.run([sys.executable, HOOK, "start"], input=payload, capture_output=True, text=True, env=dict(os.environ, **(env or {})))
+        return r.returncode, (json.loads(r.stdout) if r.stdout.strip() else None)
+
+    def up(self, url):
+        c = http.client.HTTPConnection(url.split("//")[1].rstrip("/"), timeout=5)
+        try:
+            c.request("GET", "/live/state.json")
+            return c.getresponse().status == 200
+        except OSError:
+            return False
+        finally:
+            c.close()
+
+    def test_a_session_start_starts_the_dashboard_once_and_tells_claude_the_address(self):
+        code, out = self.start()
+        self.assertEqual(code, 0)
+        ctx = out["hookSpecificOutput"]["additionalContext"]
+        url = ctx.split("running at ")[1].split(" ")[0]
+        self.assertRegex(url, r"^http://127\.0\.0\.1:\d+/$")
+        self.assertTrue(self.up(url))
+        code, again = self.start()
+        self.assertIn(url, again["hookSpecificOutput"]["additionalContext"], "a second session reuses the running dashboard")
+
+    def test_stop_ends_it_and_removes_the_pointer_file(self):
+        url = self.start()[1]["hookSpecificOutput"]["additionalContext"].split("running at ")[1].split(" ")[0]
+        self.assertIn("stopped", tracker(self.p, "live", "--stop").stdout)
+        for _ in range(30):
+            if not self.up(url):
+                break
+            import time
+            time.sleep(0.2)
+        self.assertFalse(self.up(url))
+        self.assertFalse(os.path.exists(os.path.join(self.p, ".hyperskill", "live.json")))
+        self.assertIn("no live view", tracker(self.p, "live", "--stop").stdout)
+
+    def test_it_can_be_turned_off_per_project_or_per_shell(self):
+        tracker(self.p, "config", "--autolive", "off")
+        self.assertEqual(self.start(), (0, None))
+        tracker(self.p, "config", "--autolive", "on")
+        self.assertEqual(self.start({"HYPERSKILL_NO_LIVE": "1"}), (0, None))
+        self.assertFalse(os.path.exists(os.path.join(self.p, ".hyperskill", "live.json")))
+
+    def test_it_does_nothing_outside_a_project(self):
+        with tempfile.TemporaryDirectory() as d:
+            r = subprocess.run([sys.executable, HOOK, "start"], input=json.dumps({"cwd": d}), capture_output=True, text=True)
+            self.assertEqual((r.returncode, r.stdout.strip()), (0, ""))
+            self.assertFalse(os.path.exists(os.path.join(d, ".hyperskill")))
+
+    def test_a_stale_pointer_file_is_ignored(self):
+        with open(os.path.join(self.p, ".hyperskill", "live.json"), "w") as f:
+            json.dump({"pid": 999999, "port": 4777}, f)
+        self.assertIsNone(hs_live.read_live(self.p))
+        self.assertFalse(os.path.exists(os.path.join(self.p, ".hyperskill", "live.json")))
+
+
 class ControlApiTests(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()

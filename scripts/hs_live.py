@@ -15,6 +15,7 @@ import json
 import os
 import re
 import secrets
+import signal
 import subprocess
 import sys
 import threading
@@ -188,7 +189,12 @@ def make_handler(root, port, token=None):
         def log_message(self, *args):
             return  # quiet: the dashboard must not spam the terminal it was started from
 
+        def setup(self):
+            super().setup()
+            self.server.last_seen = time.time()
+
         def _send(self, status, body, ctype, extra=None):
+            self.server.last_seen = time.time()
             self.send_response(status)
             self.send_header("Content-Type", ctype)
             self.send_header("Content-Length", str(len(body)))
@@ -269,6 +275,7 @@ def make_handler(root, port, token=None):
             self.send_header("Connection", "keep-alive")
             self.end_headers()
             state_file = core.state_file(root)
+            self.server.streams += 1
 
             def mtime():
                 try:
@@ -287,6 +294,7 @@ def make_handler(root, port, token=None):
                 self._write("event: state\ndata: {}\n\n")
                 while True:
                     time.sleep(0.4)
+                    self.server.last_seen = time.time()
                     events, offset2 = activity.read_events(root, offset)
                     if events:
                         self._write_batch(events, offset2)
@@ -304,6 +312,8 @@ def make_handler(root, port, token=None):
                         last_beat = time.time()
             except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError):
                 return  # the browser tab was closed: that is the normal way for this stream to end
+            finally:
+                self.server.streams -= 1
 
         def _write(self, text):
             self.wfile.write(text.encode("utf-8"))
@@ -320,6 +330,8 @@ def make_handler(root, port, token=None):
 class Server(http.server.ThreadingHTTPServer):
     daemon_threads = True
     allow_reuse_address = True
+    streams = 0
+    last_seen = 0.0
 
 
 def make_server(root, port=4777, tries=10, controls=False):
@@ -336,18 +348,91 @@ def make_server(root, port=4777, tries=10, controls=False):
     raise OSError("no free port from %d to %d: %s" % (port, port + tries - 1, last))
 
 
-def serve(root, port=4777, open_browser=True, control=True):
+def live_file(root):
+    return os.path.join(root, ".hyperskill", "live.json")
+
+
+def read_live(root):
+    """The running dashboard of this project as {pid, port, url}, or None when there is none (a stale file is removed)."""
+    try:
+        with open(live_file(root), encoding="utf-8") as f:
+            info = json.load(f)
+        pid, port = int(info["pid"]), int(info["port"])
+        with open("/proc/%d/cmdline" % pid, "rb") as f:
+            cmd = f.read()
+        if b"hyperskill" not in cmd:
+            raise ValueError("pid reused")
+    except (OSError, ValueError, KeyError, TypeError):
+        try:
+            os.remove(live_file(root))
+        except OSError:
+            pass
+        return None
+    return {"pid": pid, "port": port, "url": "http://127.0.0.1:%d/" % port}
+
+
+def ensure(root, port=4777, idle_hours=4, wait=3.0):
+    """Start the dashboard in the background unless this project's is already running. Returns its URL, or None."""
+    info = read_live(root)
+    if info:
+        return info["url"]
+    argv = [sys.executable, os.path.join(_HERE, "hyperskill.py"), "--root", root, "live", "--no-open", "--port", str(port),
+            "--idle-hours", str(idle_hours)]
+    kw = {"start_new_session": True} if os.name != "nt" else {}
+    subprocess.Popen(argv, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, **kw)
+    end = time.time() + wait
+    while time.time() < end:
+        info = read_live(root)
+        if info:
+            return info["url"]
+        time.sleep(0.1)
+    return None
+
+
+def stop(root):
+    """Stop this project's dashboard. Returns True if one was running."""
+    info = read_live(root)
+    if not info:
+        return False
+    try:
+        os.kill(info["pid"], 15)
+    except OSError:
+        return False
+    return True
+
+
+def serve(root, port=4777, open_browser=True, control=True, idle_hours=0):
     core.load_state(root)  # fail early with the usual message when this is not a HyperSkill project
+    if read_live(root):
+        print("HyperSkill live view is already running: %s" % read_live(root)["url"])
+        return
     server, p = make_server(root, port, controls=control)
     url = "http://127.0.0.1:%d/" % p
-    print("HyperSkill live view: %s" % url)
+    os.makedirs(os.path.dirname(live_file(root)), exist_ok=True)
+    with open(live_file(root), "w", encoding="utf-8") as f:
+        json.dump({"pid": os.getpid(), "port": p, "started": activity.now()}, f)
+    print("HyperSkill live view: %s" % url, flush=True)
     print("Controls on (pass checks, advance, enable skills, pause, instruct Claude), this computer only. Press Ctrl+C to stop."
-          if control else "Read-only, this computer only. Press Ctrl+C to stop.")
+          if control else "Read-only, this computer only. Press Ctrl+C to stop.", flush=True)
     if open_browser:
         threading.Thread(target=lambda: webbrowser.open(url), daemon=True).start()
+    server.last_seen = time.time()
+    if idle_hours:
+        def watchdog():
+            while True:
+                time.sleep(30)
+                if server.streams == 0 and time.time() - server.last_seen > idle_hours * 3600:
+                    server.shutdown()
+                    return
+        threading.Thread(target=watchdog, daemon=True).start()
+    signal.signal(signal.SIGTERM, lambda *_: threading.Thread(target=server.shutdown, daemon=True).start())
     try:
         server.serve_forever()
     except KeyboardInterrupt:
         print("stopped")
     finally:
         server.server_close()
+        try:
+            os.remove(live_file(root))
+        except OSError:
+            pass

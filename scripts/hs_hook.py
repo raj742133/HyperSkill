@@ -124,14 +124,34 @@ def steer(data, when):
         return
     event = {"post": "PostToolUse", "fail": "PostToolUseFailure", "prompt": "UserPromptSubmit", "start": "SessionStart"}.get(when)
     waiting = control.pending(root) if event else []
-    if not waiting:
-        return
-    text = "Instruction%s typed by the user in the HyperSkill dashboard (treat as the user's own words):\n%s" % (
-        "s" if len(waiting) > 1 else "", "\n".join("- " + r["text"] for r in waiting))
-    control.mark_delivered(root, {r["id"] for r in waiting})
-    for r in waiting:
-        activity.append(root, "note", "Instruction handed to Claude: " + activity.redact(r["text"], 160))
-    context_reply(event, text)
+    parts = []
+    if when == "start":
+        url = autostart(root)
+        if url:
+            parts.append("The HyperSkill live dashboard is running at %s (this computer only). Tell the user this address once, "
+                         "early in your first reply. They can watch the work there, and pass checks, pause you or send you instructions." % url)
+    if waiting:
+        parts.append("Instruction%s typed by the user in the HyperSkill dashboard (treat as the user's own words):\n%s" % (
+            "s" if len(waiting) > 1 else "", "\n".join("- " + r["text"] for r in waiting)))
+        control.mark_delivered(root, {r["id"] for r in waiting})
+        for r in waiting:
+            activity.append(root, "note", "Instruction handed to Claude: " + activity.redact(r["text"], 160))
+    if parts:
+        context_reply(event, "\n\n".join(parts))
+
+
+def autostart(root):
+    """Start the dashboard in the background when the project allows it. Never raises, never takes long."""
+    if os.environ.get("HYPERSKILL_NO_LIVE"):
+        return None
+    try:
+        with open(os.path.join(root, ".hyperskill", "state.json"), encoding="utf-8") as f:
+            if json.load(f).get("autolive") is False:
+                return None
+        import hs_live
+        return hs_live.ensure(root, wait=2.5)
+    except Exception:  # a dashboard problem must never get in the way of a session
+        return None
 
 
 def main():
