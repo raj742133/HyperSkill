@@ -1,0 +1,49 @@
+/* Headline animations. --i is the index of the word or letter; the delay is capped so a long headline still finishes in ~1.4s. */
+.fx-split .fx-w { display: inline-block; white-space: nowrap; }
+.fx-split em { font-style: normal; }
+
+/* split words: slide up out of a mask */
+.fx-words .fx-w { overflow: hidden; vertical-align: bottom; padding-bottom: 0.08em; margin-bottom: -0.08em; }
+.fx-words .fx-wi { display: inline-block; transform: translateY(110%); animation: fx-word-up 0.75s var(--ease, cubic-bezier(0.215, 0.61, 0.355, 1)) both; animation-delay: min(calc(var(--i) * 70ms + 120ms), 1.2s); }
+@keyframes fx-word-up { to { transform: none; } }
+
+/* split letters: rise and fade */
+.fx-chars .fx-c { display: inline-block; opacity: 0; transform: translateY(0.55em) rotate(4deg); animation: fx-char-in 0.6s var(--ease, cubic-bezier(0.215, 0.61, 0.355, 1)) both; animation-delay: min(calc(var(--i) * 26ms + 120ms), 1.3s); }
+@keyframes fx-char-in { to { opacity: 1; transform: none; } }
+
+/* blur in */
+.fx-blurin .fx-w { margin-right: 0; }
+.fx-blurin .fx-wi { display: inline-block; opacity: 0; filter: blur(14px); transform: translateY(0.25em); animation: fx-blur-in 0.9s var(--ease, cubic-bezier(0.215, 0.61, 0.355, 1)) both; animation-delay: min(calc(var(--i) * 90ms + 100ms), 1.2s); }
+@keyframes fx-blur-in { to { opacity: 1; filter: none; transform: none; } }
+
+/* typewriter: every letter flips from hidden to visible at its own moment; no js needed */
+.fx-type .fx-c { visibility: hidden; animation: fx-type-on 0s linear both; animation-delay: min(calc(var(--i) * 45ms + 200ms), 2.6s); }
+@keyframes fx-type-on { to { visibility: visible; } }
+.fx-caret { display: inline-block; width: 0.06em; height: 0.9em; margin-left: 0.08em; vertical-align: -0.08em; background: var(--signal); animation: fx-caret 0.9s steps(1) infinite; }
+@keyframes fx-caret { 50% { opacity: 0; } }
+
+/* gradient accent */
+.fx-grad { background-image: linear-gradient(100deg, var(--primary), var(--signal), var(--primary)); background-size: 220% 100%; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; animation: fx-grad 6s linear infinite; }
+@keyframes fx-grad { to { background-position: -220% 0; } }
+
+/* shimmer: a band of light across the text */
+.fx-shim { background-image: linear-gradient(105deg, var(--ink) 38%, color-mix(in srgb, var(--signal) 70%, var(--ink)) 50%, var(--ink) 62%); background-size: 260% 100%; background-position: 130% 0; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; animation: fx-shim 4.8s ease-in-out infinite; }
+.fx-shim-acc { font-style: normal; background-image: linear-gradient(105deg, var(--primary) 38%, var(--signal) 50%, var(--primary) 62%); }
+@keyframes fx-shim { 0%, 12% { background-position: 130% 0; } 62%, 100% { background-position: -30% 0; } }
+
+/* decode (scramble): glyphs are monospaced-ish so the line does not jitter wildly */
+.fx-scr { font-variant-ligatures: none; }
+.fx-scr em { font-style: normal; }
+
+/* rotating word: every word shares one grid cell, so the width is the longest word's and never changes */
+.fx-rot { display: inline-grid; font-style: normal; vertical-align: bottom; overflow: hidden; padding-bottom: 0.08em; margin-bottom: -0.08em; }
+.fx-rot > span { grid-area: 1 / 1; transform: translateY(105%); opacity: 0; transition: transform 0.6s var(--ease, cubic-bezier(0.215, 0.61, 0.355, 1)), opacity 0.4s; }
+.fx-rot > span.on { transform: none; opacity: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  .fx-wi, .fx-c, .fx-grad, .fx-shim, .fx-caret { animation: none !important; }
+  .fx-wi, .fx-c { opacity: 1 !important; transform: none !important; filter: none !important; visibility: visible !important; }
+  .fx-caret { display: none; }
+  .fx-grad, .fx-shim { background-position: 0 0 !important; }
+  .fx-rot > span { transition: none; }
+}

@@ -1,0 +1,19 @@
+/* Extras. These are only present when the matching effect was chosen, because the elements are created by its js. */
+.fx-cursor {
+  position: fixed; left: 0; top: 0; width: 360px; height: 360px; z-index: 5; pointer-events: none; opacity: 0; transition: opacity 0.4s; will-change: transform;
+  background: radial-gradient(circle, color-mix(in srgb, var(--signal) 26%, transparent), transparent 62%); mix-blend-mode: plus-lighter;
+}
+:root:not([data-theme='dark']) .fx-cursor { mix-blend-mode: multiply; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme='light']) .fx-cursor { mix-blend-mode: plus-lighter; } }
+.fx-cursor.on { opacity: 1; }
+
+.fx-progress { position: fixed; left: 0; top: 0; right: 0; height: 3px; z-index: 200; pointer-events: none; transform: scaleX(0); transform-origin: 0 50%; transition: transform 0.08s linear;
+  background: linear-gradient(90deg, var(--primary), var(--signal)); }
+
+.fx-spark { position: fixed; z-index: 300; width: 7px; height: 7px; border-radius: 50%; pointer-events: none; background: var(--signal); box-shadow: 0 0 8px var(--signal); }
+.fx-spark:nth-child(odd) { background: var(--primary); box-shadow: 0 0 8px var(--primary); }
+
+/* count-up: the number is hidden until its script has mounted, with a css fallback so it still shows if the script never runs */
+[data-fx-pending] { visibility: hidden; animation: fx-show 0s linear 1.6s forwards; }
+@keyframes fx-show { to { visibility: visible; } }
+.fx-count { font-variant-numeric: tabular-nums; }

@@ -2,10 +2,24 @@
 
 HyperSkill is the **conductor**. External skills are **players**: they improve *how* a step is done, never *whether* it is done. Registry: `skills/hyperskill/integrations.json` (vetted facts, licences, risks, slot -> provider order). Tool: `hyperskill.py integrations ...`.
 
+## Orchestration: which skill, where, why (every phase)
+
+`skills/hyperskill/orchestration.json` says, per phase, which capability slots to consider, how much each matters (`core` = use unless you can state a reason not to, `situational` = only when its condition holds, `optional`), **when** to use it and **why**. `hyperskill.py skills` resolves that against the registry and what is installed:
+
+| Status | Meaning | What you do |
+|---|---|---|
+| ready | a provider is installed and allowed | use it |
+| pull | allowed and bundled in `packs/`, not installed | `skills pull ID --why ...` installs it for this phase only |
+| ASK USER | an opt-in provider | ask once, quoting its risks; after a yes, `skills pull ID --user-approved` |
+| USER INSTALLS | allowed but not bundled | tell the user the install command; never run a stranger's installer yourself |
+| fallback | nothing usable | use the slot's built-in fallback |
+
+Then record the decision, because the dashboard shows it and the next session reads it: `skills use SLOT --why ... [--provider ID]` or `skills skip SLOT --why ...`. `advance` warns about core lines nobody decided, releases packs pulled in the finished phase unless the next phase wants them, and prints the next phase's plan. Phase-scoped pulling keeps Claude's context small: only the skills a phase needs are loaded. The person can override any line from the dashboard (pull, mark used, skip).
+
 ## The protocol (every phase)
 
 1. **Resolve.** At phase start run `hyperskill.py integrations phase` (current phase). For each slot it prints the provider to use, or the built-in fallback, plus what could be installed.
-2. **Offer, once.** If an allowed-but-missing provider would help, ask **one** question for the phase listing each candidate with licence, install command and risks. Never install on your own: installing a skill means running a stranger's instructions (and sometimes hooks) with the user's privileges. Record the answer: `integrations enable|disable <id>`.
+2. **Offer, once.** If an allowed-but-missing provider would help, ask **one** question for the phase listing each candidate with licence, install command and risks. Never install on your own: installing a skill means running a stranger's instructions (and sometimes hooks) with the user's privileges. Record the answer: `integrations enable|disable <id>`. For a provider bundled in `packs/` (see `integrations list`, column `bundled`), `enable` copies its skills into the project's `.claude/skills` with no download, and `disable` removes exactly those; they are still a stranger's instructions, so the question is still asked once, and the dashboard's switch does the same thing.
 3. **Announce.** Tell the user which provider is steering which slot ("design-direction -> taste-skill; animation -> built-in fallback").
 4. **Capture artefacts.** Whatever the external skill produces must land in the repo as a file the gate can cite (audit report, JSON findings, screenshots, renders). The gate evidence names that file.
 5. **Gate stays ours.** Only `hyperskill.py gate` decides done. An external skill saying "all clear" is an input to the evidence, not the evidence.
@@ -26,7 +40,7 @@ HyperSkill is the **conductor**. External skills are **players**: they improve *
 | research | deep-research | deep-research skill | Multi-source sweep behind `docs/research.md` |
 | research | product-interrogation | gstack `/office-hours` (opt-in) | Pressure-test the idea before the interview |
 | research | video-analysis | `/watch` (opt-in) | Understand competitor/demo videos |
-| plan | coding-discipline | karpathy-skills | Add its four rules to `CLAUDE.md` |
+| plan | coding-discipline | karpathy-skills | On by default (`init`); the hook reads its four rules at every session start, so also copy them into `CLAUDE.md` for other tools |
 | plan | plan-review | gstack `/plan-*-review` (opt-in) | Extra reviewers on the design |
 | plan | ui-library-choice | emil `pick-ui-library` | Evidence for the component-library decision |
 | foundation | coding-discipline, code-review | karpathy, built-in `code-review` | Small surgical diffs; review each PR-sized change |

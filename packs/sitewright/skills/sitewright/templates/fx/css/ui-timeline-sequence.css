@@ -1,0 +1,12 @@
+.ui-timeline-sequence-root{display:flex;flex-direction:column;gap:8px;width:100%;color:var(--ink,currentColor);font-family:var(--font-body,system-ui,sans-serif)}
+.ui-timeline-sequence-row{display:flex;align-items:center;gap:6px;flex-wrap:nowrap}
+.ui-timeline-sequence-btn{font:600 12px/1 var(--font-body,system-ui,sans-serif);min-height:32px;padding:0 10px;border-radius:999px;border:1px solid var(--line-strong,rgba(128,128,128,.5));background:var(--raised,transparent);color:var(--ink,currentColor);cursor:pointer}
+.ui-timeline-sequence-btn:hover{border-color:var(--primary,#2563eb)}
+.ui-timeline-sequence-btn:focus-visible,.ui-timeline-sequence-focus:focus-visible,.ui-timeline-sequence-range:focus-visible{outline:2px solid var(--primary,#2563eb);outline-offset:2px}
+@media (pointer:coarse){.ui-timeline-sequence-btn{min-height:44px;padding:0 16px}}
+.ui-timeline-sequence-range{flex:1;min-width:30px;accent-color:var(--primary,#2563eb);min-height:24px}
+@media (pointer:coarse){.ui-timeline-sequence-range{min-height:44px}}
+.ui-timeline-sequence-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.ui-timeline-sequence-stage{position:relative;height:84px;border-radius:var(--radius,12px);border:1px solid var(--line,rgba(128,128,128,.3));background:var(--surface,transparent);overflow:hidden}
+.ui-timeline-sequence-shape{position:absolute;top:50%;width:30px;height:30px;margin-top:-15px}
+.ui-timeline-sequence-time{font:600 11px var(--font-mono,ui-monospace,monospace);color:var(--muted,#6b7280);text-align:right;white-space:nowrap}

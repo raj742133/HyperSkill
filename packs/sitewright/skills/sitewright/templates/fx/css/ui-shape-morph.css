@@ -1,0 +1,11 @@
+.ui-shape-morph-root{display:flex;flex-direction:column;gap:8px;width:100%;color:var(--ink,currentColor);font-family:var(--font-body,system-ui,sans-serif)}
+.ui-shape-morph-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ui-shape-morph-btn{font:600 12px/1 var(--font-body,system-ui,sans-serif);min-height:32px;padding:0 12px;border-radius:999px;border:1px solid var(--line-strong,rgba(128,128,128,.5));background:var(--raised,transparent);color:var(--ink,currentColor);cursor:pointer}
+.ui-shape-morph-btn:hover{border-color:var(--primary,#2563eb)}
+.ui-shape-morph-btn:focus-visible,.ui-shape-morph-focus:focus-visible,.ui-shape-morph-range:focus-visible{outline:2px solid var(--primary,#2563eb);outline-offset:2px}
+@media (pointer:coarse){.ui-shape-morph-btn{min-height:44px;padding:0 16px}}
+.ui-shape-morph-range{flex:1;min-width:80px;accent-color:var(--primary,#2563eb);min-height:24px}
+@media (pointer:coarse){.ui-shape-morph-range{min-height:44px}}
+.ui-shape-morph-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.ui-shape-morph-stage{display:grid;place-items:center;background:var(--primary-wash,rgba(37,99,235,.1));border:1px solid var(--line,rgba(128,128,128,.3));border-radius:var(--radius,12px);padding:4px;cursor:pointer;color:inherit}
+.ui-shape-morph-stage svg{width:92px;height:92px;display:block}

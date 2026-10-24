@@ -1,0 +1,78 @@
+/* Shared by the chart components (ui-chart-*). Series colours follow the brand: --primary, --signal and tints of them. */
+.ui-chart {
+  --ui-chart-c1: var(--primary, #2563eb);
+  --ui-chart-c2: var(--signal, #f59e0b);
+  --ui-chart-c3: color-mix(in srgb, var(--primary, #2563eb) 50%, var(--signal, #f59e0b));
+  --ui-chart-c4: color-mix(in srgb, var(--primary, #2563eb) 55%, var(--ink, #111));
+  --ui-chart-c5: color-mix(in srgb, var(--signal, #f59e0b) 55%, var(--ink, #111));
+  --ui-chart-c6: color-mix(in srgb, var(--primary, #2563eb) 40%, var(--muted, #888));
+  --ui-chart-up: var(--ok, #16a34a);
+  --ui-chart-down: var(--critical, #dc2626);
+  position: relative; margin: 0; width: 100%; min-width: 0;
+  font-family: var(--font-body, system-ui, sans-serif); font-size: 12px; color: var(--ink, #111);
+}
+.ui-chart-plot { position: relative; touch-action: pan-y; border-radius: 6px; cursor: crosshair; }
+.ui-chart-plot:focus { outline: none; }
+.ui-chart-plot:focus-visible { outline: 2px solid var(--primary, #2563eb); outline-offset: 2px; }
+.ui-chart svg { display: block; overflow: visible; max-width: 100%; }
+.ui-chart-grid { stroke: var(--line, rgba(128,128,128,.25)); stroke-width: 1; shape-rendering: crispEdges; }
+.ui-chart-axis { stroke: var(--line-strong, rgba(128,128,128,.5)); stroke-width: 1; shape-rendering: crispEdges; }
+.ui-chart-tick { fill: var(--muted, #667); font-size: 10.5px; font-variant-numeric: tabular-nums; }
+.ui-chart-tick[data-on] { fill: var(--ink, #111); font-weight: 600; }
+.ui-chart-axis-title { fill: var(--muted, #667); font-size: 10.5px; font-weight: 600; letter-spacing: .02em; }
+.ui-chart-cross { stroke: var(--muted, #667); stroke-width: 1; stroke-dasharray: 3 3; pointer-events: none; }
+.ui-chart-dot { stroke: var(--surface, #fff); stroke-width: 2; pointer-events: none; }
+.ui-chart-value { fill: var(--ink, #111); font-size: 10.5px; font-weight: 600; text-anchor: middle; pointer-events: none; font-variant-numeric: tabular-nums; }
+.ui-chart-sw { display: inline-block; width: 9px; height: 9px; border-radius: 3px; flex: none; }
+
+.ui-chart-legend { list-style: none; display: flex; flex-wrap: wrap; gap: 4px 6px; margin: 0 0 6px; padding: 0; }
+.ui-chart-legend-item, .ui-chart-legend-btn { display: inline-flex; align-items: center; gap: 6px; font: inherit; color: var(--ink, #111); padding: 2px 6px; }
+.ui-chart-legend-btn { background: none; border: 1px solid var(--line, rgba(128,128,128,.3)); border-radius: 999px; cursor: pointer; min-height: 28px; }
+.ui-chart-legend-btn:hover { background: var(--raised-2, rgba(128,128,128,.12)); }
+.ui-chart-legend-btn:focus-visible { outline: 2px solid var(--primary, #2563eb); outline-offset: 2px; }
+.ui-chart-legend li[data-off] .ui-chart-legend-btn { color: var(--muted, #667); text-decoration: line-through; }
+.ui-chart-legend li[data-off] .ui-chart-sw { opacity: .35; }
+
+.ui-chart-tip {
+  --tx: -50%; --ty: calc(-100% - 12px);
+  position: absolute; z-index: 3; pointer-events: none; white-space: nowrap; display: grid; gap: 2px;
+  padding: 6px 9px; border-radius: 8px; font-size: 12px; line-height: 1.35; color: var(--ink, #111);
+  background: var(--raised-2, var(--raised, #fff)); border: 1px solid var(--line-strong, rgba(128,128,128,.4));
+  box-shadow: var(--shadow, 0 6px 18px rgba(0,0,0,.18)); transform: translate(var(--tx), var(--ty));
+}
+.ui-chart-tip[data-h='l'] { --tx: -10px; }
+.ui-chart-tip[data-h='r'] { --tx: calc(-100% + 10px); }
+.ui-chart-tip[data-v='b'] { --ty: 14px; }
+.ui-chart-tip-title { font-weight: 650; }
+.ui-chart-tip-row { display: flex; align-items: center; gap: 6px; }
+.ui-chart-tip-k { color: var(--muted, #667); }
+.ui-chart-tip-v { margin-left: auto; padding-left: 10px; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+.ui-chart-btn { font: inherit; font-size: 12px; color: var(--ink, #111); background: var(--raised, transparent); border: 1px solid var(--line-strong, rgba(128,128,128,.4)); border-radius: 999px; padding: 3px 12px; min-height: 28px; cursor: pointer; }
+.ui-chart-btn:hover { background: var(--raised-2, rgba(128,128,128,.12)); }
+.ui-chart-btn:focus-visible { outline: 2px solid var(--primary, #2563eb); outline-offset: 2px; }
+.ui-chart-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+.ui-chart-live { font-variant-numeric: tabular-nums; font-weight: 650; }
+.ui-chart-pulse { width: 7px; height: 7px; border-radius: 50%; background: var(--ui-chart-up); display: inline-block; margin-right: 6px; animation: ui-chart-pulse 1.4s ease-in-out infinite; }
+
+.ui-chart-sr { position: absolute !important; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; border: 0; }
+
+/* Entrance: only when the script has armed it (data-anim) so the no-JS / reduced-motion state is the finished chart. */
+.ui-chart[data-anim] .ui-chart-draw { stroke-dasharray: 1; stroke-dashoffset: 1; }
+.ui-chart[data-anim][data-go] .ui-chart-draw { animation: ui-chart-draw 1.1s var(--ease, ease) forwards; }
+.ui-chart[data-anim] .ui-chart-fade { opacity: 0; }
+.ui-chart[data-anim][data-go] .ui-chart-fade { animation: ui-chart-fade .7s var(--ease, ease) .25s forwards; }
+.ui-chart[data-anim] .ui-chart-grow, .ui-chart[data-anim] .ui-chart-growx { transform: scale(1, 0); }
+.ui-chart[data-anim] .ui-chart-growx { transform: scale(0, 1); }
+.ui-chart-grow { transform-box: fill-box; transform-origin: 50% 100%; }
+.ui-chart-growx { transform-box: fill-box; transform-origin: 0 50%; }
+.ui-chart[data-anim][data-go] .ui-chart-grow, .ui-chart[data-anim][data-go] .ui-chart-growx { animation: ui-chart-grow .7s var(--ease, ease) calc(var(--d, 0) * 40ms) forwards; }
+@keyframes ui-chart-draw { to { stroke-dashoffset: 0; } }
+@keyframes ui-chart-fade { to { opacity: 1; } }
+@keyframes ui-chart-grow { to { transform: scale(1, 1); } }
+@keyframes ui-chart-pulse { 50% { opacity: .35; } }
+@media (prefers-reduced-motion: reduce) {
+  .ui-chart *, .ui-chart-pulse { animation: none !important; transition: none !important; }
+  .ui-chart .ui-chart-draw { stroke-dashoffset: 0 !important; } .ui-chart .ui-chart-fade { opacity: 1 !important; } .ui-chart .ui-chart-grow, .ui-chart .ui-chart-growx { transform: none !important; }
+}
+@media (pointer: coarse), (max-width: 700px) { .ui-chart-legend-btn, .ui-chart-btn { min-height: 44px; padding-inline: 12px; } }

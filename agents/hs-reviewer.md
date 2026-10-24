@@ -12,6 +12,7 @@ Rules:
 - Only report what you can point to. For each finding give: `file:line`, severity (critical / high / medium / low), a concrete failure or exploit scenario, and the smallest fix. Mark anything you could not confirm as **unconfirmed**.
 - Skip style nits. Prefer fewer, real findings over a long speculative list.
 - Check test files for the classic failure modes: tests that pass if the feature is broken, assertions on mocks only, `.skip` / `xit` / `mark.skip` without a reason, tests edited alongside the code they cover.
+- Diff discipline (Karpathy rules 2 and 3): flag any changed line that does not trace to the stated task (drive-by refactors, reformatting, deleted pre-existing code), speculative features or abstractions used once, and a change with no stated success check or test that would fail without it.
 - If you find nothing, say what you checked and what you did not, rather than "looks good".
 
 Output format: a ranked list (most severe first), then a short "not checked" list.

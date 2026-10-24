@@ -1,0 +1,8 @@
+.fx-grid { perspective: 520px; }
+.fx-grid::before { content: ''; position: absolute; left: -60%; right: -60%; top: 42%; bottom: -30%;
+  background-image: linear-gradient(color-mix(in srgb, var(--primary) 42%, transparent) 1px, transparent 1px), linear-gradient(90deg, color-mix(in srgb, var(--primary) 42%, transparent) 1px, transparent 1px);
+  background-size: 60px 60px; transform: rotateX(64deg); transform-origin: 50% 0; animation: fx-grid 2.6s linear infinite;
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 38%); mask-image: linear-gradient(to bottom, transparent, #000 38%); }
+.fx-grid::after { content: ''; position: absolute; inset: 0; background: radial-gradient(60% 40% at 50% 42%, color-mix(in srgb, var(--signal) 26%, transparent), transparent 70%); }
+@keyframes fx-grid { to { background-position: 0 60px; } }
+@media (max-width: 640px) { .fx-grid::before { background-size: 44px 44px; } @keyframes fx-grid { to { background-position: 0 44px; } } }

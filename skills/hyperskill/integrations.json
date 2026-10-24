@@ -678,6 +678,30 @@
         "the 3D mode is marked beta by the original author",
         "builds are long: its own guidance quotes hours for larger figures, so agree the size with the owner first"
       ]
+    },
+    "sitewright": {
+      "name": "Sitewright (the owner's own skill, bundled in packs/sitewright)",
+      "repo": "raj742133/sitewright",
+      "kind": "skill",
+      "license": "MIT",
+      "policy": "opt-in",
+      "install": [
+        "hyperskill.py integrations enable sitewright   (bundled pack, no download)",
+        "or standalone: git clone https://github.com/raj742133/sitewright && cd sitewright && ./install.sh"
+      ],
+      "detect": {
+        "skills": [
+          "sitewright"
+        ]
+      },
+      "provides": "Generates a complete Next.js 15 site from picked modules (landing, sign-in, MFA accounts, publishing, dashboard, connect-a-phone, ingest API) from one site.json, with motion, icons and ready-made components, then drives it in headless Chromium at 1280, 390 and 360 px. Written by the project owner; read at README and site level, its scripts were not audited line by line.",
+      "risks": [
+        "it generates a whole app and backend: choose it in the plan phase, before the stack is decided, or it will fight your own architecture",
+        "generated code is a starting point: the foundation, product, ship and harden gates still apply (auth, tenant scoping, validation, rate limits)",
+        "its templates fetch fonts from Google Fonts and icons from api.iconify.design, and the browser checks need Chromium: review that against your privacy and CSP decisions",
+        "sign-in and MFA modules ship development-only passwords and secrets in .env.local: replace them before any deploy",
+        "bundles Hairline (MIT, Lucas Marques) figures: keep packs/sitewright/THIRD_PARTY_NOTICES.md with it"
+      ]
     }
   },
   "slots": {
@@ -882,6 +906,12 @@
         "hyperfigure"
       ],
       "fallback": "a plain Mermaid or hand-written SVG diagram, with no interaction (see the diagramming guidance for artifacts)"
+    },
+    "site-scaffold": {
+      "providers": [
+        "sitewright"
+      ],
+      "fallback": "hand-written pages and routes following the hs-product design-system and the plan's architecture"
     }
   }
 }

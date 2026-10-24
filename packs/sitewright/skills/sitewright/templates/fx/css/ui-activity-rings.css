@@ -1,0 +1,15 @@
+.ui-activity-rings { display: flex; align-items: center; gap: 12px; margin: 0; color: var(--ink, #111); font-family: var(--font-body, system-ui, sans-serif); }
+.ui-activity-rings-svg { width: 96px; height: 96px; flex: none; }
+.ui-activity-rings-side { flex: 1; min-width: 0; display: grid; gap: 8px; }
+.ui-activity-rings-legend { list-style: none; margin: 0; padding: 0; display: grid; gap: 5px; font-size: 12px; }
+.ui-activity-rings-legend li { display: grid; grid-template-columns: 8px 1fr auto; align-items: center; gap: 6px; }
+.ui-activity-rings-dot { width: 8px; height: 8px; border-radius: 50%; }
+.ui-activity-rings-name { color: var(--muted, #555); }
+.ui-activity-rings-val { font-family: var(--font-mono, ui-monospace, monospace); font-weight: 600; }
+.ui-activity-rings-val span { color: var(--muted, #555); font-weight: 400; }
+.ui-activity-rings-replay { justify-self: start; display: inline-flex; align-items: center; gap: 5px; font: inherit; font-size: 12px; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line-strong, #bbb); background: var(--raised, #fff); color: var(--ink, #111); cursor: pointer; }
+.ui-activity-rings-replay:hover:not(:disabled) { background: var(--raised-2, #f3f3f3); }
+.ui-activity-rings-replay:disabled { opacity: .5; cursor: default; }
+.ui-activity-rings-replay:focus-visible { outline: 2px solid var(--primary, #2563eb); outline-offset: 2px; }
+@media (pointer: coarse) { .ui-activity-rings-replay { min-height: 44px; padding: 4px 16px; } }
+@media (prefers-reduced-motion: reduce) { .ui-activity-rings-svg * { transition: none !important; } }

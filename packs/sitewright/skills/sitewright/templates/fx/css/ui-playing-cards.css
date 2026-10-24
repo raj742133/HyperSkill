@@ -1,0 +1,31 @@
+.ui-playing-cards { --ui-pc-w: 54px; --ui-pc-h: 78px; position: relative; display: flex; align-items: flex-end; justify-content: center; gap: 10px; width: 100%; max-width: 280px; height: 128px; margin: 0 auto; font-family: var(--font-body, inherit); }
+.ui-playing-cards-hand { position: relative; flex: 0 0 64%; height: 100%; }
+.ui-playing-cards-slot {
+  position: absolute; left: calc(50% - var(--ui-pc-w) / 2); bottom: 12px; width: var(--ui-pc-w); height: var(--ui-pc-h); padding: 0; border: 0; border-radius: 7px; background: none; cursor: pointer;
+  transform-origin: 50% 130%; transform: translate(var(--ui-pc-x), var(--ui-pc-y)) rotate(var(--ui-pc-r)); transition: transform 0.28s cubic-bezier(0.34, 1.5, 0.5, 1); -webkit-tap-highlight-color: transparent;
+}
+.ui-playing-cards-slot[data-up] { transform: translate(var(--ui-pc-x), calc(var(--ui-pc-y) - 20px)) rotate(calc(var(--ui-pc-r) * 0.5)); }
+.ui-playing-cards-slot:focus-visible { outline: 3px solid var(--signal, #f59e0b); outline-offset: 3px; }
+.ui-playing-cards-card {
+  position: relative; display: block; box-sizing: border-box; width: var(--ui-pc-w); height: var(--ui-pc-h); border-radius: 7px; border: 1px solid #b9b4a6; background: #fbfaf6; color: #1c1b19;
+  box-shadow: 0 3px 8px -2px rgba(0, 0, 0, 0.4); user-select: none;
+}
+.ui-playing-cards-card[data-red] { color: #b91c1c; }
+.ui-playing-cards-card[data-back] {
+  border: 3px solid #fbfaf6; background: repeating-linear-gradient(45deg, var(--primary, #2563eb) 0 4px, color-mix(in srgb, var(--primary, #2563eb) 70%, #000) 4px 8px);
+}
+.ui-playing-cards-corner { position: absolute; top: 4px; left: 5px; display: flex; flex-direction: column; align-items: center; gap: 1px; font: 700 13px/1 var(--font-body, system-ui, sans-serif); }
+.ui-playing-cards-corner b { font-weight: 700; }
+.ui-playing-cards-corner-b { top: auto; left: auto; bottom: 4px; right: 5px; transform: rotate(180deg); }
+.ui-playing-cards-pip { position: absolute; inset: 0; display: grid; place-items: center; }
+.ui-playing-cards-table { position: relative; display: grid; place-items: center; flex: 1; height: calc(var(--ui-pc-h) + 12px); margin-bottom: 0; border: 1.5px dashed var(--line-strong, #94a3b8); border-radius: 10px; color: var(--muted, #475569); font-size: 0.7rem; }
+.ui-playing-cards-table .ui-playing-cards-card { --ui-pc-w: 46px; --ui-pc-h: 66px; }
+.ui-playing-cards-played { animation: ui-playing-cards-drop 0.4s cubic-bezier(0.34, 1.5, 0.5, 1) both; rotate: 5deg; }
+.ui-playing-cards-again {
+  position: absolute; left: 50%; top: 50%; translate: -50% -50%; min-height: 44px; padding: 0 1rem; border: 1px solid var(--line-strong, #94a3b8); border-radius: var(--radius, 10px);
+  background: var(--raised, transparent); color: var(--ink, inherit); font: 600 0.85rem var(--font-body, inherit); cursor: pointer;
+}
+.ui-playing-cards-again:focus-visible { outline: 3px solid var(--signal, #f59e0b); outline-offset: 2px; }
+.ui-playing-cards-sr { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+@keyframes ui-playing-cards-drop { from { transform: translate(-70px, 24px) scale(1.15); opacity: 0.2; } }
+@media (prefers-reduced-motion: reduce) { .ui-playing-cards-slot { transition: none; } .ui-playing-cards-played { animation: none; } }

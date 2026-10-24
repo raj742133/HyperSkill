@@ -1,0 +1,29 @@
+.ui-ai-input { position: relative; font-family: var(--font-body, system-ui, sans-serif); color: var(--ink, #111); }
+.ui-ai-input-box { position: relative; border: 1px solid var(--line-strong, #bbb); border-radius: var(--radius, 12px); background: var(--raised, #fff); transition: border-color .15s, box-shadow .15s; }
+.ui-ai-input[data-over] .ui-ai-input-box { border-color: var(--primary, #2563eb); box-shadow: 0 0 0 3px var(--primary-wash, rgba(37,99,235,.18)); }
+.ui-ai-input-box:focus-within { border-color: var(--primary, #2563eb); }
+.ui-ai-input-row { display: flex; align-items: center; gap: 2px; padding: 4px; }
+.ui-ai-input-field { flex: 1; min-width: 0; font: inherit; font-size: 14px; color: var(--ink, #111); background: transparent; border: 0; padding: 8px 6px; }
+.ui-ai-input-field::placeholder { color: var(--muted, #555); opacity: 1; }
+.ui-ai-input-field:focus-visible { outline: 2px solid var(--primary, #2563eb); outline-offset: 0; border-radius: 6px; }
+.ui-ai-input-icon { flex: none; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; border: 0; background: transparent; color: var(--muted, #555); cursor: pointer; }
+.ui-ai-input-icon:hover:not(:disabled) { background: var(--raised-2, #f0f0f0); color: var(--ink, #111); }
+.ui-ai-input-send { background: var(--primary, #2563eb); color: var(--on-primary, #fff); }
+.ui-ai-input-send:hover:not(:disabled) { background: var(--primary, #2563eb); color: var(--on-primary, #fff); filter: brightness(1.1); }
+.ui-ai-input-send:disabled { opacity: .4; cursor: default; }
+.ui-ai-input-icon:focus-visible, .ui-ai-input-chip button:focus-visible { outline: 2px solid var(--primary, #2563eb); outline-offset: 2px; }
+@media (pointer: coarse) { .ui-ai-input-icon { width: 44px; height: 44px; } .ui-ai-input-chip button { min-width: 44px; min-height: 44px; } }
+.ui-ai-input-chips { list-style: none; margin: 0; padding: 6px 8px 0; display: flex; flex-wrap: wrap; gap: 4px; }
+.ui-ai-input-chip { display: inline-flex; align-items: center; max-width: 100%; border-radius: 999px; background: var(--raised-2, #eee); border: 1px solid var(--line, #ddd); font-size: 12px; padding-left: 9px; }
+.ui-ai-input-chip[data-kind="command"] { background: var(--primary-wash, #e0e9ff); font-family: var(--font-mono, monospace); }
+.ui-ai-input-chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 130px; }
+.ui-ai-input-chip button { border: 0; background: transparent; color: var(--muted, #555); font-size: 16px; line-height: 1; padding: 2px 8px; cursor: pointer; border-radius: 999px; }
+.ui-ai-input-chip button:hover { color: var(--ink, #111); }
+.ui-ai-input-menu { position: absolute; z-index: 5; left: 0; right: 0; top: calc(100% + 4px); margin: 0; padding: 4px; list-style: none; border: 1px solid var(--line-strong, #bbb); border-radius: 10px; background: var(--raised, #fff); box-shadow: var(--shadow-lift, 0 8px 24px rgba(0,0,0,.18)); }
+.ui-ai-input-menu[hidden] { display: none; }
+.ui-ai-input-menu li { display: flex; gap: 8px; align-items: baseline; padding: 6px 8px; border-radius: 6px; font-size: 13px; cursor: pointer; }
+.ui-ai-input-menu li strong { font-family: var(--font-mono, monospace); font-weight: 600; }
+.ui-ai-input-menu li span { color: var(--muted, #555); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ui-ai-input-menu li[data-active] { background: var(--primary-wash, #e0e9ff); }
+.ui-ai-input-hint { margin: 6px 4px 0; font-size: 11px; color: var(--muted, #555); }
+.ui-ai-input-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }

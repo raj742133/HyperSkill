@@ -1,0 +1,30 @@
+/* Figures: interactive isometric line drawings placed in named spots of the site. They take the site's own colours:
+   the plate is the surface they sit on, the bright stroke is the brand colour, the rest are tints of the text colour. */
+[data-hairline] {
+  --hairline-plate: var(--surface);
+  --hairline-hi: var(--primary);
+  --hairline-edge: color-mix(in srgb, var(--ink) 52%, var(--surface));
+  --hairline-mid: color-mix(in srgb, var(--ink) 26%, var(--surface));
+  --hairline-lo: color-mix(in srgb, var(--ink) 13%, var(--surface));
+  --hairline-stroke: 1;
+}
+.fx-fig { aspect-ratio: 5 / 4; width: 100%; margin-inline: auto; }
+.card [data-hairline], .login-card [data-hairline] { --hairline-plate: var(--raised); }
+
+/* where they sit */
+.fx-fig-hero { max-width: 540px; }
+.fx-fig-releases { max-width: 320px; margin: 18px 0 0; }
+.fx-fig-signin, .fx-fig-mfa { max-width: 190px; margin: -10px auto -14px; }
+.fx-fig-connect { max-width: 190px; margin: 0 auto 6px; }
+.fx-fig-empty { max-width: 230px; margin: -10px auto 6px; }
+.fx-fig-notfound { max-width: 340px; margin: 0 auto 8px; }
+
+/* the hero: the figure above the mark, and the mark (where the road starts) smaller beneath it */
+.lp-art:has(.fx-fig-hero) { align-content: center; gap: 0; min-height: 0; }
+.lp-art:has(.fx-fig-hero) .lp-mark-box { width: 120px; height: 120px; margin-top: -6px; }
+/* the connect page: in a column of its own beside the title on a wide screen (the title wraps beside it, never under it), above the title on a narrow one */
+@media (min-width: 900px) {
+  .hero:has(> .fx-fig-connect) { display: grid; grid-template-columns: minmax(0, 1fr) 230px; column-gap: 28px; align-items: center; max-width: none; }
+  .hero:has(> .fx-fig-connect) > :not(.fx-fig-connect) { grid-column: 1; }
+  .hero:has(> .fx-fig-connect) > .fx-fig-connect { grid-column: 2; grid-row: 1 / span 4; width: 230px; max-width: none; margin: 0; }
+}

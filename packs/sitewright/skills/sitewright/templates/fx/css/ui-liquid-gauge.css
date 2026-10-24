@@ -1,0 +1,8 @@
+.ui-liquid-gauge { position: relative; flex: none; cursor: ew-resize; user-select: none; -webkit-user-select: none; border-radius: var(--radius, 12px); }
+.ui-liquid-gauge:focus-visible { outline: 2px solid var(--primary, #2563eb); outline-offset: 3px; }
+.ui-liquid-gauge-num { font: 700 22px var(--font-body, system-ui); fill: var(--ink, #111); paint-order: stroke; stroke: var(--surface, #fff); stroke-width: 3px; stroke-linejoin: round; }
+.ui-liquid-gauge-label { font: 600 9.5px var(--font-body, system-ui); fill: var(--ink, #111); paint-order: stroke; stroke: var(--surface, #fff); stroke-width: 2.5px; stroke-linejoin: round; }
+.ui-liquid-gauge-btn { min-width: 44px; min-height: 36px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--line-strong, #bbb); background: var(--raised, #f3f4f6); color: var(--ink, #111); font: 600 13px var(--font-body, system-ui); cursor: pointer; }
+.ui-liquid-gauge-btn[aria-pressed='true'] { background: var(--primary, #2563eb); border-color: var(--primary, #2563eb); color: var(--on-primary, #fff); }
+.ui-liquid-gauge-btn:focus-visible { outline: 2px solid var(--primary, #2563eb); outline-offset: 2px; }
+@media (pointer: coarse) { .ui-liquid-gauge-btn { min-height: 44px; } }

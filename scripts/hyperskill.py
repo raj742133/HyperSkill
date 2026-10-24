@@ -6,7 +6,7 @@ resume. A phase may only be advanced once every gate item is either passed
 (with evidence) or waived (with a reason). Standard library only.
 
 Usage:
-  hyperskill.py init [--name NAME] [--force] [--noncommercial] [--tenancy organization|user|none] [--unavailable LIST]
+  hyperskill.py init [--name NAME] [--force] [--no-karpathy] [--noncommercial] [--tenancy organization|user|none] [--unavailable LIST]
   hyperskill.py config [--tenancy T] [--unavailable LIST|none]   change tenancy / what this environment lacks
   hyperskill.py status [--json]
   hyperskill.py gate PHASE                          show gate items and their state
@@ -21,11 +21,24 @@ Usage:
   hyperskill.py log TEXT
   hyperskill.py event TEXT [--kind building|testing|reviewing|waiting|done]
                                                     tell the live view what is happening right now
-  hyperskill.py live [--port 4777]                  open the live dashboard (read-only, 127.0.0.1 only)
+  hyperskill.py brief [show|set --file F|finding add ...|req add ...|resolve ID --state S]   the pasted idea, gaps and conflicts, your answers
+  hyperskill.py place [list|add ITEM --where W --why T|check --close]   where each picked component or figure is used, and proof it is
+  hyperskill.py catalog [list|select|unselect|brief|sitewright] [IDS] [--group G --all|--recommended]
+                                                    pick what to use (Sitewright parts, styles, checks, add-ons); the picks reach the build
+  hyperskill.py extras [list|done ID --evidence T|waive ID --reason T]   the checks that came from your picks
+  hyperskill.py skills [list] [--phase P] [--json]  what each phase should use, when and why (the skill plan)
+  hyperskill.py skills pull ID [--why T] [--user-approved]   install a bundled skill for this phase (opt-in ones need the user's yes)
+  hyperskill.py skills use|skip SLOT --why TEXT     record the decision for the phase;  skills release [PHASE]
+  hyperskill.py live [--port 4777] [--read-only]    open the live dashboard (127.0.0.1 only; it can also control the flow)
+  hyperskill.py live --ensure | --stop              start it in the background (what the session hook does) / stop it
+  hyperskill.py config --autolive on|off            start the dashboard automatically when a session opens (default on)
+  hyperskill.py pause | resume                      stop / allow Claude's file writes and commands (needs the plugin hook)
+  hyperskill.py say TEXT                            queue an instruction that Claude receives on its next step
   hyperskill.py integrations [list] [--json]        vetted external skills and what is installed
   hyperskill.py integrations resolve SLOT [--json]  which provider to use for a capability slot
   hyperskill.py integrations phase [PHASE]          resolve every slot of a phase
-  hyperskill.py integrations enable|disable ID      opt a provider in / out for this project
+  hyperskill.py integrations enable|disable ID|--all [--include-opt-in]
+                                                    opt a provider in / out; bundled ones are installed into .claude/skills
 
 Use --root DIR to point at the project (default: current directory).
 """
@@ -42,6 +55,10 @@ import sys
 _HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, _HERE)
 import hs_activity as activity  # noqa: E402  (shared with the plugin hook and the live dashboard)
+import hs_control as control  # noqa: E402
+import hs_skills as skills  # noqa: E402
+import hs_catalog as cat  # noqa: E402
+import hs_brief as brief  # noqa: E402
 GATES_PATH = os.path.join(_HERE, "..", "skills", "hyperskill", "gates.json")
 INTEGRATIONS_PATH = os.path.join(_HERE, "..", "skills", "hyperskill", "integrations.json")
 
@@ -175,18 +192,30 @@ def cmd_init(args):
         "log": [],
     }
     st["phases"][phases[0]["id"]]["status"] = "active"
+    if not args.no_karpathy:  # the coding rules are tiny (one 3 KB skill) and are meant to be always on, so they are the one default
+        st["integrations"]["enabled"].append(DEFAULT_ON)
+        install_pack(args.root, st, DEFAULT_ON)
     save_state(args.root, st)
     activity.append(args.root, "init", "Started %s: %s, tenancy %s" % (st["name"], "commercial" if st["commercial"] else "non-commercial", st["tenancy"]),
                     phase=st["current"], unavailable=",".join(st["unavailable"]) or None)
     print("initialised %s (%s, tenancy: %s%s); current phase: %s"
           % (st["name"], "commercial" if st["commercial"] else "non-commercial", st["tenancy"],
              ", unavailable: " + ",".join(st["unavailable"]) if st["unavailable"] else "", st["current"]))
+    if not args.no_karpathy:
+        print("coding rules on: Karpathy guidelines installed and read at every session start (turn off: integrations disable %s)" % DEFAULT_ON)
 
 
 def cmd_config(args):
     st = load_state(args.root)
+    if args.autolive is not None:
+        st["autolive"] = args.autolive == "on"
+        save_state(args.root, st)
+        activity.append(args.root, "config", "Dashboard auto-start " + args.autolive)
+        print("autolive: " + args.autolive)
+        if args.tenancy is None and args.unavailable is None:
+            return
     if args.tenancy is None and args.unavailable is None:
-        print("tenancy: %s\nunavailable: %s" % (st["tenancy"], ", ".join(st["unavailable"]) or "(nothing)"))
+        print("tenancy: %s\nunavailable: %s\nautolive: %s" % (st["tenancy"], ", ".join(st["unavailable"]) or "(nothing)", "on" if st.get("autolive", True) else "off"))
         return
     if args.tenancy is not None:
         st["tenancy"] = check_tenancy(args.tenancy)
@@ -330,6 +359,21 @@ def cmd_advance(args):
         activity.append(args.root, "refused", "Cannot leave %s: %d check%s still open" % (cur["id"], len(open_ids), "" if len(open_ids) == 1 else "s"),
                         phase=cur["id"], open=",".join(open_ids))
         die("gate not clear for '%s'. Open items: %s" % (cur["id"], ", ".join(open_ids)))
+    waiting = brief.open_blocking(st)
+    if waiting:
+        activity.append(args.root, "refused", "Cannot leave %s: %d question%s about the brief still open" % (cur["id"], len(waiting), "" if len(waiting) == 1 else "s"),
+                        phase=cur["id"], open=",".join(waiting))
+        die("the user has not answered these gaps or conflicts in the brief yet: %s. They answer in the dashboard (or `brief resolve ID ...`); "
+            "do not assume the answer." % ", ".join(waiting))
+    open_x = cat.open_extras(st, cur["id"])
+    if open_x:
+        activity.append(args.root, "refused", "Cannot leave %s: %d selected check%s still open" % (cur["id"], len(open_x), "" if len(open_x) == 1 else "s"),
+                        phase=cur["id"], open=",".join(i for i, _ in open_x))
+        die("selected checks still open in '%s': %s. Close each with `extras done ID --evidence ...` or `extras waive ID --reason ...` "
+            "(the user picked them in the catalogue)." % (cur["id"], ", ".join(i for i, _ in open_x)))
+    undecided = skills.undecided_core(sys.modules[__name__], args.root, st, cur["id"])
+    if undecided:
+        print("note: skills not decided in %s: %s (hyperskill.py skills %s)" % (cur["id"], ", ".join(undecided), cur["id"]))
     st["phases"][cur["id"]]["status"] = "done"
     st["phases"][cur["id"]]["completed"] = now()
     ids = [p["id"] for p in phases]
@@ -345,6 +389,14 @@ def cmd_advance(args):
         st["phases"][ids[idx]]["status"] = "active"
         print("advanced: %s -> %s" % (cur["id"], ids[idx]))
         activity.append(args.root, "advance", "Finished %s, now in %s" % (cur["id"], ids[idx]), phase=cur["id"], to=ids[idx])
+        me = sys.modules[__name__]
+        gone = skills.release(me, args.root, st, cur["id"], keep=skills.wanted_next(me, args.root, st, ids[idx]))
+        if gone:
+            print("released at the end of %s: %s" % (cur["id"], ", ".join(gone)))
+        print(skills.render(ids[idx], skills.plan(me, args.root, st, ids[idx]), short=True))
+        picked = cat.brief(me, args.root, st, ids[idx])
+        if picked:
+            print(picked)
     save_state(args.root, st)
 
 
@@ -418,7 +470,213 @@ def cmd_event(args):
 
 def cmd_live(args):
     import hs_live
-    hs_live.serve(args.root, args.port, open_browser=not args.no_open)
+    if args.stop:
+        print("stopped" if hs_live.stop(args.root) else "no live view is running for this project")
+        return
+    if args.ensure:
+        url = hs_live.ensure(args.root, args.port)
+        print(url or "could not start the live view")
+        return
+    hs_live.serve(args.root, args.port, open_browser=not args.no_open, control=not args.read_only, idle_hours=args.idle_hours)
+
+
+def cmd_skills(args):
+    me = sys.modules[__name__]
+    st = load_state(args.root)
+    action = args.action or "list"
+    phase = args.phase or (args.target if action in ("list", "release") else None) or st["current"]
+    if action == "list":
+        if not phase:
+            die("pipeline complete; name a phase.")
+        phase_def(load_gates(), phase)
+        rows = skills.plan(me, args.root, st, phase)
+        print(json.dumps(rows, indent=2) if args.json else skills.render(phase, rows))
+        return
+    if action == "pull":
+        if not args.target:
+            die("give a provider id.")
+        copied, kept = skills.pull(me, args.root, st, args.target, args.why, args.user_approved)
+        save_state(args.root, st)
+        print("pulled %s: %s" % (args.target, ("installed " + ", ".join(copied)) if copied else "nothing new to install")
+              + ("; left your own %s alone" % ", ".join(kept) if kept else ""))
+        return
+    if action in ("use", "skip"):
+        if not args.target:
+            die("give a slot name.")
+        if not phase:
+            die("pipeline complete; name a phase with --phase.")
+        skills.record(me, args.root, st, phase, args.target, "used" if action == "use" else "skipped", args.provider if action == "use" else None, args.why)
+        save_state(args.root, st)
+        print("%s %s in %s" % ("using" if action == "use" else "skipping", args.target, phase))
+        return
+    if action == "release":
+        if not phase:
+            die("name a phase.")
+        gone = skills.release(me, args.root, st, phase)
+        save_state(args.root, st)
+        print("released: %s" % (", ".join(gone) or "(nothing was pulled for this phase)"))
+
+
+def cmd_brief(args):
+    st = load_state(args.root)
+    me = sys.modules[__name__]
+    a, t = args.action or "show", args.target
+    if a == "set":
+        text = args.text
+        if args.file:
+            with open(args.file, encoding="utf-8") as f:
+                text = f.read()
+        v = brief.set_brief(me, args.root, st, text)
+        save_state(args.root, st)
+        print("brief saved (version %d). Now extract the requirements and any gaps, conflicts or suggestions." % v)
+        return
+    if a == "show":
+        print(brief.summary(st) or "(no brief yet: paste one in the dashboard or `hyperskill.py brief set --file idea.md`)")
+        return
+    if a == "finding":
+        sub = t
+        if sub != "add":
+            die("usage: brief finding add --kind gap|conflict|suggestion --text TEXT [--proposed TEXT] [--blocking|--non-blocking]")
+        fid = brief.add_finding(me, args.root, st, args.kind, args.text, args.proposed, True if args.blocking else (False if args.non_blocking else None))
+        save_state(args.root, st)
+        print("finding %s added (%s)" % (fid, args.kind))
+        return
+    if a == "req":
+        sub = t
+        if sub == "add":
+            rid = brief.add_req(me, args.root, st, args.text)
+            print("requirement %s added" % rid)
+        elif sub == "done":
+            rid = args.rest[0] if args.rest else ""
+            brief.finish_req(me, args.root, st, rid, args.evidence)
+            print("requirement %s covered" % rid)
+        else:
+            die("usage: brief req add --text TEXT | brief req done ID --evidence TEXT")
+        save_state(args.root, st)
+        return
+    if a == "resolve":
+        brief.resolve(me, args.root, st, t, args.state, args.answer)
+        save_state(args.root, st)
+        print("%s %s" % (t, args.state))
+        return
+    if a == "list":
+        for i, f in st.get("findings", {}).items():
+            print("%-4s %-10s %-9s %s" % (i, f["kind"], f["state"], f["text"][:90]))
+        for i, r in st.get("requirements", {}).items():
+            print("%-4s requirement %-9s %s" % (i, r["state"], r["text"][:90]))
+
+
+def cmd_place(args):
+    st = load_state(args.root)
+    me = sys.modules[__name__]
+    a = args.action or "list"
+    if a == "add":
+        if not args.target:
+            die("give the catalogue item id, e.g. sw-components/ring-chart")
+        brief.add_place(me, args.root, st, args.target, args.where, args.why)
+        save_state(args.root, st)
+        print("placed %s" % args.target)
+        return
+    rows = brief.check(me, args.root, st, close=a == "check" and args.close)
+    if a == "check" and args.close:
+        save_state(args.root, st)
+    for r in rows:
+        print("%-34s placed=%-5s used=%s%s" % (r["id"], "yes" if r["placed"] else "NO", r["used_in"] or "NOT FOUND", "   at: " + r["where"] if r["where"] else ""))
+    if not rows:
+        print("(no Sitewright components or figures picked)")
+
+
+def cmd_catalog(args):
+    me = sys.modules[__name__]
+    st = load_state(args.root)
+    data, items = cat.catalog()
+    action = args.action or "list"
+    chosen = set(cat.selected(st))
+    if action == "list":
+        if args.group:
+            g = next((x for x in data["groups"] if x["id"] == args.group), None)
+            if not g:
+                die("unknown group. Valid: %s" % ", ".join(x["id"] for x in data["groups"]))
+            if args.json:
+                print(json.dumps([dict(i, selected=i["id"] in chosen) for i in g["items"]], indent=1))
+                return
+            for i in g["items"]:
+                print("[%s] %-44s %-10s %s" % ("x" if i["id"] in chosen else " ", i["id"], i["phase"], i["name"]))
+            return
+        print("%-14s %5s %4s  %s" % ("group", "items", "picked", "title"))
+        for g in data["groups"]:
+            n = sum(1 for i in g["items"] if i["id"] in chosen)
+            print("%-14s %5d %6d  %s" % (g["id"], len(g["items"]), n, g["title"]))
+        return
+    if action == "set":
+        added, removed = cat.apply(me, args.root, st, set(args.ids))
+        save_state(args.root, st)
+        print("%d picked (%d added, %d removed)" % (len(args.ids), added, removed))
+        return
+    if action in ("select", "unselect"):
+        ids = set(args.ids)
+        if args.group:
+            g = next((x for x in data["groups"] if x["id"] == args.group), None)
+            if not g:
+                die("unknown group.")
+            pool = [i["id"] for i in g["items"] if (i.get("rec") if args.recommended else True)]
+            if args.recommended and action == "select" or args.all:
+                ids |= set(pool)
+        new = (chosen | ids) if action == "select" else (chosen - ids)
+        if action == "select":  # picking an alternative replaces the one picked before in the same exclusive set
+            for i in ids:
+                ex = items.get(i, {}).get("exclusive")
+                if ex:
+                    new -= {o for o in chosen if o != i and items.get(o, {}).get("exclusive") == ex}
+        added, removed = cat.apply(me, args.root, st, new)
+        save_state(args.root, st)
+        print("%d picked (%d added, %d removed)" % (len(new), added, removed))
+        return
+    if action == "brief":
+        phase = args.phase or st["current"]
+        print(cat.brief(me, args.root, st, phase) or "(nothing picked for this phase)")
+        return
+    if action == "sitewright":
+        print(json.dumps(cat.sitewright_config(st), indent=2, ensure_ascii=False))
+
+
+def cmd_extras(args):
+    me = sys.modules[__name__]
+    st = load_state(args.root)
+    action = args.action or "list"
+    if action == "list":
+        phase = args.phase
+        rows = [(i, e) for i, e in st.get("extras", {}).items() if not phase or e["phase"] == phase]
+        if args.json:
+            print(json.dumps([dict(e, id=i) for i, e in rows], indent=1))
+            return
+        for i, e in rows:
+            tag = {"done": "[x]", "waived": "[~]"}.get(e["state"], "[ ]")
+            print("%s %-9s %-34s %s" % (tag, e["phase"], i, e["text"][:90]))
+        if not rows:
+            print("(no selected checks)")
+        return
+    if not args.target:
+        die("give the check id.")
+    cat.finish(me, args.root, st, args.target, "done" if action == "done" else "waived", args.evidence if action == "done" else args.reason)
+    save_state(args.root, st)
+    print("%s %s" % (args.target, "done" if action == "done" else "waived"))
+
+
+def cmd_pause(args):
+    load_state(args.root)
+    control.set_paused(args.root, args.cmd == "pause")
+    activity.append(args.root, "note", "Paused: Claude's writes and commands are refused until resume" if args.cmd == "pause" else "Resumed")
+    print("paused" if args.cmd == "pause" else "resumed")
+
+
+def cmd_say(args):
+    load_state(args.root)
+    rid = control.push(args.root, " ".join(args.text))
+    if not rid:
+        die("nothing queued (empty text, or 20 instructions are already waiting).")
+    activity.append(args.root, "note", "Instruction queued for Claude: " + activity.redact(" ".join(args.text), 160))
+    print("queued; Claude receives it on its next step")
 
 
 # ---------------------------------------------------------------- integrations
@@ -426,6 +684,48 @@ def cmd_live(args):
 def load_integrations():
     with open(INTEGRATIONS_PATH, encoding="utf-8") as f:
         return json.load(f)
+
+
+DEFAULT_ON = "karpathy-skills"
+PACKS_DIR = os.path.normpath(os.path.join(_HERE, "..", "packs"))
+
+
+def pack_skills(pid):
+    """Names of the skill folders a bundled pack carries (empty when the provider is not bundled)."""
+    base = os.path.join(PACKS_DIR, pid, "skills")
+    if not os.path.isdir(base) or not re.fullmatch(r"[a-z0-9-]+", pid):
+        return []
+    return sorted(n for n in os.listdir(base) if os.path.isfile(os.path.join(base, n, "SKILL.md")))
+
+
+def install_pack(root, st, pid):
+    """Copy a bundled pack's skills into <project>/.claude/skills. Folders that already exist are left alone."""
+    done = st["integrations"].setdefault("installed", {})
+    mine = set(done.get(pid, []))
+    dest = os.path.join(root, ".claude", "skills")
+    copied, kept = [], []
+    for name in pack_skills(pid):
+        target = os.path.join(dest, name)
+        if os.path.exists(target) and name not in mine:
+            kept.append(name)
+            continue
+        shutil.rmtree(target, ignore_errors=True)
+        shutil.copytree(os.path.join(PACKS_DIR, pid, "skills", name), target, symlinks=False)
+        copied.append(name)
+    if copied:
+        done[pid] = sorted(mine | set(copied))
+    return copied, kept
+
+
+def uninstall_pack(root, st, pid):
+    """Remove only the folders this tool installed for the pack."""
+    removed = []
+    for name in st["integrations"].get("installed", {}).pop(pid, []):
+        target = os.path.join(root, ".claude", "skills", name)
+        if os.path.isdir(target):
+            shutil.rmtree(target)
+            removed.append(name)
+    return removed
 
 
 def skill_roots(root):
@@ -458,7 +758,7 @@ def installed_skill_names(root):
 def provider_state(pid, prov, st, names):
     """Return (installed, allowed, reason)."""
     det = prov.get("detect", {})
-    if prov.get("builtin"):
+    if prov.get("builtin") or st["integrations"].get("installed", {}).get(pid):
         installed = True
     else:
         installed = any(n in names for n in det.get("skills", [])) or \
@@ -489,7 +789,8 @@ def resolve_slot(slot, st, names, reg):
         if inst and ok and use is None:
             use = pid
         if ok and not inst and not prov.get("builtin"):
-            suggest.append({"id": pid, "install": prov.get("install", []), "license": prov.get("license"),
+            how = ["hyperskill.py integrations enable %s   (bundled pack, no download)" % pid] if pack_skills(pid) else prov.get("install", [])
+            suggest.append({"id": pid, "install": how, "license": prov.get("license"),
                             "risks": prov.get("risks", [])})
     return {"slot": slot, "use": use, "providers": rows, "suggest_install": suggest, "fallback": sd["fallback"]}
 
@@ -500,15 +801,29 @@ def cmd_integrations(args):
     names = installed_skill_names(args.root)
     action = args.action or "list"
     if action in ("enable", "disable"):
-        if not args.target or args.target not in reg["providers"]:
-            die("give a provider id. Valid: %s" % ", ".join(reg["providers"]))
+        targets = list(reg["providers"]) if args.all else [args.target]
+        if args.all:
+            targets = [t for t in targets if pack_skills(t) and (reg["providers"][t].get("policy") == "recommended" or args.include_opt_in)
+                       and not (reg["providers"][t].get("noncommercial") and st["commercial"])]
+        elif not args.target or args.target not in reg["providers"]:
+            die("give a provider id (or --all). Valid: %s" % ", ".join(reg["providers"]))
         lst_in, lst_out = ("enabled", "disabled") if action == "enable" else ("disabled", "enabled")
-        if args.target not in st["integrations"][lst_in]:
-            st["integrations"][lst_in].append(args.target)
-        if args.target in st["integrations"][lst_out]:
-            st["integrations"][lst_out].remove(args.target)
+        for t in targets:
+            if t not in st["integrations"][lst_in]:
+                st["integrations"][lst_in].append(t)
+            if t in st["integrations"][lst_out]:
+                st["integrations"][lst_out].remove(t)
+            if action == "enable":
+                copied, kept = install_pack(args.root, st, t)
+                note = "installed %d skill%s into .claude/skills" % (len(copied), "" if len(copied) == 1 else "s") if copied else ""
+                if kept:
+                    note += ("; " if note else "") + "left your own %s alone" % ", ".join(kept)
+            else:
+                removed = uninstall_pack(args.root, st, t)
+                note = "removed %d skill folder%s" % (len(removed), "" if len(removed) == 1 else "s") if removed else ""
+            activity.append(args.root, "config", "%sd %s%s" % (action, t, " (" + note + ")" if note else ""))
+            print("%sd %s%s" % (action, t, "  - " + note if note else ""))
         save_state(args.root, st)
-        print("%sd %s" % (action, args.target))
         return
     if action == "resolve":
         if not args.target:
@@ -538,7 +853,8 @@ def cmd_integrations(args):
     for pid, prov in reg["providers"].items():
         inst, ok, why = provider_state(pid, prov, st, names)
         rows.append({"id": pid, "kind": prov.get("kind"), "license": prov.get("license"),
-                     "policy": prov.get("policy"), "installed": inst, "allowed": ok, "why": why})
+                     "policy": prov.get("policy"), "installed": inst, "allowed": ok, "why": why,
+                     "bundled": bool(pack_skills(pid)), "skills": pack_skills(pid)})
     if args.json:
         print(json.dumps(rows, indent=2))
         return
@@ -572,6 +888,7 @@ def build_parser():
     p = sub.add_parser("init")
     p.add_argument("--name")
     p.add_argument("--force", action="store_true")
+    p.add_argument("--no-karpathy", dest="no_karpathy", action="store_true", help="do not switch on the bundled Karpathy coding guidelines")
     p.add_argument("--noncommercial", action="store_true", help="project is not commercial (unlocks noncommercial-licence tools)")
     p.add_argument("--tenancy", choices=TENANCIES, help="who owns data: organization (default), user, or none")
     p.add_argument("--unavailable", help="comma list of what this environment lacks: host,provider,device,human")
@@ -580,6 +897,7 @@ def build_parser():
     p = sub.add_parser("config", help="show or change tenancy and what this environment lacks")
     p.add_argument("--tenancy", choices=TENANCIES)
     p.add_argument("--unavailable", help="comma list: host,provider,device,human (or 'none')")
+    p.add_argument("--autolive", choices=("on", "off"), help="start the dashboard automatically when a session opens")
     p.set_defaults(fn=cmd_config)
 
     p = sub.add_parser("status")
@@ -623,12 +941,77 @@ def build_parser():
     p.add_argument("--kind", choices=KINDS, default="building")
     p.set_defaults(fn=cmd_event)
 
-    p = sub.add_parser("live", help="open the live dashboard (read-only, 127.0.0.1 only)")
+    p = sub.add_parser("brief", help="the pasted idea, what was found in it, and the user's answers")
+    p.add_argument("action", nargs="?", choices=["show", "set", "finding", "req", "resolve", "list"])
+    p.add_argument("target", nargs="?")
+    p.add_argument("rest", nargs="*")
+    p.add_argument("--text")
+    p.add_argument("--file")
+    p.add_argument("--kind", choices=list(brief.KINDS))
+    p.add_argument("--proposed", default="")
+    p.add_argument("--blocking", action="store_true")
+    p.add_argument("--non-blocking", dest="non_blocking", action="store_true")
+    p.add_argument("--evidence")
+    p.add_argument("--state", choices=["accepted", "rejected", "answered"])
+    p.add_argument("--answer", default="")
+    p.set_defaults(fn=cmd_brief)
+
+    p = sub.add_parser("place", help="where each picked Sitewright component or figure is used")
+    p.add_argument("action", nargs="?", choices=["list", "add", "check"])
+    p.add_argument("target", nargs="?")
+    p.add_argument("--where")
+    p.add_argument("--why", default="")
+    p.add_argument("--close", action="store_true", help="check: close the checks of pieces that are placed and really used")
+    p.set_defaults(fn=cmd_place)
+
+    p = sub.add_parser("catalog", help="what you can pick from (Sitewright parts, styles, checks, add-ons ...) and what you picked")
+    p.add_argument("action", nargs="?", choices=["list", "select", "unselect", "set", "brief", "sitewright"])
+    p.add_argument("ids", nargs="*", help="select|unselect: item ids such as concepts/rate-limiting")
+    p.add_argument("--group")
+    p.add_argument("--all", action="store_true", help="with --group: every item of the group")
+    p.add_argument("--recommended", action="store_true", help="with --group: the recommended items of the group")
+    p.add_argument("--phase")
+    p.add_argument("--json", action="store_true")
+    p.set_defaults(fn=cmd_catalog)
+
+    p = sub.add_parser("extras", help="the checks that came from your selection")
+    p.add_argument("action", nargs="?", choices=["list", "done", "waive"])
+    p.add_argument("target", nargs="?")
+    p.add_argument("--phase")
+    p.add_argument("--evidence")
+    p.add_argument("--reason")
+    p.add_argument("--json", action="store_true")
+    p.set_defaults(fn=cmd_extras)
+
+    p = sub.add_parser("skills", help="which skill each phase should use, when and why; pull one, record the decision")
+    p.add_argument("action", nargs="?", choices=["list", "pull", "use", "skip", "release"])
+    p.add_argument("target", nargs="?", help="pull: provider id; use|skip: slot; list|release: phase")
+    p.add_argument("--phase", help="phase (default: the current one)")
+    p.add_argument("--why")
+    p.add_argument("--provider", help="use: which provider you are using for the slot")
+    p.add_argument("--user-approved", dest="user_approved", action="store_true", help="pull: the user said yes to this opt-in skill")
+    p.add_argument("--json", action="store_true")
+    p.set_defaults(fn=cmd_skills)
+
+    for name in ("pause", "resume"):
+        p = sub.add_parser(name, help="stop / allow Claude's file writes and commands")
+        p.set_defaults(fn=cmd_pause)
+    p = sub.add_parser("say", help="queue an instruction for Claude")
+    p.add_argument("text", nargs="+")
+    p.set_defaults(fn=cmd_say)
+
+    p = sub.add_parser("live", help="open the live dashboard (127.0.0.1 only; it can also control the flow)")
+    p.add_argument("--read-only", dest="read_only", action="store_true", help="no buttons: show only")
+    p.add_argument("--stop", action="store_true", help="stop this project's running live view")
+    p.add_argument("--ensure", action="store_true", help="start it in the background if it is not running; print its address")
+    p.add_argument("--idle-hours", dest="idle_hours", type=float, default=0, help="stop by itself after this long with no page open (0 = never)")
     p.add_argument("--port", type=int, default=4777)
     p.add_argument("--no-open", action="store_true", help="do not try to open a browser")
     p.set_defaults(fn=cmd_live)
 
     p = sub.add_parser("integrations")
+    p.add_argument("--all", action="store_true", help="enable|disable: every bundled recommended provider")
+    p.add_argument("--include-opt-in", dest="include_opt_in", action="store_true", help="with --all: also the bundled opt-in providers")
     p.add_argument("action", nargs="?", choices=["list", "resolve", "phase", "enable", "disable"])
     p.add_argument("target", nargs="?")
     p.add_argument("--json", action="store_true")

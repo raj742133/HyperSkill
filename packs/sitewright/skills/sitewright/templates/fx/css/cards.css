@@ -1,0 +1,44 @@
+/* Card effects. Scoped by data-fx-cards, so nothing here applies unless that effect was chosen. */
+
+/* tilt: js sets --fx-rx/ry (degrees) and --fx-gx/gy (percent) while the pointer is over the card */
+[data-fx-cards='tilt'] :is(__FX_CARD__) { position: relative; transition: transform 0.28s var(--ease), box-shadow 0.28s var(--ease); }
+[data-fx-cards='tilt'] :is(__FX_CARD__).fx-hot { transform: perspective(900px) rotateX(var(--fx-rx, 0deg)) rotateY(var(--fx-ry, 0deg)) !important; box-shadow: var(--shadow-lift); transition: transform 0.08s linear, box-shadow 0.28s; }
+[data-fx-cards='tilt'] :is(__FX_CARD__)::after {
+  content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity 0.25s;
+  background: radial-gradient(380px circle at var(--fx-gx, 50%) var(--fx-gy, 50%), rgba(255, 255, 255, 0.28), transparent 55%);
+}
+[data-fx-cards='tilt'] :is(__FX_CARD__).fx-hot::after { opacity: 1; }
+
+/* spotlight: js sets --fx-mx/--fx-my (pixels inside the card) */
+[data-fx-cards='spotlight'] :is(__FX_CARD__) { position: relative; }
+[data-fx-cards='spotlight'] :is(__FX_CARD__)::before {
+  content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity 0.3s; z-index: 1;
+  background: radial-gradient(300px circle at var(--fx-mx, 50%) var(--fx-my, 50%), color-mix(in srgb, var(--signal) 24%, transparent), transparent 70%);
+}
+[data-fx-cards='spotlight'] :is(__FX_CARD__).fx-hot::before { opacity: 1; }
+
+/* glow border: a light travels around the edge on hover (shares the --fx-a property with the button effect) */
+@property --fx-a { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+[data-fx-cards='glow-border'] :is(__FX_CARD__) { position: relative; }
+[data-fx-cards='glow-border'] :is(__FX_CARD__)::before {
+  content: ''; position: absolute; inset: -1px; border-radius: inherit; padding: 2px; pointer-events: none; opacity: 0; transition: opacity 0.3s; z-index: 1;
+  background: conic-gradient(from var(--fx-a), transparent 0 50%, var(--signal) 76%, var(--primary) 90%, transparent 100%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  animation: fx-spin 3.6s linear infinite;
+}
+[data-fx-cards='glow-border'] :is(__FX_CARD__):is(:hover, :focus-within)::before { opacity: 1; }
+@keyframes fx-spin { to { --fx-a: 360deg; } }
+
+/* lift: uses `translate`, so it never fights a card's own transform (the scroll-reveal uses transform) */
+[data-fx-cards='lift'] :is(__FX_CARD__) { transition: translate 0.3s var(--ease), box-shadow 0.3s var(--ease); }
+[data-fx-cards='lift'] :is(__FX_CARD__):is(:hover, :focus-within) { translate: 0 -6px; box-shadow: var(--shadow-lift); }
+
+@media (hover: none) {
+  [data-fx-cards] :is(__FX_CARD__)::before, [data-fx-cards] :is(__FX_CARD__)::after { display: none; }
+  [data-fx-cards='lift'] :is(__FX_CARD__):hover { translate: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-fx-cards] :is(__FX_CARD__) { transition: none !important; translate: none !important; }
+  [data-fx-cards] :is(__FX_CARD__)::before { animation: none !important; }
+  [data-fx-cards='tilt'] :is(__FX_CARD__).fx-hot { transform: none !important; }
+}

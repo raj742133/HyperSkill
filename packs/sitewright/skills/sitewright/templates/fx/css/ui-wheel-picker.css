@@ -1,0 +1,9 @@
+.ui-wheel-picker { width: 100%; max-width: 200px; margin-inline: auto; position: relative; font-family: var(--font-body, system-ui); }
+.ui-wheel-picker-box { position: relative; overflow: hidden; perspective: 420px; perspective-origin: 50% 50%; border-radius: var(--radius, 12px); background: var(--raised, #f5f5f5); border: 1px solid var(--line, #ddd); color: var(--ink, #111); cursor: grab; user-select: none; -webkit-user-select: none; outline: none;
+  -webkit-mask-image: linear-gradient(transparent, #000 22%, #000 78%, transparent); mask-image: linear-gradient(transparent, #000 22%, #000 78%, transparent); }
+.ui-wheel-picker-box:active { cursor: grabbing; }
+.ui-wheel-picker-stage { position: absolute; inset: 0; transform-style: preserve-3d; }
+.ui-wheel-picker-item { position: absolute; left: 0; right: 0; text-align: center; font-size: 17px; backface-visibility: hidden; will-change: transform; }
+.ui-wheel-picker-band { position: absolute; left: 6px; right: 6px; top: 50%; transform: translateY(-50%); border-radius: calc(var(--radius, 12px) * 0.6); background: var(--primary-wash, rgba(37,99,235,.12)); border: 1px solid var(--line-strong, #bbb); pointer-events: none; }
+.ui-wheel-picker-box:focus-visible { box-shadow: 0 0 0 2px var(--surface, #fff), 0 0 0 4px var(--primary, #2563eb); -webkit-mask-image: none; mask-image: none; }
+.ui-wheel-picker-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }

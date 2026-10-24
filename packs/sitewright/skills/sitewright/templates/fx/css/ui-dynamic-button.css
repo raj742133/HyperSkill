@@ -1,0 +1,20 @@
+.ui-dynamic-button {
+  position: relative; display: inline-flex; align-items: center; justify-content: center; min-height: 48px; min-width: 96px; padding: 0 20px; overflow: hidden;
+  border: 0; border-radius: 999px; background: var(--primary, #2563eb); color: var(--on-primary, #fff); font: 600 0.95rem var(--font-body, inherit); cursor: pointer;
+  white-space: nowrap; transition: width 0.4s var(--ease, cubic-bezier(0.22, 1, 0.36, 1)), transform 0.15s; box-shadow: var(--shadow, 0 4px 10px -4px rgba(0, 0, 0, 0.35));
+}
+.ui-dynamic-button:active:not([aria-disabled]) { transform: scale(0.97); }
+.ui-dynamic-button[aria-disabled] { cursor: progress; }
+.ui-dynamic-button:focus-visible { outline: 3px solid var(--signal, #f59e0b); outline-offset: 3px; }
+.ui-dynamic-button-inner { display: inline-flex; align-items: center; gap: 8px; animation: ui-dynamic-button-in 0.3s var(--ease, ease) both; }
+.ui-dynamic-button-spin { animation: ui-dynamic-button-rot 0.8s linear infinite; }
+.ui-dynamic-button-pop { animation: ui-dynamic-button-popin 0.35s cubic-bezier(0.34, 1.8, 0.5, 1) both; }
+.ui-dynamic-button-wrap { position: relative; display: inline-block; }
+.ui-dynamic-button-sr { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); }
+@keyframes ui-dynamic-button-in { from { opacity: 0; transform: translateY(6px); } }
+@keyframes ui-dynamic-button-rot { to { transform: rotate(360deg); } }
+@keyframes ui-dynamic-button-popin { from { transform: scale(0.4); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .ui-dynamic-button { transition: none; }
+  .ui-dynamic-button-inner, .ui-dynamic-button-pop, .ui-dynamic-button-spin { animation: none; }
+}

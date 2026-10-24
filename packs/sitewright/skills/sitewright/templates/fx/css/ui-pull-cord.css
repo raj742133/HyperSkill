@@ -1,0 +1,8 @@
+.ui-pull-cord { position: relative; flex: none; }
+.ui-pull-cord-svg { position: absolute; inset: 0; overflow: visible; pointer-events: none; }
+.ui-pull-cord-grip { position: absolute; width: 28px; height: 38px; padding: 0; border: 2px solid var(--line-strong, #999); border-radius: 14px 14px 12px 12px; background: var(--raised-2, #eee); cursor: grab; touch-action: none; transform-origin: 50% 0; box-shadow: var(--shadow, 0 1px 3px rgba(0,0,0,.2)); }
+.ui-pull-cord-grip::before { content: ''; position: absolute; inset: -8px -10px; } /* larger tap target */
+.ui-pull-cord-grip[data-on='true'] { background: var(--signal, #f59e0b); border-color: var(--signal, #f59e0b); }
+.ui-pull-cord-grip:active { cursor: grabbing; }
+.ui-pull-cord-grip:focus-visible { outline: 2px solid var(--primary, #2563eb); outline-offset: 3px; }
+@media (pointer: coarse) { .ui-pull-cord-grip { min-width: 44px; min-height: 44px; margin-left: -8px; } }

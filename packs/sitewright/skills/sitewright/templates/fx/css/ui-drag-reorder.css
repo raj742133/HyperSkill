@@ -1,0 +1,15 @@
+.ui-drag-reorder-root { width: 100%; max-width: 360px; font: 13px/1.2 var(--font-body, system-ui, sans-serif); color: var(--ink, #111); }
+.ui-drag-reorder-list { list-style: none; margin: 0; padding: 0; position: relative; }
+.ui-drag-reorder-item { position: absolute; left: 0; right: 0; top: 0; display: flex; align-items: center; gap: 8px; padding: 0 10px 0 2px; border-radius: 8px; border: 1px solid var(--line, #ddd); background: var(--raised, #fff); box-sizing: border-box; will-change: transform; }
+.ui-drag-reorder-item[data-dragging], .ui-drag-reorder-item[data-grabbed] { border-color: var(--primary, #2563eb); box-shadow: var(--shadow-lift, 0 8px 20px #0004); }
+.ui-drag-reorder-handle { flex: none; position: relative; align-self: stretch; width: 26px; display: grid; place-items: center; border: 0; background: none; color: var(--muted, #555); cursor: grab; touch-action: none; border-radius: 6px; }
+.ui-drag-reorder-handle::after { content: ''; position: absolute; inset: -8px -4px; }
+.ui-drag-reorder-item[data-dragging] .ui-drag-reorder-handle { cursor: grabbing; }
+.ui-drag-reorder-handle:focus-visible { outline: 2px solid var(--primary, #2563eb); outline-offset: -2px; }
+.ui-drag-reorder-handle[aria-pressed="true"] { color: var(--primary, #2563eb); background: var(--primary-wash, #e8efff); }
+.ui-drag-reorder-label { flex: 1; font-weight: 600; }
+.ui-drag-reorder-pos { font: 600 11px/1 var(--font-mono, monospace); color: var(--muted, #555); }
+.ui-drag-reorder-sr { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+@media (pointer: coarse) { .ui-drag-reorder-handle { width: 44px; } }
+
+@media (pointer: coarse) { .ui-drag-reorder-handle { width: 44px; } }

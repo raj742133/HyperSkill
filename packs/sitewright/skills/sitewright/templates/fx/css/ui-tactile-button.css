@@ -1,0 +1,25 @@
+.ui-tactile-button {
+  --ui-tactile-button-face: var(--primary, #2563eb);
+  --ui-tactile-button-edge: color-mix(in srgb, var(--primary, #2563eb) 55%, #000);
+  --ui-tactile-button-ink: var(--on-primary, #fff);
+  position: relative; display: inline-block; margin: 6px 0 0; padding: 0; border: 0; border-radius: 14px;
+  background: var(--ui-tactile-button-edge); color: var(--ui-tactile-button-ink); font: inherit; font-weight: 600; cursor: pointer;
+  box-shadow: 0 8px 14px -6px rgba(0, 0, 0, 0.35); touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+}
+.ui-tactile-button[data-variant='neutral'] {
+  --ui-tactile-button-face: var(--raised-2, var(--raised, #f1f5f9));
+  --ui-tactile-button-edge: var(--line-strong, #94a3b8);
+  --ui-tactile-button-ink: var(--ink, #0f172a);
+}
+.ui-tactile-button-face {
+  display: flex; align-items: center; justify-content: center; gap: 0.5rem; min-height: 44px; min-width: 44px; padding: 0.55rem 1.4rem; border-radius: 14px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--ui-tactile-button-face) 82%, #fff), var(--ui-tactile-button-face));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), inset 0 -2px 0 rgba(0, 0, 0, 0.08);
+  transform: translateY(-6px); transition: transform 0.28s cubic-bezier(0.34, 1.9, 0.5, 1); user-select: none;
+}
+.ui-tactile-button:hover .ui-tactile-button-face { transform: translateY(-7px); }
+.ui-tactile-button[data-down] .ui-tactile-button-face, .ui-tactile-button:active .ui-tactile-button-face { transform: translateY(-1px); transition-duration: 0.06s; }
+.ui-tactile-button:focus-visible { outline: 3px solid var(--signal, #f59e0b); outline-offset: 3px; }
+.ui-tactile-button:disabled { cursor: not-allowed; opacity: 0.55; }
+.ui-tactile-button:disabled .ui-tactile-button-face { transform: translateY(-2px); }
+@media (prefers-reduced-motion: reduce) { .ui-tactile-button-face { transition: none; } }

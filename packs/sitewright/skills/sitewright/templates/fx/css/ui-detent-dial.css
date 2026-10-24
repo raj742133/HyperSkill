@@ -1,0 +1,13 @@
+.ui-detent-dial { display: inline-flex; align-items: center; gap: 16px; color: var(--ink, #111); font-family: var(--font-body, system-ui, sans-serif); }
+.ui-detent-dial-face { position: relative; width: 110px; height: 110px; border-radius: 50%; touch-action: none; cursor: grab; user-select: none; -webkit-user-select: none; flex: none; }
+.ui-detent-dial-face:active { cursor: grabbing; }
+.ui-detent-dial-face:focus-visible { outline: 2px solid var(--primary, #2563eb); outline-offset: 4px; }
+.ui-detent-dial-ticks { position: absolute; inset: 0; width: 100%; height: 100%; }
+.ui-detent-dial-ticks line { stroke: var(--line-strong, #bbb); }
+.ui-detent-dial-ticks line.ui-detent-dial-on { stroke: var(--primary, #2563eb); }
+.ui-detent-dial-knob { position: absolute; inset: 17%; border-radius: 50%; background: linear-gradient(145deg, var(--raised-2, #f3f3f3), var(--raised, #fff)); border: 1px solid var(--line-strong, #bbb); box-shadow: var(--shadow, 0 2px 8px rgba(0,0,0,.18)); will-change: transform; }
+.ui-detent-dial-pip { position: absolute; left: 50%; top: 7%; width: 5px; height: 16%; margin-left: -2.5px; border-radius: 3px; background: var(--primary, #2563eb); }
+.ui-detent-dial-read { display: grid; gap: 2px; min-width: 56px; }
+.ui-detent-dial-read span { font-size: 12px; color: var(--muted, #555); }
+.ui-detent-dial-read strong { font-family: var(--font-mono, monospace); font-size: 22px; font-weight: 600; }
+@media (pointer: coarse) { .ui-detent-dial-face { width: 120px; height: 120px; } }

@@ -1,0 +1,13 @@
+/* Effects: shared rules. Everything animated here has a prefers-reduced-motion path at the bottom of this file. */
+.fx-bg { position: absolute; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+canvas.fx-bg { width: 100%; height: 100%; display: block; }
+/* Visually hidden, still read aloud and still in the DOM for search engines: the plain text behind an animated headline. */
+.fx-sr { position: absolute !important; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; border: 0; }
+
+/* On the sign-in pages a background sits behind the card. */
+.login-wrap:has(> .fx-bg) { position: relative; overflow: hidden; }
+.login-wrap:has(> .fx-bg) > :not(.fx-bg) { position: relative; z-index: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  .fx-bg, .fx-bg *, .fx-bg::before, .fx-bg::after { animation: none !important; }
+}

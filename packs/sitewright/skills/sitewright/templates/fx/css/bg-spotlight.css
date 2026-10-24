@@ -1,0 +1,5 @@
+.fx-spot { --sx: 72%; --sy: 28%;
+  background:
+    radial-gradient(560px circle at var(--sx) var(--sy), color-mix(in srgb, var(--signal) 30%, transparent), transparent 62%),
+    radial-gradient(900px circle at 12% 90%, color-mix(in srgb, var(--primary) 14%, transparent), transparent 65%); }
+@media (max-width: 640px) { .fx-spot { background: radial-gradient(380px circle at var(--sx) var(--sy), color-mix(in srgb, var(--signal) 30%, transparent), transparent 62%); } }

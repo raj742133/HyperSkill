@@ -1,0 +1,5 @@
+.fx-beams i { position: absolute; top: -45%; width: 2px; height: 45%; border-radius: 2px; opacity: 0;
+  background: linear-gradient(to bottom, transparent, var(--signal) 55%, var(--primary)); box-shadow: 0 0 14px 1px color-mix(in srgb, var(--signal) 60%, transparent);
+  animation: fx-beam 9s linear infinite; }
+@keyframes fx-beam { 0% { transform: translateY(0); opacity: 0; } 12% { opacity: 0.9; } 80% { opacity: 0.7; } 100% { transform: translateY(330%); opacity: 0; } }
+@media (max-width: 640px) { .fx-beams i:nth-child(even) { display: none; } }

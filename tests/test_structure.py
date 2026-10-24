@@ -25,10 +25,11 @@ class LiveViewStructureTests(unittest.TestCase):
     def test_hooks_json_is_valid_and_every_script_it_runs_exists(self):
         with open(os.path.join(ROOT, "hooks", "hooks.json"), encoding="utf-8") as f:
             hooks = json.load(f)["hooks"]
-        self.assertEqual(set(hooks), {"PreToolUse", "PostToolUse", "PostToolUseFailure"})
+        self.assertEqual(set(hooks), {"PreToolUse", "PostToolUse", "PostToolUseFailure", "UserPromptSubmit", "SessionStart"})
         for event, rules in hooks.items():
             for rule in rules:
-                self.assertTrue(rule["matcher"], event)
+                if event not in ("UserPromptSubmit", "SessionStart"):  # these fire for every prompt/session and take no matcher
+                    self.assertTrue(rule["matcher"], event)
                 for h in rule["hooks"]:
                     self.assertEqual(h["type"], "command")
                     self.assertLessEqual(h["timeout"], 10, "a hook must never hold up a tool call for long")
@@ -47,7 +48,7 @@ class LiveViewStructureTests(unittest.TestCase):
         self.assertIn("/hyperskill-live", skill)
 
     def test_every_script_the_hook_and_dashboard_import_is_present(self):
-        for name in ("hs_activity.py", "hs_hook.py", "hs_live.py", "make_replay.py"):
+        for name in ("hs_activity.py", "hs_control.py", "hs_hook.py", "hs_live.py", "make_replay.py", "vendor_packs.py"):
             self.assertTrue(os.path.isfile(os.path.join(ROOT, "scripts", name)), name)
 
 

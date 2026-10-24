@@ -7,6 +7,7 @@
 <meta name="description" content="Watch what HyperSkill is making, testing and deciding, as it happens.">
 <meta name="theme-color" content="#14110f">
 <meta name="hs-mode" content="replay">
+<meta name="hs-token" content="">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="/live/live.css">
 </head>
@@ -31,6 +32,21 @@
     <p id="now-meta" class="now-meta"></p>
   </section>
 
+  <section id="ctl" class="ctl" aria-labelledby="ctl-h" hidden>
+    <h2 id="ctl-h" class="eyebrow">Controls</h2>
+    <div class="ctl-row">
+      <button type="button" id="c-pause" class="btn">Pause Claude</button>
+      <button type="button" id="c-advance" class="btn">Advance to the next phase</button>
+      <button type="button" id="c-install" class="btn">Switch on every recommended skill</button>
+    </div>
+    <form id="c-say" class="say">
+      <label for="c-say-text">Tell Claude something (it reads this before its next step)</label>
+      <div class="say-row"><textarea id="c-say-text" rows="2" maxlength="1000" placeholder="For example: use Postgres, not SQLite"></textarea><button type="submit" class="btn">Send</button></div>
+    </form>
+    <p id="c-msg" class="c-msg" role="status" aria-live="polite"></p>
+    <p id="c-inbox" class="sub"></p>
+  </section>
+
   <section aria-labelledby="rail-h">
     <h2 id="rail-h" class="eyebrow">The nine phases</h2>
     <ol id="rail" class="rail"></ol>
@@ -45,6 +61,73 @@
     <span id="r-pos" class="pos"></span>
     <progress id="r-bar" max="100" value="0" aria-label="Replay position"></progress>
   </div>
+
+  <section id="idea" class="integ" aria-labelledby="idea-h" hidden>
+    <h2 id="idea-h" class="eyebrow">Your idea <span id="idea-ver" class="count"></span></h2>
+    <p class="sub">Paste everything you know: what it is, who it is for, must-haves, look and feel. Your words decide <b>what</b> gets built; HyperSkill decides <b>how</b> (phases, checks, evidence). It will not rewrite your idea behind your back: gaps, conflicts and improvements come back as questions below, and you answer them.</p>
+    <form id="idea-form" class="idea-form">
+      <label for="idea-text" class="sub">Your brief</label>
+      <textarea id="idea-text" rows="9" maxlength="20000" placeholder="Example: A site for my coffee roastery. Landing page, staff login with authenticator codes, and a dashboard of customer orders. Brown and amber, calm, no stock photos."></textarea>
+      <div class="kit-bar"><span id="idea-status" role="status" aria-live="polite"></span><button type="submit" class="btn go" id="idea-save">Save and have Claude read it</button></div>
+    </form>
+    <div id="idea-found" hidden>
+      <h3 class="kit-title">What Claude found <span id="idea-open" class="count"></span></h3>
+      <ul id="idea-list" class="xt-list"></ul>
+      <h3 class="kit-title">Requirements <span id="req-count" class="count"></span></h3>
+      <ul id="req-list" class="xt-list"></ul>
+    </div>
+  </section>
+
+  <section id="sp" class="integ" aria-labelledby="sp-h" hidden>
+    <h2 id="sp-h" class="eyebrow">Skill plan for <span id="sp-phase"></span> <span id="sp-count" class="count"></span></h2>
+    <p class="sub">Which skill this phase should use, when and why. Claude decides each line, pulls what it needs and records why; you can override any of it here.</p>
+    <ol id="sp-list" class="sp-list"></ol>
+  </section>
+
+  <section id="xt" class="integ" aria-labelledby="xt-h" hidden>
+    <h2 id="xt-h" class="eyebrow">Checks from your picks <span id="xt-count" class="count"></span></h2>
+    <p class="sub">Each thing you picked below that needs doing is a check. Claude closes it with evidence, or you waive it with a reason; a phase cannot end while one of its checks is open.</p>
+    <ul id="xt-list" class="xt-list"></ul>
+    <h3 class="kit-title">Where each picked piece is used <span id="pl-count" class="count"></span></h3>
+    <ul id="pl-list" class="xt-list"></ul>
+  </section>
+
+  <section id="kit" class="kit" aria-labelledby="kit-h" hidden>
+    <h2 id="kit-h" class="eyebrow">Pick what to use <span id="kit-count" class="count"></span></h2>
+    <p class="sub">Everything the bundled skills and checklists offer, in one place. Tick what this project should use; Claude builds with exactly that and treats the checks as work to finish.</p>
+    <div class="kit-body">
+      <nav id="kit-nav" class="kit-nav" aria-label="Catalogue groups"></nav>
+      <div class="kit-main">
+        <div class="kit-head">
+          <h3 id="kit-title" class="kit-title"></h3>
+          <p id="kit-blurb" class="sub"></p>
+          <div class="kit-tools">
+            <input id="kit-search" type="search" placeholder="Search this group" aria-label="Search this group">
+            <button type="button" id="kit-rec" class="btn" hidden>Select recommended</button>
+            <button type="button" id="kit-clear" class="btn">Clear group</button>
+          </div>
+        </div>
+        <div id="kit-list" class="kit-list"></div>
+        <p id="kit-more" class="sub" hidden></p>
+      </div>
+    </div>
+    <dialog id="kit-box" class="kit-box" aria-label="Preview">
+      <div id="kit-box-body"></div>
+      <div class="kit-bar"><button type="button" id="kit-box-close" class="btn">Close</button><button type="button" id="kit-box-pick" class="btn go">Add to my picks</button></div>
+    </dialog>
+    <div class="kit-bar" id="kit-bar">
+      <span id="kit-status" role="status" aria-live="polite"></span>
+      <button type="button" id="kit-discard" class="btn" disabled>Discard changes</button>
+      <button type="button" id="kit-save" class="btn go" disabled>Save and tell Claude</button>
+    </div>
+  </section>
+
+  <section id="integ" class="integ" aria-labelledby="i-h" hidden>
+    <h2 id="i-h" class="eyebrow">Skills and integrations <span id="i-count" class="count"></span></h2>
+    <p id="i-slots" class="sub"></p>
+    <ul id="i-list" class="i-list"></ul>
+    <details class="i-more"><summary id="i-more-h">Not bundled</summary><ul id="i-other" class="i-list"></ul></details>
+  </section>
 
   <div class="cols">
     <section class="feed-col" aria-labelledby="feed-h">
@@ -80,6 +163,15 @@
       <section class="card" aria-labelledby="d-h">
         <h2 id="d-h" class="eyebrow">Decisions <span id="d-count" class="count"></span></h2>
         <ul id="decisions" class="decisions"></ul>
+        <details id="d-new" class="d-new" hidden>
+          <summary>Record a decision</summary>
+          <form id="d-form" class="mini">
+            <input id="d-title" maxlength="120" placeholder="Decision" aria-label="Decision title" required>
+            <input id="d-choice" maxlength="300" placeholder="What was chosen" aria-label="What was chosen" required>
+            <input id="d-why" maxlength="400" placeholder="Why" aria-label="Why" required>
+            <button type="submit" class="btn">Record</button>
+          </form>
+        </details>
       </section>
     </aside>
   </div>

@@ -1,0 +1,55 @@
+{
+  "_comment": "Demo content for testing Sitewright (no authenticator accounts, no publishing). Fictional.",
+  "brand": {
+    "name": "Halden Legal",
+    "tagline": "Straight answers on property law.",
+    "description": "Halden Legal is a small property law firm. Clients follow their matter online.",
+    "logo": { "style": "monogram", "letter": "H" },
+    "colors": { "primary": "#1b2a4a", "signal": "#c9a227" },
+    "footerNote": "Regulated in England and Wales."
+  },
+  "vocab": { "device": "laptop", "artifact": "document", "record": "matter", "records": "matters", "area": "Admin" },
+  "modules": ["landing", "signin", "dashboard", "connect"],
+  "nav": { "dashboard": "Matters", "connect": "Connect intake form", "home": "Public site" },
+  "landing": {
+    "badge": { "tag": "Open", "text": "Taking new clients this month" },
+    "headline": "Property law without the {accent}.",
+    "accent": "jargon",
+    "sub": "Buying, selling, leasing or disputing: you get one named solicitor, a fixed fee, and a page where you can see where your matter is.",
+    "primaryAction": { "label": "Client sign-in", "href": "/login" },
+    "story": {
+      "kicker": "How a matter runs", "title": "From first call to completion.", "lead": "Four stages, each one visible to you.",
+      "steps": [
+        { "time": "Day 1", "title": "Tell us what you need", "text": "A short call, a fixed quote the same day.", "tags": ["Fixed fee"],
+          "screen": { "kind": "list", "title": "New matter", "sub": "Intake", "cards": [{ "title": "Sale of 12 Mill Lane", "sub": "Freehold", "pill": "Quoted", "tone": "dark" }], "cta": "Accept quote" } },
+        { "time": "Week 1", "title": "We gather the papers", "text": "Searches ordered, documents requested, everything tracked.", "tags": ["Searches", "ID checks"],
+          "screen": { "kind": "grid", "title": "Searches", "sub": "3 of 5 back", "guide": "Waiting on the council", "bar": 60 } },
+        { "time": "Week 3", "title": "Contracts agreed", "text": "We explain every clause that matters in plain English.", "tags": ["Plain English"],
+          "screen": { "kind": "result", "title": "Contract", "sub": "Draft 2", "big": { "label": "Open points", "value": "2" }, "cards": [{ "title": "Boundary wording", "sub": "Agreed", "pill": "Done", "tone": "green" }] } },
+        { "time": "Week 6", "title": "Completion", "text": "Funds move, keys change hands, and we send you the deeds.", "tags": ["Deeds sent"],
+          "screen": { "kind": "progress", "title": "Completion", "sub": "Friday", "cards": [{ "title": "Funds received", "sub": "Confirmed", "pill": "100%" }], "bar": 100 } }
+      ],
+      "end": "Complete. Welcome home."
+    },
+    "proof": {
+      "kicker": "Why Halden", "title": "Fixed fees, clear stages.", "lead": "No hourly billing and no surprises (demo figures).",
+      "figure": "4.8", "bigTitle": "Client rating", "bigText": "Average rating from clients after completion.",
+      "numbers": [{ "value": "420", "label": "matters completed" }, { "value": "6", "label": "weeks, typical sale" }],
+      "bars": [{ "label": "Halden", "value": 94 }, { "label": "Industry", "value": 68, "them": true }],
+      "cards": [{ "icon": "shield", "title": "Regulated", "text": "Every solicitor is regulated and insured." }, { "icon": "chart", "title": "Always visible", "text": "See each stage as it completes." }]
+    },
+    "cta": { "title": "Moving soon?", "text": "Call us for a fixed quote today." },
+    "faq": [["What does a sale cost?", "A fixed fee, quoted the same day."], ["Can I see my matter online?", "Yes - sign in with the password we send you."], ["Do you act for landlords?", "Yes, for residential lets."]]
+  },
+  "signin": { "eyebrow": "Halden Legal · clients", "title": "Your matter, at a glance.", "text": "Enter the password we sent you." },
+  "dashboard": {
+    "eyebrow": "Client portal", "title": "Matters in progress.", "sub": "Open a matter to see its stages and documents.",
+    "statuses": [{ "id": "open", "label": "Open", "tone": "accent" }, { "id": "review", "label": "In review", "tone": "unsure" }, { "id": "closed", "label": "Closed", "tone": "ok" }],
+    "labels": { "title": "Client", "subtitle": "Property", "category": "Type", "owner": "Solicitor", "source": "Referred by" },
+    "facets": ["category", "owner", "status"],
+    "metrics": [{ "key": "fee", "label": "fee", "unit": "£" }],
+    "stats": [{ "label": "matters", "kind": "count" }, { "label": "fees quoted", "kind": "sum", "metric": "fee", "prefix": "£", "tone": "accent" }, { "label": "in review", "kind": "status", "status": "review", "tone": "unsure" }],
+    "itemsLabel": "Stages", "filesLabel": "Documents", "search": "Search client, property or solicitor"
+  },
+  "connect": { "title": "Connect the intake form", "sub": "Send new enquiries here from your website form.", "where": "the form webhook settings", "curl": true }
+}

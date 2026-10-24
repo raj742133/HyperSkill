@@ -1,0 +1,12 @@
+.ui-ai-state-loading { color: var(--ink, #111); font-family: var(--font-body, system-ui, sans-serif); }
+.ui-ai-state-loading-title { margin: 0 0 5px; line-height: 18px; font-size: 13px; font-weight: 600; }
+.ui-ai-state-loading-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.ui-ai-state-loading-list li { display: flex; align-items: center; gap: 10px; font-size: 14px; line-height: 20px; }
+.ui-ai-state-loading-icon { flex: none; }
+.ui-ai-state-loading-list li[data-state="pending"] .ui-ai-state-loading-label { color: var(--muted, #555); }
+.ui-ai-state-loading-list li[data-state="active"] .ui-ai-state-loading-label { font-weight: 600; animation: ui-ai-state-loading-pulse 1.4s ease-in-out infinite; }
+.ui-ai-state-loading-arc { transform-origin: 10px 10px; animation: ui-ai-state-loading-spin .9s linear infinite; }
+.ui-ai-state-loading-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+@keyframes ui-ai-state-loading-spin { to { transform: rotate(360deg); } }
+@keyframes ui-ai-state-loading-pulse { 50% { opacity: .55; } }
+@media (prefers-reduced-motion: reduce) { .ui-ai-state-loading *, .ui-ai-state-loading-arc { animation: none !important; } }

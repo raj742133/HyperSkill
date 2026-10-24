@@ -1,0 +1,19 @@
+
+/* ---- Studio design language ---------------------------------------------------------------------------------------------------
+   Flat and warm: paper-and-ink neutrals that do not borrow the brand's hue, so the brand colours are the only colour on the page;
+   hairline borders instead of tinted shadows; a display face for headlines. Everything is scoped by :root[data-design='studio'] so it
+   outranks the module stylesheets whatever order they load in. Delete this block (and the data-design attribute in layout.tsx), or set
+   design.theme to "classic" in site.json and regenerate, for the original pale-and-soft-shadow look. */
+:root[data-design='studio'] { --radius: 18px; }
+:root[data-design='studio'] :where(.hero-title, .s-title, .login-title, .card-h, .lp-h1, .lp-h2, .brand-t, .why-big, .stat-card .v) { font-family: var(--font-display); }
+:root[data-design='studio'] :where(.hero-title, .lp-h1) { font-weight: 800; letter-spacing: -0.04em; line-height: 1.02; }
+:root[data-design='studio'] :where(.s-title, .lp-h2, .login-title) { font-weight: 800; letter-spacing: -0.035em; }
+:root[data-design='studio'] .lp-h1 { font-size: clamp(44px, 5vw, 72px); }
+:root[data-design='studio'] :where(.card-h) { font-weight: 700; letter-spacing: -0.025em; }
+:root[data-design='studio'] :where(.card, .stat-card, .rec-card, .login-card, .why-card, .dl-card, .dlg) { box-shadow: none; border-color: var(--line); }
+:root[data-design='studio'] :where(.card, .stat-card, .rec-card, .why-card):hover { border-color: var(--line-strong); box-shadow: none; }
+:root[data-design='studio'] .login-card { box-shadow: var(--shadow); }
+:root[data-design='studio'] .btn.primary { box-shadow: none; }
+:root[data-design='studio'] .btn.primary:hover { background: var(--primary); filter: brightness(1.08); }
+:root[data-design='studio'] .lp-badge b::after { display: none; }
+:root[data-design='studio'] .eyebrow { letter-spacing: 0.14em; }

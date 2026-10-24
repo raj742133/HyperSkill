@@ -1,0 +1,30 @@
+.ui-receipt-printer { position: relative; width: 100%; max-width: 280px; margin: 0 auto; color: var(--ink, #0f172a); font-family: var(--font-mono, ui-monospace, monospace); }
+.ui-receipt-printer-head { position: relative; z-index: 2; display: flex; align-items: center; justify-content: center; }
+.ui-receipt-printer-slot {
+  width: 64%; height: 10px; border-radius: 6px; background: var(--ink, #0f172a);
+  box-shadow: inset 0 -3px 0 rgba(255, 255, 255, 0.18), 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+.ui-receipt-printer-replay {
+  position: absolute; right: 0; top: -8px; display: grid; place-items: center; width: 44px; height: 44px; border: 1px solid var(--line-strong, #94a3b8);
+  border-radius: 50%; background: var(--raised, transparent); color: var(--ink, inherit); cursor: pointer;
+}
+.ui-receipt-printer-replay:hover { background: var(--raised-2, var(--raised, transparent)); }
+.ui-receipt-printer-replay:focus-visible { outline: 3px solid var(--signal, #f59e0b); outline-offset: 2px; }
+.ui-receipt-printer-window { position: relative; z-index: 1; overflow: hidden; width: 58%; margin: 0 auto; padding-bottom: 6px; }
+.ui-receipt-printer-paper {
+  background: #fdfcf8; color: #1c1b19; padding: 6px 10px 0; font-size: 10.5px; line-height: 14px;
+  box-shadow: 0 6px 12px -6px rgba(0, 0, 0, 0.4); animation: ui-receipt-printer-feed calc(var(--ui-receipt-printer-steps, 7) * 0.42s) steps(var(--ui-receipt-printer-steps, 7), end) both;
+}
+.ui-receipt-printer-paper p { margin: 0; }
+.ui-receipt-printer-title { text-align: center; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; font-size: 10px; padding-bottom: 3px; border-bottom: 1px dashed #8d8a80; margin-bottom: 3px !important; }
+.ui-receipt-printer-list { list-style: none; margin: 0; padding: 0; }
+.ui-receipt-printer-list li, .ui-receipt-printer-total { display: flex; justify-content: space-between; gap: 8px; }
+.ui-receipt-printer-list li span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ui-receipt-printer-total { margin-top: 3px !important; padding-top: 3px; border-top: 1px dashed #8d8a80; font-weight: 700; }
+.ui-receipt-printer-tear {
+  height: 8px; margin: 4px -10px 0;
+  background: linear-gradient(-45deg, transparent 5px, #fdfcf8 0) 0 0 / 8px 8px, linear-gradient(45deg, transparent 5px, #fdfcf8 0) 0 0 / 8px 8px;
+  transform: translateY(8px);
+}
+@keyframes ui-receipt-printer-feed { from { transform: translateY(-100%); } to { transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) { .ui-receipt-printer-paper { animation: none; } }

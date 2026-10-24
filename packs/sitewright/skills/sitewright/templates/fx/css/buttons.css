@@ -1,0 +1,36 @@
+/* Button effects. Each is scoped by data-fx-buttons on <html>, so nothing here applies unless that effect was chosen. */
+
+/* magnetic: the individual `translate` property, so it never fights a hover `transform` */
+[data-fx-buttons='magnetic'] :is(__FX_BTN__) {
+  translate: var(--fx-tx, 0px) var(--fx-ty, 0px);
+  transition: translate 0.25s var(--ease), background-color 0.15s, border-color 0.15s, box-shadow 0.2s, color 0.15s, transform 0.2s;
+}
+
+/* shine: a glint sweeps across on hover and keyboard focus */
+[data-fx-buttons='shine'] :is(__FX_BTN__) { position: relative; overflow: hidden; isolation: isolate; }
+[data-fx-buttons='shine'] :is(__FX_BTN__)::after {
+  content: ''; position: absolute; top: 0; bottom: 0; left: -70%; width: 50%; z-index: -1; pointer-events: none;
+  background: linear-gradient(105deg, transparent, rgba(255, 255, 255, 0.5), transparent); transform: skewX(-20deg); transition: none;
+}
+[data-fx-buttons='shine'] :is(__FX_BTN__):is(:hover, :focus-visible)::after { left: 130%; transition: left 0.7s var(--ease); }
+
+/* ripple: the span is added by js at the press point */
+[data-fx-buttons='ripple'] :is(__FX_BTN__) { position: relative; overflow: hidden; isolation: isolate; }
+.fx-ripple { position: absolute; z-index: -1; border-radius: 50%; pointer-events: none; background: rgba(255, 255, 255, 0.45); transform: scale(0); animation: fx-ripple 0.7s var(--ease) forwards; }
+@keyframes fx-ripple { to { transform: scale(1); opacity: 0; } }
+
+/* glow border: a light travels around the edge (conic gradient, masked to a 2px ring) */
+@property --fx-a { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+[data-fx-buttons='glow-border'] :is(__FX_BTN__) { position: relative; isolation: isolate; }
+[data-fx-buttons='glow-border'] :is(__FX_BTN__)::before {
+  content: ''; position: absolute; inset: -2px; border-radius: inherit; padding: 2px; z-index: -1; pointer-events: none;
+  background: conic-gradient(from var(--fx-a), transparent 0 55%, var(--signal) 78%, var(--primary) 90%, transparent 100%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  animation: fx-spin 3.2s linear infinite;
+}
+@keyframes fx-spin { to { --fx-a: 360deg; } }
+
+@media (prefers-reduced-motion: reduce) {
+  [data-fx-buttons] :is(__FX_BTN__) { translate: none !important; }
+  [data-fx-buttons] :is(__FX_BTN__)::before, [data-fx-buttons] :is(__FX_BTN__)::after { animation: none !important; transition: none !important; }
+}

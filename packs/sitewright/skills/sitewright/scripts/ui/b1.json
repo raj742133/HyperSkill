@@ -1,0 +1,122 @@
+[
+  {
+    "id": "area-chart",
+    "label": "Area chart",
+    "desc": "Smooth gradient area chart with axis ticks, a hover and keyboard crosshair with tooltip, and an optional stacked multi-series mode.",
+    "source": "Bklit",
+    "group": "charts",
+    "files": [
+      "AreaChart.tsx",
+      "_b1.tsx"
+    ],
+    "css": [
+      "ui-chart"
+    ],
+    "use": "Traffic or growth over time on a dashboard or landing page."
+  },
+  {
+    "id": "bar-chart",
+    "label": "Bar chart",
+    "desc": "Vertical grouped or stacked bars with rounded tops, value labels on focus, and a horizontal option.",
+    "source": "Bklit",
+    "group": "charts",
+    "files": [
+      "BarChart.tsx",
+      "_b1.tsx"
+    ],
+    "css": [
+      "ui-chart"
+    ],
+    "use": "Comparing categories: sales by channel, tasks by status (dashboard, report)."
+  },
+  {
+    "id": "line-chart",
+    "label": "Line chart",
+    "desc": "Multi-series monotone line chart whose legend buttons toggle series, with a crosshair tooltip.",
+    "source": "Bklit",
+    "group": "charts",
+    "files": [
+      "LineChart.tsx",
+      "_b1.tsx"
+    ],
+    "css": [
+      "ui-chart"
+    ],
+    "use": "Trends of several metrics side by side on a dashboard."
+  },
+  {
+    "id": "live-line-chart",
+    "label": "Live line chart",
+    "desc": "Streaming line that appends a point every second in a sliding window, with a pause button; it pauses off-screen and in hidden tabs.",
+    "source": "Bklit",
+    "group": "charts",
+    "files": [
+      "LiveLineChart.tsx",
+      "_b1.tsx"
+    ],
+    "css": [
+      "ui-chart"
+    ],
+    "use": "Live status panels: requests per second, queue depth, active visitors."
+  },
+  {
+    "id": "profit-loss-line",
+    "label": "Profit/loss line",
+    "desc": "Line around a zero baseline with green fill above and red below, split by a clip path, and signed values in the tooltip.",
+    "source": "Bklit",
+    "group": "charts",
+    "files": [
+      "ProfitLossLine.tsx",
+      "_b1.tsx"
+    ],
+    "css": [
+      "ui-chart"
+    ],
+    "use": "Finance dashboards: monthly net result, margin, cash flow."
+  },
+  {
+    "id": "composed-chart",
+    "label": "Composed chart",
+    "desc": "Columns and a line in one chart, each on its own labelled y axis (revenue and conversion rate).",
+    "source": "Bklit",
+    "group": "charts",
+    "files": [
+      "ComposedChart.tsx",
+      "_b1.tsx"
+    ],
+    "css": [
+      "ui-chart"
+    ],
+    "use": "Two metrics with different units: revenue vs conversion, volume vs rate."
+  },
+  {
+    "id": "scatter-chart",
+    "label": "Scatter chart",
+    "desc": "Scatter or bubble chart with group colours and marker shapes, nice axis ticks and a nearest-point tooltip.",
+    "source": "Bklit",
+    "group": "charts",
+    "files": [
+      "ScatterChart.tsx",
+      "_b1.tsx"
+    ],
+    "css": [
+      "ui-chart"
+    ],
+    "use": "Correlations and distributions: usage vs account size, price vs rating."
+  },
+  {
+    "id": "candlestick-chart",
+    "label": "Candlestick chart",
+    "desc": "OHLC candles (hollow when up, filled when down) with wicks, optional volume bars and an O/H/L/C tooltip.",
+    "source": "Bklit",
+    "group": "charts",
+    "files": [
+      "CandlestickChart.tsx",
+      "_b1.tsx"
+    ],
+    "css": [
+      "ui-chart"
+    ],
+    "use": "Prices over time: markets, stock levels, any open/high/low/close series."
+  }
+]

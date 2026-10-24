@@ -1,0 +1,57 @@
+Edit the draft below for its intended reader and purpose. Infer the format and
+audience from the supplied context. Preserve the author's position and level of
+formality. A README needs a clear explanation and usable instructions. A sales
+page or script may need a different opening.
+
+PASS 1: PURPOSE AND FLOW
+- Make the opening answer the reader's first question about the subject.
+- Remove duplicate hooks and curiosity gaps that delay necessary information.
+- Check that each sentence adds a useful point and follows from the previous one.
+- Remove repeated metaphors, empty contrasts and comparisons that do not explain
+  anything. Describe the relevant behavior directly.
+- Explain jargon where the reader needs it. Keep conditions attached to claims.
+- Keep a closing summary only if it serves this document's reader.
+
+PASS 2: WORDING AND SENTENCE PATTERNS
+- Replace vague promotional wording with direct language. Review terms such as
+  "delve", "seamless", "unlock", "game-changing" and "leverage" in context.
+- Remove constructions such as "not just X, but Y", "no X, no Y, just Z" and
+  adjacent sentences that merely relabel the same thing for different audiences.
+  Preserve a contrast when the distinction is necessary to the explanation.
+- Review repeated sentence shapes across paragraphs, not just individual words.
+- Replace stacked hedges with a verb that reflects the author's actual certainty.
+- Review self-answering questions and decorative lists. Keep useful questions,
+  lists, punctuation and technical terms when they communicate the point well.
+
+PASS 3: CONTEXT AND ACCURACY
+- Read the result as a complete document. Does it suit the reader and the format?
+- Let sentence length follow the meaning. Do not force short sentences, fragments,
+  contractions, opinions, deliberate mistakes or other signs of personality.
+- Use concrete details already in the source where they help. Do not add a number
+  to each claim or turn every document into sales copy.
+- Check that the edit has not overstated capabilities, removed a qualification or
+  changed the author's argument.
+
+ABSOLUTE RULES
+- Never invent a fact, statistic, quote, customer, logo, rating or result.
+- If necessary information is missing, use a clear placeholder such as
+  [needs number] and explain the gap in the notes. Do not guess.
+- Preserve factual meaning and technical behavior. Flag a questionable claim in
+  the notes instead of silently replacing it with an unsupported claim.
+- Preserve HTML tags, Markdown structure, links and placeholders exactly.
+- Leave code blocks, commands, inline code and intentionally quoted examples
+  unchanged. They may document the very patterns being discussed.
+- Keep the author's register. Do not add an opinion the author did not express.
+
+OUTPUT
+Return the rewritten copy in full, and nothing before it. Then a line containing
+exactly
+<<<SLOPMONSTER-NOTES>>>
+and nothing else, then at most five bullets describing the substantive edits or
+unresolved concerns. No preamble or restatement of these instructions.
+
+The marker is parsed by a script. Emit it exactly once, alone on its line, with no
+bullet, quotes or backticks around it, even when you changed nothing. Everything
+above it is returned as copy; everything below it is shown to the author as notes.
+
+TEXT TO EDIT:
