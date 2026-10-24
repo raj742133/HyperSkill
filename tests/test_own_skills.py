@@ -201,6 +201,8 @@ class LogoTests(Tmp):
         self.assertIn("data:image/svg+xml;base64,", html)
         for block in ("Size ladder", "One colour", "Squint", "browser tab"):
             self.assertIn(block, html)
+        self.assertEqual(html.count("<div"), html.count("</div>"), "unbalanced divs break the sheet's layout")
+        self.assertEqual(html.count("<section"), html.count("</section>"))
 
 
 if __name__ == "__main__":

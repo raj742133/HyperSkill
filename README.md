@@ -8,7 +8,7 @@
 [![Claude Code plugin](https://img.shields.io/badge/Claude%20Code-plugin-e5412a)](#install)
 [![Python 3, standard library only](https://img.shields.io/badge/python-3%20stdlib%20only-3a312b)](scripts/hyperskill.py)
 
-[**Live site**](https://hyperskill-hazel.vercel.app) · [Install](#install) · [How it works](#how-it-works) · [The dashboard](#watch-it-work-and-steer-it) · [Real runs](#real-runs) · [Limits](#what-is-and-is-not-verified)
+[**Live site**](https://hyperskill-hazel.vercel.app) · [Install](#install) · [How it works](#how-it-works) · [The dashboard](#watch-it-work-and-steer-it) · [Screens](#screens) · [Real runs](#real-runs) · [Limits](#what-is-and-is-not-verified)
 
 <img src="docs/img/site-hero.png" alt="The HyperSkill site: the headline, the install command and a terminal showing the tracker refusing to advance a phase" width="860">
 
@@ -127,6 +127,28 @@ Until now the dashboard watched and steered a Claude session you had open. With 
 - **It is never on by accident.** The dashboard that starts automatically cannot run Claude. You turn it on by starting it yourself with `--allow-run` (stop the automatic one first with `hyperskill.py live --stop`). Without it the same box queues your message for the Claude session you have open. It uses your own Claude Code login and counts against your own usage, and the page is local and key-protected like the other controls.
 - **Verified for real.** I ran it end to end against a real Claude Code: a message from the browser started a run, Claude read an attached requirements file and wrote ten requirements and twelve questions into the brief with the tracker, in 33 seconds for about $0.14, and a second message resumed the same conversation. In edits-only mode a shell command outside the tracker was refused. The shell-commands mode and long runs have been tested only with a stand-in `claude` program, not yet in a real long run.
 
+## Screens
+
+Real screenshots from a demo project, taken in a real browser from the running tools (the same ones are on [the site](https://hyperskill-hazel.vercel.app/#tour)).
+
+**The dashboard**
+
+<img src="site/shots/dash-overview.webp" alt="The dashboard's first screen: right now, and the nine phases" width="420"> <img src="site/shots/dash-tampered.webp" alt="The dashboard refusing a state file that was edited outside HyperSkill, with two buttons: keep my change, or go back to the last good copy" width="420">
+
+<img src="site/shots/dash-skillplan-new.webp" alt="The skill plan for the Product phase, with the new logo-design and file-convert slots answered by bundled skills" width="420">
+
+**Pick what to use**
+
+<img src="site/shots/picker-styles.webp" alt="Popular visual styles: ten cards, each with a clip of a habit tracker built in that style" width="420"> <img src="site/shots/picker-lightbox.webp" alt="The enlarged Neumorphism card with Try the live demo and Add to my picks" width="300"> <img src="site/shots/picker-livedemo.webp" alt="The live Glassmorphism demo, running in a sandbox, after adding a habit" width="300">
+
+<img src="site/shots/picker-sitewright.webp" alt="Sitewright hero backgrounds with previews" width="280"> <img src="site/shots/picker-figures.webp" alt="Interactive line figures" width="280"> <img src="site/shots/picker-tells.webp" alt="Design tells to avoid" width="280"> <img src="site/shots/picker-selfhost.webp" alt="Self-hosted building blocks with licence caveats" width="280">
+
+**Three skills written for this project**
+
+<img src="site/shots/watch-sheet.webp" alt="hs-watch: a contact sheet of frames from a clip" width="300"> <img src="site/shots/logo-sheet.webp" alt="hs-logo: the test sheet, with size ladder, one colour, reversed, blur, mirror and contexts" width="300"> <img src="site/shots/convert-terminal.webp" alt="hs-convert: real terminal output" width="300">
+
+<img src="site/shots/logo-kit.webp" alt="hs-logo: the exported icon set" width="640">
+
 ## Safety and tamper-evidence
 
 HyperSkill's promise is that a pass means something, so the parts that record passes defend themselves. This is **tamper-evident and accident-proof, not a sandbox**: it stops an agent that is sloppy or tempted to take a shortcut, and it shows you when something was changed behind your back. It does not stop a person, or a process that already has your shell and your files, from doing anything you could do yourself.
@@ -230,7 +252,7 @@ A focus timer shaped like a glass of water ([live](https://hyperskill-hazel.verc
 Verified:
 
 - The plugin installs from GitHub into a clean config, and `/hyperskill` ran headless from an install of the same plugin (two separate tests, not one end-to-end run).
-- The tracker and the integration resolver are covered by 329 tests; `claude plugin validate .` passes.
+- The tracker and the integration resolver are covered by 348 tests; `claude plugin validate .` passes.
 - Two full runs on real code, described above, with the failures they exposed.
 
 Not verified, so do not rely on it yet:
@@ -251,14 +273,19 @@ Not verified, so do not rely on it yet:
 .claude-plugin/        plugin and marketplace manifests
 skills/hyperskill/     the conductor, gates.json (72 checks), integrations.json (the registry)
 skills/hs-*/           one skill per phase, with references/
+skills/hs-watch/       read a video (frames, opening, captions, report); our own
+skills/hs-convert/     convert files with the installed tools; our own
+skills/hs-logo/        logo process, audit, test sheet, icon kit; our own
 skills/hyperfigure/    the figure skill, derived from Anatomy (MIT, by Ryan): a capability, not a phase
 agents/                hs-researcher, hs-reviewer (read-only)
-commands/              /hyperskill, /hyperskill-status, /hyperskill-gate, /hyperskill-live, /hyperskill-figure
+commands/              /hyperskill, /hyperskill-status, /hyperskill-gate, /hyperskill-live, /hyperskill-figure, /hyperskill-watch, /hyperskill-convert, /hyperskill-logo
 hooks/                 hooks.json: records the work for the live view; pause and instructions from the dashboard
 packs/                 17 bundled skill packs (unmodified, licensed, off until enabled)
 site/live/previews/    the catalogue's pictures and clips (about 5 MB)
 scripts/               hyperskill.py (state, gates, integrations), hs_hook.py, hs_live.py, hs_control.py, hs_skills.py, hs_catalog.py, hs_brief.py, build_catalog.py, hs_activity.py, vendor_packs.py,
                        make_replay.py, install-skills.sh, build_site.py
+site/shots/           screenshots of every feature (README and site)
+site/styles/          clips of the ten visual styles
 site/                  the static launch site (Vercel; vercel.json); site/live is the live view and its replay
 examples/duesoon/      full nine-phase run
 examples/chaser/       research, plan and build of the second run
