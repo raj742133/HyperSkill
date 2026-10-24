@@ -197,16 +197,16 @@ class CatalogTests(unittest.TestCase):
 
     def test_the_self_hosted_blocks_state_their_licence_and_what_done_looks_like(self):
         g = self.groups["selfhost"]
-        self.assertEqual([i["name"] for i in g["items"]], ["GlitchTip", "Gotify", "Windmill", "Vikunja", "celld"])
+        self.assertEqual([i["name"] for i in g["items"]], ["GlitchTip", "Gotify", "Windmill", "Vikunja", "celld", "RAG-Anything"])
         by = {i["name"]: i for i in g["items"]}
-        for name, lic in (("GlitchTip", "MIT"), ("Gotify", "MIT"), ("Windmill", "AGPL-3.0"), ("Vikunja", "AGPL-3.0"), ("celld", "Apache-2.0")):
+        for name, lic in (("GlitchTip", "MIT"), ("Gotify", "MIT"), ("Windmill", "AGPL-3.0"), ("Vikunja", "AGPL-3.0"), ("celld", "Apache-2.0"), ("RAG-Anything", "MIT")):
             self.assertIn(lic, by[name]["desc"], name)
         for it in g["items"]:
             self.assertEqual(it["mode"], "track")
             self.assertIn("Done when", it["text"], it["name"])
         self.assertIn("proprietary", by["Windmill"]["desc"])
         self.assertIn("alpha", by["celld"]["text"])
-        self.assertEqual({i["phase"] for i in g["items"]}, {"operate", "launch", "scale"})
+        self.assertEqual({i["phase"] for i in g["items"]}, {"operate", "launch", "scale", "foundation"})
 
     def test_a_selected_self_hosted_block_becomes_a_check_that_blocks_its_phase(self):
         with tempfile.TemporaryDirectory() as p:

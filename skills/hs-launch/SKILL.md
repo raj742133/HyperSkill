@@ -14,7 +14,7 @@ Goal: tell the truth about the product, beautifully, and confirm nothing was for
 Work through `references/prelaunch.md`. Every unticked item is either fixed or waived with a reason. Publish terms of service and a privacy policy (have the owner or counsel review; do not present generated legal text as legal advice).
 
 ## Track B - Promo content
-Details and prompt patterns: `references/video-hyperframes.md`. Style presets: `references/styles.md`.
+For a short explainer, write the four beats first (`references/explainer-structure.md`). Details and prompt patterns: `references/video-hyperframes.md`. Style presets: `references/styles.md`.
 
 ### Owner decisions
 - Which deliverable(s): hero/promo video (16:9), vertical social cut (9:16), text-only explainer, demo of a feature, motion graphics layered on a recorded clip.

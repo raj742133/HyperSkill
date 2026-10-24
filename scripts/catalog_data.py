@@ -235,5 +235,8 @@ SELFHOST = [
     ("celld", "scale", "Runtime and portability",
      "Apache-2.0. Runs Cloudflare Workers and Durable Objects on your own infrastructure, state in your bucket. Young: the compatibility surface is still changing.",
      "Exit plan for a Cloudflare-based product: rehearse running the same code elsewhere. Done when the app starts under celld in a test environment, the differences are written down, and the peer port is kept off the public internet (peer traffic is not TLS-terminated). Do not make it the only production path while it is alpha."),
+    ("RAG-Anything", "foundation", "Document search",
+     "MIT. A Python library (not a service) that answers questions over PDFs, Office files, images, tables and equations by building a graph over them; built on LightRAG. Needs an LLM and an embedding provider key, and heavy parsers.",
+     "Questions over your own documents: pick the documents, the models and where the index lives, and say what it costs per question. Done when ten real questions with known answers are answered correctly and with the source shown, and a document the user may not see never appears in an answer for them."),
 ]
 
