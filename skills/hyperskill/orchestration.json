@@ -19,9 +19,27 @@
         "need": "situational",
         "when": "only when a competitor or demo video is part of the evidence",
         "why": "turns a video into frames and a transcript you can cite"
+      },
+      {
+        "slot": "community-research",
+        "need": "situational",
+        "when": "when the go/no-go rests on what real people say, and the first sweep leaves demand evidence thin",
+        "why": "recent, cited threads and comments give the user-evidence check something real to point at"
+      },
+      {
+        "slot": "web-extraction",
+        "need": "optional",
+        "when": "only to collect public data in bulk (pricing pages, listings) that WebFetch cannot gather one page at a time",
+        "why": "structured competitor data for the alternatives-mapped check, within each site's terms"
       }
     ],
     "plan": [
+      {
+        "slot": "architecture-diagram",
+        "need": "core",
+        "when": "when docs/system-design.md is written, before the user is asked to read it",
+        "why": "the system-design-read and architecture-explained checks need a diagram the user can follow and question"
+      },
       {
         "slot": "coding-discipline",
         "need": "core",
@@ -145,6 +163,12 @@
         "need": "situational",
         "when": "when the product page or docs need an interactive explainer",
         "why": "a crafted figure explains an idea better than a screenshot"
+      },
+      {
+        "slot": "design-lint",
+        "need": "situational",
+        "when": "after the pages are built and before the design critique, when node is installed",
+        "why": "a mechanical check of the built HTML and CSS against anti-slop rules, so the critique spends its time on judgement"
       }
     ],
     "ship": [
@@ -191,6 +215,12 @@
         "need": "core",
         "when": "on the diff of every security fix",
         "why": "fixes are code too and need review; with Open Code Review switched on and its `ocr` CLI installed, use its delegate skill as a second, rules-based flaw hunt (Claude reviews, no extra key) and record its findings in docs/reviews/"
+      },
+      {
+        "slot": "artifact-analysis",
+        "need": "optional",
+        "when": "when the product ships a bundle or binary to users' machines (a web build, Electron app, mobile app)",
+        "why": "what you ship is what an attacker reads: leaked secrets, published source maps and unexpected endpoints"
       }
     ],
     "operate": [

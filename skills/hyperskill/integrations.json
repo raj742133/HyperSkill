@@ -638,16 +638,25 @@
       ]
     },
     "rea": {
-      "name": "REA (Reverse Engineer Anything)",
+      "name": "REA (reverse engineering for agents)",
       "repo": "morluto/rea",
-      "kind": "mcp+cli+skill",
-      "license": "MIT (third-party engines licensed separately)",
-      "policy": "reference-only",
-      "provides": "Reverse-engineering MCP server for binaries, APKs, .NET, Electron apps, sites, pcaps. Needs Hopper/Ghidra/IDA for native work.",
+      "kind": "mcp+skill+cli",
+      "license": "MIT",
+      "policy": "opt-in",
+      "install": [
+        "npx rea-agents setup  (read it first; needs Node 22+)"
+      ],
+      "detect": {
+        "binaries": [
+          "rea"
+        ]
+      },
+      "provides": "Lets an agent analyse shipped artifacts (JavaScript and Electron bundles, .NET, APKs, native binaries, firmware, captures) through an MCP server, a skill and a CLI. Static JavaScript analysis needs no native engine.",
       "risks": [
-        "dual-use security tool outside this pipeline's scope",
-        "reverse engineering software you do not own can breach licences or law",
-        "runtime capture executes the target with your privileges"
+        "not bundled: a large toolkit with its own MCP server",
+        "use it only on software you own or are authorised to examine; its own disclaimer says so, and it grants no licence to Hopper, IDA or Ghidra",
+        "runtime capture runs the target with your user permissions",
+        "for this pipeline the fit is narrow: checking your own shipped bundle for leaked secrets, source maps and unexpected endpoints"
       ]
     },
     "api-anything": {
@@ -710,6 +719,120 @@
         "sign-in and MFA modules ship development-only passwords and secrets in .env.local: replace them before any deploy",
         "bundles Hairline (MIT, Lucas Marques) figures: keep packs/sitewright/THIRD_PARTY_NOTICES.md with it"
       ]
+    },
+    "hallmark": {
+      "name": "Hallmark",
+      "repo": "nutlope/hallmark",
+      "kind": "skill+script",
+      "license": "MIT",
+      "policy": "opt-in",
+      "install": [
+        "bundled: hyperskill.py integrations enable hallmark",
+        "or upstream: npx skills add nutlope/hallmark"
+      ],
+      "detect": {
+        "skills": [
+          "hallmark"
+        ]
+      },
+      "provides": "Anti-AI-slop design skill: a hard floor of 16 rules, 48 themes dealt so builds do not converge, and scripts/sloplint.mjs, a zero-dependency linter that checks built HTML/CSS/JSX against those rules (FAIL, REFLEX and WARN grades, optional --render pass in a real browser).",
+      "risks": [
+        "a second design voice: use it instead of taste-skill, not alongside it",
+        "do not run its install.mjs or install-hook.mjs: they edit .claude/settings.json, and HyperSkill already has its own hooks",
+        "scripts/imagegen.mjs sends prompts to Together AI, and only when TOGETHER_API_KEY is set",
+        "theme.mjs photos downloads Wikimedia Commons images only when asked; each keeps its own licence",
+        "sloplint writes a .hallmark/ folder into the project; --render needs puppeteer-core and Chrome",
+        "its stamp line must be the first line of the CSS; a lint pass shows the rules were followed, not that the design is good"
+      ]
+    },
+    "humanizer": {
+      "name": "Humanizer",
+      "repo": "blader/humanizer",
+      "kind": "skill",
+      "license": "MIT",
+      "policy": "opt-in",
+      "install": [
+        "bundled: hyperskill.py integrations enable humanizer",
+        "or upstream: /plugin marketplace add blader/humanizer"
+      ],
+      "detect": {
+        "skills": [
+          "humanizer"
+        ]
+      },
+      "provides": "Rewrites AI-sounding prose so it reads like the writer, from Wikipedia's 'Signs of AI writing': staged openers, forced triads, inflated claims, stock words, formatting by rule. Keeps what the text says.",
+      "risks": [
+        "it rewrites: review the diff, and keep every claim true (a smoother sentence is not a verified one)",
+        "overlaps SlopMonster: use one pass, not both"
+      ]
+    },
+    "diagram-design": {
+      "name": "Diagram Design",
+      "repo": "cathrynlavery/diagram-design",
+      "kind": "skill+script",
+      "license": "MIT",
+      "policy": "recommended",
+      "install": [
+        "bundled: hyperskill.py integrations enable diagram-design",
+        "or upstream: /plugin marketplace add cathrynlavery/diagram-design"
+      ],
+      "detect": {
+        "skills": [
+          "diagram-design"
+        ]
+      },
+      "provides": "45 diagram types (architecture, flowchart, sequence, state machine, ER, deployment, data flow, timeline, quadrant, swimlane and more) as one self-contained HTML file with inline SVG; can redraw Mermaid, draw.io and Excalidraw files; exports SVG and PNG.",
+      "risks": [
+        "asks to customise the style guide on first use: answer it once, or keep the default",
+        "PNG export needs Playwright, which it does not install for you",
+        "a diagram is a claim: check each box and arrow against the code before the architecture-explained check"
+      ]
+    },
+    "last30days": {
+      "name": "last30days (community research)",
+      "repo": "mvanhorn/last30days-skill",
+      "kind": "plugin",
+      "license": "MIT",
+      "policy": "opt-in",
+      "install": [
+        "claude plugin marketplace add mvanhorn/last30days-skill",
+        "claude plugin install last30days"
+      ],
+      "detect": {
+        "skills": [
+          "last30days"
+        ]
+      },
+      "provides": "Searches Reddit, Hacker News, YouTube, GitHub, Polymarket and more for what people said about a topic in the last 30 days, ranks by engagement and writes a cited brief. Several sources need no key.",
+      "risks": [
+        "not bundled: the skill folder is about 18 MB",
+        "with a reasoning-provider key set, your topic and the retrieved snippets go to that provider",
+        "some sources use browser cookies or third-party scraping services (ScrapeCreators, Bright Data): check their terms and never give it a logged-in session you care about",
+        "engagement is not demand: treat the brief as evidence to weigh, never as proof of a market"
+      ]
+    },
+    "scrapling": {
+      "name": "Scrapling (web extraction)",
+      "repo": "D4Vinci/Scrapling",
+      "kind": "library+mcp",
+      "license": "BSD-3-Clause",
+      "policy": "opt-in",
+      "install": [
+        "pip install \"scrapling[fetchers]\" && scrapling install",
+        "MCP server and agent skill: pip install \"scrapling[ai]\""
+      ],
+      "detect": {
+        "binaries": [
+          "scrapling"
+        ]
+      },
+      "provides": "Python scraping framework: HTTP and browser fetchers, adaptive parsing that survives page changes, concurrent spiders, an MCP server and an official agent skill.",
+      "risks": [
+        "not bundled: a Python library with browser downloads",
+        "its README says it is for educational and research use and that you must follow site terms, robots.txt and privacy law",
+        "its stealth fetchers are built to get past bot protection: do not use that on a site whose terms forbid scraping",
+        "scraped personal data is personal data: GDPR and similar apply"
+      ]
     }
   },
   "slots": {
@@ -754,7 +877,8 @@
     },
     "design-direction": {
       "providers": [
-        "taste-skill"
+        "taste-skill",
+        "hallmark"
       ],
       "fallback": "hs-product/references/design-system.md"
     },
@@ -905,7 +1029,8 @@
     },
     "copy-review": {
       "providers": [
-        "slopmonster"
+        "slopmonster",
+        "humanizer"
       ],
       "fallback": "re-read the copy for filler, vague claims and AI tells; keep every claim traceable to a real feature"
     },
@@ -920,6 +1045,37 @@
         "sitewright"
       ],
       "fallback": "hand-written pages and routes following the hs-product design-system and the plan's architecture"
+    },
+    "architecture-diagram": {
+      "providers": [
+        "diagram-design",
+        "hyperfigure"
+      ],
+      "fallback": "draw the architecture and data flow as Mermaid in docs/system-design.md, then check every box and arrow against the code"
+    },
+    "design-lint": {
+      "providers": [
+        "hallmark"
+      ],
+      "fallback": "walk skills/hs-product/references/design-system.md and the design-critique slot's checklist by hand and record what you found"
+    },
+    "community-research": {
+      "providers": [
+        "last30days"
+      ],
+      "fallback": "search the forums, issue trackers and review sites by hand with WebSearch; cite each thread and say what you could not find"
+    },
+    "web-extraction": {
+      "providers": [
+        "scrapling"
+      ],
+      "fallback": "read public pages with WebFetch, respect robots.txt and the site's terms, and never work around bot protection"
+    },
+    "artifact-analysis": {
+      "providers": [
+        "rea"
+      ],
+      "fallback": "inspect your own build output by hand: grep the bundle for secrets and internal URLs, and check that source maps are not published"
     }
   }
 }

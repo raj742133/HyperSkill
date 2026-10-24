@@ -199,3 +199,41 @@ ADDONS = [
     ("Optimistic UI", "product", "Show the result of an action immediately and roll back if the server refuses.", ""),
     ("Pagination", "product", "Page or infinite-load long lists, keeping the place on back-navigation.", ""),
 ]
+
+
+# The ten styles people ask for by name: (name, key of the same style in the generated UI UX Pro Max list, what it is for).
+# They sit in their own group so they are one click, and each comes with rules in skills/hs-product/references/style-recipes.md.
+# A pick here and a pick in the big list replace each other (one style per product).
+POPULAR_STYLES = [
+    ("Skeuomorphism", "skeuomorphism", "Interfaces that imitate real objects. For tools people picture as physical: audio, journals, calculators, games."),
+    ("Neumorphism", "neumorphism", "Soft shapes pressed out of one surface. Lowest contrast of the ten: only for a few large controls, with extra edges and focus rings."),
+    ("Glassmorphism", "glassmorphism", "Frosted translucent panels over a rich backdrop. Needs a worst-case contrast check and a solid fallback."),
+    ("Claymorphism", "claymorphism", "Soft, puffy, toy-like shapes. Friendly products; keep text on dark ink, not pastel."),
+    ("Brutalism", "brutalism", "Raw, hard-edged, thick borders, hard shadows. A loud honest voice; give it a focus ring that is not the border."),
+    ("Minimalism", "minimalism-swiss-style", "Few elements, space, strong type, one accent. For content-first products and long sessions."),
+    ("Maximalism", "gen-z-chaos-maximalism", "Dense, layered, loud on a strong grid. Brand-as-show products; body copy on a calm panel, every animation switchable."),
+    ("Liquid Glass", "liquid-glass", "Apple's translucent, light-bending material. For a floating controls layer only, one glass layer per view."),
+    ("Bento Grid", "bento-box-grid", "Tiles of different weight, each one idea. Only when the content really differs in weight; DOM order is the reading order."),
+    ("Spatial UI", "spatial-ui-visionos", "Depth, floating panels, large targets for gaze and gesture. Keep motion subtle and optional."),
+]
+
+# Services you can run yourself, as tracked checks: (name, phase, group label, what it is, what done looks like).
+# Facts were checked against each project's own LICENSE file or README on 2026-10-24; the licence line is part of the text on purpose.
+SELFHOST = [
+    ("GlitchTip", "operate", "Errors and alerts",
+     "MIT. Error tracking that speaks the Sentry SDK protocol, plus uptime checks. Self-host with Docker Compose, or use a hosted plan.",
+     "Error tracking: install a Sentry-compatible SDK and read its DSN from an environment variable. Done when a deliberate test error shows up with a readable stack trace and an alert reaches a person. If you self-host GlitchTip, you also run, back up and update its database."),
+    ("Gotify", "operate", "Errors and alerts",
+     "MIT. Push-notification server: send with a REST call, receive over a websocket or its own app. One small Go service.",
+     "Alert delivery: route error and uptime alerts to a channel a person actually sees. Done when a failing health check produces a notification on the phones that must get it (check that a client exists for each) and the alert has an owner."),
+    ("Windmill", "operate", "Automation",
+     "AGPL-3.0 / Apache-2.0 source, but the prebuilt edition has proprietary parts: no reselling or embedding in what you ship. Scripts become jobs, workflows, UIs.",
+     "Back-office automation: put recurring jobs and internal tools in one place with permissions and logs. Done when each job has an owner, a schedule, a failure alert and its secrets stored by path; and, if any of it is shown to customers, the licence question is answered in docs/decisions."),
+    ("Vikunja", "launch", "Work tracking",
+     "AGPL-3.0: modify it and let others use it over a network, and you must offer them your changes. Lists, Kanban and Gantt, self-hosted.",
+     "Launch to-do list: waived checks and open questions live in one tracker the team uses. Done when every waived item from `hyperskill.py gate` and every unresolved brief question is a task with an owner and a date."),
+    ("celld", "scale", "Runtime and portability",
+     "Apache-2.0. Runs Cloudflare Workers and Durable Objects on your own infrastructure, state in your bucket. Young: the compatibility surface is still changing.",
+     "Exit plan for a Cloudflare-based product: rehearse running the same code elsewhere. Done when the app starts under celld in a test environment, the differences are written down, and the peer port is kept off the public internet (peer traffic is not TLS-terminated). Do not make it the only production path while it is alpha."),
+]
+

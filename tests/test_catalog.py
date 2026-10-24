@@ -81,7 +81,8 @@ class CatalogDataTests(unittest.TestCase):
                 if it["mode"] == "track":
                     self.assertGreater(len(it["text"]), 20, it["id"])
                 if g.get("exclusive"):
-                    self.assertEqual(it.get("exclusive"), g["id"], it["id"])
+                    # True: the group is its own exclusive set; a string: it shares the set with the group of that name
+                    self.assertEqual(it.get("exclusive"), g["exclusive"] if isinstance(g["exclusive"], str) else g["id"], it["id"])
         self.assertGreater(len(ids), 700)
 
     def test_palettes_carry_real_colours(self):

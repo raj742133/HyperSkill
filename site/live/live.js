@@ -302,7 +302,7 @@
   }
 
   /* ---------- the catalogue: pick what to use ---------- */
-  const CLUSTERS = [["Checks and scope", ["tells", "concepts", "fixes", "addons"]], ["Sitewright", ["sw-"]], ["Design systems (UI UX Pro Max)", ["uu-"]], ["Skills and figures", ["impeccable", "skills", "figures"]]];
+  const CLUSTERS = [["Checks and scope", ["tells", "concepts", "fixes", "addons", "selfhost"]], ["Look and feel", ["styles-popular"]], ["Sitewright", ["sw-"]], ["Design systems (UI UX Pro Max)", ["uu-"]], ["Skills and figures", ["impeccable", "skills", "figures"]]];
   const clusterOf = (id) => CLUSTERS.findIndex(([, ids]) => ids.some((p) => id === p || (p.endsWith("-") && id.startsWith(p))));
 
   async function loadCatalog() {

@@ -36,7 +36,9 @@
       "slots": [
         "deep-research",
         "product-interrogation",
-        "video-analysis"
+        "video-analysis",
+        "community-research",
+        "web-extraction"
       ]
     },
     {
@@ -94,7 +96,8 @@
         "plan-review",
         "ui-library-choice",
         "explainer-figure",
-        "site-scaffold"
+        "site-scaffold",
+        "architecture-diagram"
       ]
     },
     {
@@ -221,7 +224,8 @@
         "implementation-discipline",
         "copy-review",
         "explainer-figure",
-        "site-scaffold"
+        "site-scaffold",
+        "design-lint"
       ]
     },
     {
@@ -355,7 +359,8 @@
       ],
       "slots": [
         "security-audit",
-        "code-review"
+        "code-review",
+        "artifact-analysis"
       ]
     },
     {
