@@ -340,7 +340,19 @@
 
   function openBox(it, g) {
     const dlg = $("kit-box"); const body = $("kit-box-body"); body.replaceChildren();
-    body.append(mediaEl(it, true), el("h3", "kit-title", it.name), el("p", "sub", it.desc));
+    const shown = mediaEl(it, true);
+    body.append(shown);
+    if (it.demo) {
+      const row = el("p", "demo-row"), tryIt = el("button", "btn go", "Try the live demo"), tab = el("a", "btn", "Open in a new tab");
+      tryIt.type = "button"; tab.href = PRE + it.demo; tab.target = "_blank"; tab.rel = "noopener noreferrer";
+      tryIt.addEventListener("click", () => {
+        const f = document.createElement("iframe");  // sandboxed by the server's own policy as well: it can run, but reach nothing
+        f.src = PRE + it.demo; f.title = it.name + ", a live demo"; f.className = "kit-demo"; f.setAttribute("sandbox", "allow-scripts allow-forms"); f.referrerPolicy = "no-referrer";
+        shown.replaceWith(f); tryIt.disabled = true; tryIt.textContent = "Live: hover, switch, type and add a habit";
+      });
+      row.append(tryIt, " ", tab); body.append(row);
+    }
+    body.append(el("h3", "kit-title", it.name), el("p", "sub", it.desc));
     const meta = el("p", "tags"); meta.append(el("span", "chip2 ph", "phase: " + it.phase)); for (const t of (it.tags || []).slice(0, 3)) meta.append(el("span", "chip2", short(t, 60))); body.append(meta);
     const pickBtn = $("kit-box-pick"); pickBtn.textContent = pick.has(it.id) ? "Remove from my picks" : "Add to my picks"; pickBtn.disabled = !controlOn();
     pickBtn.onclick = () => { togglePick(it, g); dlg.close(); };

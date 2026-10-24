@@ -96,7 +96,7 @@ Interfaces designed for depth and glanceable, gaze-and-gesture input, as in visi
 
 - **Use when** the product is for an actual spatial device, or you want a restrained version of the idea (depth and floating panels) on a flat screen.
 - **Recipe:** a few layers with clear order (background, panel, controls); soft glass panels with large radii; large hit targets (at least 44-48 CSS px, more for gaze); hover and focus feedback that is immediate and generous; depth cues from scale, shadow and parallax kept small.
-- **Traps:** parallax and tilt on desktop becoming motion sickness; tiny type on translucent panels; building a spatial look with no spatial input to justify it.
+- **Traps:** parallax and tilt on desktop becoming motion sickness; tiny type on translucent panels; building a spatial look with no spatial input to justify it; `backdrop-filter` on a layer inside a `preserve-3d` or `perspective` parent, which in Chromium makes clicks miss their targets (use a per-element `perspective()` transform instead).
 - **Checks:** motion is subtle and can be switched off; targets meet the size above; text sits on a stable panel; the layout holds without the depth effects.
 
 ## How these show up in the pipeline

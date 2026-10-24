@@ -144,11 +144,38 @@ class CatalogTests(unittest.TestCase):
         big = {i["id"] for i in self.groups["uu-styles"]["items"]}
         recipes = text("skills", "hs-product", "references", "style-recipes.md")
         for it in g["items"]:
-            self.assertIn("uu-styles/" + it["media"]["src"].split("/")[1].replace(".svg", ""), big, "%s points at a style that exists in the generated list" % it["name"])
             self.assertTrue(os.path.isfile(os.path.join(ROOT, "site", "live", "previews", it["media"]["src"])), it["name"])
+            self.assertTrue(os.path.isfile(os.path.join(ROOT, "site", "live", "previews", it["media"]["poster"])), it["name"])
             self.assertRegex(recipes, r"(?m)^## %s" % re.escape(it["name"].split(" (")[0] if it["name"] not in ("Brutalism",) else "Brutalism"))
             self.assertEqual(it["exclusive"], "uu-styles")
         self.assertIn("style-recipes.md", g["blurb"])
+
+    def test_each_style_has_a_self_contained_interactive_demo_with_a_clip(self):
+        base = os.path.join(ROOT, "site", "live", "previews", "styles-popular")
+        for it in self.groups["styles-popular"]["items"]:
+            self.assertEqual(it["demo"], it["media"]["src"].rsplit(".", 1)[0] + ".html")
+            html = text("site", "live", "previews", it["demo"])
+            stripped = html.replace("http://www.w3.org/2000/svg", "").replace("http://www.w3.org/1999/xlink", "")
+            self.assertNotRegex(stripped, r"https?://", it["name"] + " must not fetch anything")
+            for hook in ('id="habits"', 'id="add-form"', 'id="add-input"', 'id="toast"', "[role=switch]", "data-demo"):
+                self.assertIn(hook, html, "%s lacks %s" % (it["name"], hook))
+            self.assertIn("prefers-reduced-motion", html, it["name"])
+            self.assertIn("focus-visible", html, it["name"])
+            self.assertGreater(os.path.getsize(os.path.join(ROOT, "site", "live", "previews", it["media"]["src"])), 10000, it["name"])
+        self.assertEqual(len([f for f in os.listdir(base) if f.endswith(".html")]), 10)
+
+    def test_the_picker_offers_the_live_demo_in_a_sandbox(self):
+        js = text("site", "live", "live.js")
+        self.assertIn("Try the live demo", js)
+        self.assertIn("kit-demo", js)
+        self.assertIn('setAttribute("sandbox", "allow-scripts allow-forms")', js)
+        live = text("scripts", "hs_live.py")
+        m = re.search(r'DEMO_CSP = \((.*?)\)\n', live, re.S)
+        self.assertTrue(m)
+        csp = m.group(1)
+        self.assertIn("sandbox allow-scripts allow-forms", csp)
+        self.assertNotIn("allow-same-origin", csp)
+        self.assertIn("connect-src 'none'", csp)
 
     def test_every_recipe_has_the_traps_and_the_checks_that_make_it_safe_to_ship(self):
         body = text("skills", "hs-product", "references", "style-recipes.md")

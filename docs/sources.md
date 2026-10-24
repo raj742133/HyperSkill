@@ -21,6 +21,7 @@
 11. **Helper agents** (`agents/hs-*.md`, `scripts/hs_work.py`): the tiers are my own design on top of Claude Code's subagent files, whose `model` and `effort` fields are documented at code.claude.com/docs/en/sub-agents. The scoring rule (kind of work, files touched, risk, how unclear it is) is a judgement, not a benchmark; the numbers are in `skills/hyperskill/models.json` and are meant to be edited.
 
 10. **Picture previews for the catalogue** (`site/live/previews/`, made 2026-10-24). Sitewright clips and stills are recordings of its own generated demo site (the owner's MIT code, plus the Hairline figures under their MIT notice). Font-pairing cards are renders of text in Google Fonts typefaces fetched while building; only the resulting images are kept, not the font files. The Hyperfigure screenshots are of its own example pages. The diagrams, before/after pictures, mock-ups, wireframes and style cards are drawn in this repository from scratch.
+11. **Style demos** (`scripts/style_demos/`, `site/live/previews/styles-popular/`, `site/styles/`, made 2026-10-24). Ten habit-tracker pages written in this repository, one per visual style; the clips are recordings of them. Typefaces come from Google Fonts (SIL Open Font License), subset to the characters used and inlined as data URIs at build time, so the pages load nothing from the network. The designs follow the style names, not any particular product.
 
 ## Licensing status (updated 2026-10-19)
 
