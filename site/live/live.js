@@ -12,10 +12,11 @@
   let mode = "connecting";
   let replay = null;
   let timer = null;
+  let editingSkill = null; // { slot, kind: "use" | "skip", value }
   let editing = null; // { id, kind: "pass" | "waive", value } while a check's inline form is open
   const token = document.querySelector('meta[name="hs-token"]')?.content || "";
 
-  const GROUP = { file: "files", test: "tests", gate_pass: "gates", gate_waive: "gates", check_failed: "gates", refused: "gates", advance: "gates", skip: "gates", decision: "notes", note: "notes" };
+  const GROUP = { file: "files", test: "tests", gate_pass: "gates", gate_waive: "gates", check_failed: "gates", refused: "gates", advance: "gates", skip: "gates", decision: "notes", note: "notes", skill: "notes" };
   const KIND_LABEL = { building: "Building", testing: "Testing", reviewing: "Reviewing", waiting: "Waiting for you", done: "Done" };
 
   const el = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text !== undefined) n.textContent = text; return n; };
@@ -56,6 +57,7 @@
       case "advance": tag = "Phase"; kind = "go"; main.append(e.text); break;
       case "decision": tag = "Decided"; kind = "go"; main.append(e.text); sub = short(e.choice || "", 220); break;
       case "progress": tag = KIND_LABEL[e.kind] || "Working"; kind = e.kind === "waiting" ? "warn" : "go"; main.append(e.text); break;
+      case "skill": tag = "Skill"; kind = e.action === "skipped" ? "note" : "go"; main.append(e.text); break;
       case "agent": tag = "Helper"; kind = "go"; main.append(e.text); break;
       case "skip": tag = "Skipped"; kind = "warn"; main.append(e.text); sub = short(e.reason || "", 200); break;
       default: tag = e.type === "init" ? "Start" : "Note"; main.append(e.text || e.type);
@@ -206,13 +208,14 @@
       const inbox = c.inbox || [];
       $("c-inbox").textContent = c.pending ? `${c.pending} instruction${c.pending === 1 ? "" : "s"} waiting for Claude's next step.` : (inbox.length ? "Your last instruction was delivered." : "");
     }
+    drawSkillPlan(on);
     const list = $("i-list"); list.replaceChildren();
     const other = $("i-other"); other.replaceChildren();
     const rows = (state.integrations || []).filter((r) => r.bundled || r.builtin || r.policy === "recommended" || r.policy === "opt-in");
     const loose = rows.filter((r) => !r.bundled && !r.builtin);
     $("i-more-h").textContent = `Not bundled: install these yourself (${loose.length})`;
     $("i-count").textContent = rows.length ? `· ${rows.filter((r) => r.bundled && r.enabled).length} switched on` : "";
-    $("i-slots").textContent = (state.slots || []).length ? "This phase uses: " + state.slots.map((s) => `${s.slot} → ${s.use || "built-in fallback"}`).join(" · ") : "";
+    $("i-slots").textContent = "";
     for (const r of rows) {
       const li = el("li");
       const target = r.bundled || r.builtin ? list : other;
@@ -226,6 +229,55 @@
       } else li.append(badge);
       li.append(el("span", "i-meta", [r.policy, r.license, r.bundled ? `${r.bundled} skill${r.bundled === 1 ? "" : "s"}` : r.install[0] || ""].filter(Boolean).join(" · ")));
       target.append(li);
+    }
+  }
+
+  const STATUS = { ready: "ready", pull: "pull it", ask: "needs your OK", install: "you install it", fallback: "built-in fallback" };
+
+  function drawSkillPlan(on) {
+    const rows = state.skillplan || [];
+    $("sp").hidden = !(rows.length && mode === "live");
+    if ($("sp").hidden) return;
+    $("sp-phase").textContent = state.current || "";
+    $("sp-count").textContent = `· ${rows.filter((r) => r.decision).length} of ${rows.length} decided`;
+    const list = $("sp-list"); list.replaceChildren();
+    for (const r of rows) {
+      const li = el("li");
+      const head = el("div", "sp-head");
+      const need = el("span", "sp-need", r.need); need.dataset.n = r.need;
+      const st = el("span", "sp-st", STATUS[r.status] || r.status); st.dataset.s = r.status;
+      head.append(el("span", "sp-slot", r.slot), need, st, el("span", "sp-prov", r.provider ? `→ ${r.provider}` : "→ built-in fallback"));
+      li.append(head, el("p", "sp-why", `When: ${r.when}. Why: ${r.why}.`));
+      if (r.decision) { const d = el("p", "sp-dec", `${r.decision === "used" ? "Using" : "Skipping"}${r.decision_provider ? " " + r.decision_provider : ""}: ${r.decision_why}`); d.dataset.d = r.decision; li.append(d); }
+      if (on) {
+        const btns = el("div", "sp-btns");
+        if ((r.status === "pull" || r.status === "ask") && r.provider) {
+          const b = el("button", "", r.status === "ask" ? `Approve and pull ${r.provider}` : `Pull ${r.provider}`); b.type = "button";
+          b.addEventListener("click", () => api("pull", { id: r.provider }));
+          btns.append(b);
+        }
+        for (const kind of ["use", "skip"]) {
+          const b = el("button", "", kind === "use" ? "Mark as used…" : "Skip…"); b.type = "button";
+          b.addEventListener("click", () => { editingSkill = { slot: r.slot, kind, value: "" }; drawControls(); const f = document.getElementById("sp-input"); if (f) f.focus(); });
+          btns.append(b);
+        }
+        li.append(btns);
+        if (editingSkill && editingSkill.slot === r.slot) {
+          const form = el("form", "item-form");
+          const input = el("input"); input.id = "sp-input"; input.maxLength = 500; input.required = true; input.value = editingSkill.value;
+          input.placeholder = "Why"; input.setAttribute("aria-label", "Why");
+          input.addEventListener("input", () => { editingSkill.value = input.value; });
+          const go = el("button", "btn", "Save"); go.type = "submit"; form.append(input, go);
+          form.addEventListener("submit", async (ev) => {
+            ev.preventDefault();
+            const ok = await api(editingSkill.kind === "use" ? "skill_use" : "skill_skip", Object.assign({ slot: r.slot, why: input.value }, editingSkill.kind === "use" && r.provider ? { provider: r.provider } : {}));
+            if (ok) editingSkill = null;
+            drawControls();
+          });
+          li.append(form);
+        }
+      }
+      list.append(li);
     }
   }
 

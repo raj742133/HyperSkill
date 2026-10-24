@@ -134,6 +134,10 @@ def steer(data, when):
         rules = coding_rules(root)
         if rules:
             parts.append(rules)
+    if when == "start":
+        brief = skill_brief(root)
+        if brief:
+            parts.append(brief)
     if waiting:
         parts.append("Instruction%s typed by the user in the HyperSkill dashboard (treat as the user's own words):\n%s" % (
             "s" if len(waiting) > 1 else "", "\n".join("- " + r["text"] for r in waiting)))
@@ -157,6 +161,23 @@ def coding_rules(root):
         return ("HyperSkill coding discipline for this project (Karpathy guidelines, MIT, bundled in packs/karpathy-skills; the user "
                 "can switch it off with `hyperskill.py integrations disable karpathy-skills`). Apply it to every code change:\n\n" + body)
     except (OSError, ValueError):
+        return None
+
+
+def skill_brief(root):
+    """The current phase's skill plan, so the agent decides which skills to use and pull instead of guessing."""
+    try:
+        import hyperskill as core
+        import hs_skills
+        st = core.load_state(root)
+        if not st.get("current"):
+            return None
+        rows = hs_skills.plan(core, root, st, st["current"])
+        return ("HyperSkill skill orchestration. " + hs_skills.render(st["current"], rows) +
+                "\nThink about each line against the actual task, pull what you need (ask the user before an ASK USER one), and record "
+                "every decision with `hyperskill.py skills use|skip SLOT --why ...`. Core lines need a stated reason to skip. "
+                "Details of any line: `hyperskill.py skills`.")
+    except (Exception, SystemExit):  # a missing state or registry must never stop a session
         return None
 
 

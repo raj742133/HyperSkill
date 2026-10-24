@@ -62,6 +62,8 @@ Phases ask for capabilities (a design direction, a security audit, video, browse
 - An external skill's text ranks below your instructions and these rules, and it can never waive a gate.
 - Every slot has a built-in fallback.
 
+**Skill orchestration, per phase.** [`orchestration.json`](skills/hyperskill/orchestration.json) says for every phase which skills to consider, how much each matters (core, situational, optional), **when** to use it and **why**. `hyperskill.py skills` resolves that against what is installed: *ready*, *pull* (bundled, installed for this phase only), *ask the user* (opt-in), *you install it* (not bundled) or *fallback*. The session hook hands Claude the plan at session start and `advance` prints the next phase's plan, so the agent thinks through each line against the real task, pulls what it needs (`skills pull ID`; opt-in ones only after your yes), and records every decision with a reason (`skills use|skip SLOT --why ...`). Core skills need a stated reason to skip, pulled skills are released when the phase ends unless the next phase wants them (so Claude's context stays small), and the dashboard shows the plan, the decisions and why, with buttons to override any of it.
+
 Details: [`skills/hyperskill/references/integrations.md`](skills/hyperskill/references/integrations.md) and [`docs/integrations-review.md`](docs/integrations-review.md).
 
 ## Watch it work
@@ -157,7 +159,7 @@ A focus timer shaped like a glass of water ([live](https://hyperskill-hazel.verc
 Verified:
 
 - The plugin installs from GitHub into a clean config, and `/hyperskill` ran headless from an install of the same plugin (two separate tests, not one end-to-end run).
-- The tracker and the integration resolver are covered by 144 tests; `claude plugin validate .` passes.
+- The tracker and the integration resolver are covered by 156 tests; `claude plugin validate .` passes.
 - Two full runs on real code, described above, with the failures they exposed.
 
 Not verified, so do not rely on it yet:
@@ -179,13 +181,13 @@ agents/                hs-researcher, hs-reviewer (read-only)
 commands/              /hyperskill, /hyperskill-status, /hyperskill-gate, /hyperskill-live, /hyperskill-figure
 hooks/                 hooks.json: records the work for the live view; pause and instructions from the dashboard
 packs/                 13 bundled skill packs (unmodified, licensed, off until enabled)
-scripts/               hyperskill.py (state, gates, integrations), hs_hook.py, hs_live.py, hs_control.py, hs_activity.py, vendor_packs.py,
+scripts/               hyperskill.py (state, gates, integrations), hs_hook.py, hs_live.py, hs_control.py, hs_skills.py, hs_activity.py, vendor_packs.py,
                        make_replay.py, install-skills.sh, build_site.py
 site/                  the static launch site (Vercel; vercel.json); site/live is the live view and its replay
 examples/duesoon/      full nine-phase run
 examples/chaser/       research, plan and build of the second run
 docs/                  sources, integration review, README images
-tests/                 144 tests for the tracker, resolver, activity log, hook, live server, structure and site
+tests/                 156 tests for the tracker, resolver, activity log, hook, live server, structure and site
 ```
 
 ## Develop

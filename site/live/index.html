@@ -62,6 +62,12 @@
     <progress id="r-bar" max="100" value="0" aria-label="Replay position"></progress>
   </div>
 
+  <section id="sp" class="integ" aria-labelledby="sp-h" hidden>
+    <h2 id="sp-h" class="eyebrow">Skill plan for <span id="sp-phase"></span> <span id="sp-count" class="count"></span></h2>
+    <p class="sub">Which skill this phase should use, when and why. Claude decides each line, pulls what it needs and records why; you can override any of it here.</p>
+    <ol id="sp-list" class="sp-list"></ol>
+  </section>
+
   <section id="integ" class="integ" aria-labelledby="i-h" hidden>
     <h2 id="i-h" class="eyebrow">Skills and integrations <span id="i-count" class="count"></span></h2>
     <p id="i-slots" class="sub"></p>

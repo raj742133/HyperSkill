@@ -258,12 +258,12 @@ class CodingRulesTests(unittest.TestCase):
     def test_it_can_be_declined_at_init_or_switched_off_later(self):
         with tempfile.TemporaryDirectory() as p:
             tracker(p, "init", "--name", "demo", "--no-karpathy")
-            self.assertEqual(self.start(p), "")
+            self.assertNotIn("Think Before Coding", self.start(p))
             self.assertFalse(os.path.exists(os.path.join(p, ".claude", "skills", "karpathy-guidelines")))
         with tempfile.TemporaryDirectory() as p:
             tracker(p, "init", "--name", "demo")
             tracker(p, "integrations", "disable", "karpathy-skills")
-            self.assertEqual(self.start(p), "")
+            self.assertNotIn("Think Before Coding", self.start(p))
             self.assertFalse(os.path.exists(os.path.join(p, ".claude", "skills", "karpathy-guidelines")))
 
     def test_the_reviewer_agent_checks_diff_discipline(self):

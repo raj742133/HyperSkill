@@ -1,0 +1,287 @@
+{
+  "_about": "Per phase: which capability slots to consider, when, and why. need: core = use unless you can state a reason not to; situational = use only when the condition holds; optional = only if it clearly helps. The conductor decides each one and records it with `hyperskill.py skills use|skip`.",
+  "phases": {
+    "research": [
+      {
+        "slot": "deep-research",
+        "need": "core",
+        "when": "at the start, before the interview, whenever the market or alternatives are not already documented",
+        "why": "a multi-source sweep gives docs/research.md evidence instead of guesses"
+      },
+      {
+        "slot": "product-interrogation",
+        "need": "optional",
+        "when": "only if the idea is still vague after the first pass",
+        "why": "pressure-tests the problem statement before any design is spent on it"
+      },
+      {
+        "slot": "video-analysis",
+        "need": "situational",
+        "when": "only when a competitor or demo video is part of the evidence",
+        "why": "turns a video into frames and a transcript you can cite"
+      }
+    ],
+    "plan": [
+      {
+        "slot": "coding-discipline",
+        "need": "core",
+        "when": "from the first line of code onward; on by default",
+        "why": "small, surgical diffs and stated success checks stop the usual over-building"
+      },
+      {
+        "slot": "plan-review",
+        "need": "optional",
+        "when": "after the design is drafted, if a second opinion is wanted",
+        "why": "extra reviewers on the architecture; hs-reviewer already stress-tests it"
+      },
+      {
+        "slot": "ui-library-choice",
+        "need": "situational",
+        "when": "only when the plan has to pick a component library",
+        "why": "evidence for the library decision, recorded with `decide`"
+      },
+      {
+        "slot": "site-scaffold",
+        "need": "situational",
+        "when": "only if the product is a standard site (landing, sign-in, dashboard) and the stack is not fixed yet",
+        "why": "a generated, browser-tested starting point saves the foundation work, but it must be chosen before the stack"
+      },
+      {
+        "slot": "explainer-figure",
+        "need": "situational",
+        "when": "when an idea in the design (cache key, queue, auth flow) is hard to explain in words",
+        "why": "an interactive figure makes the architecture review concrete"
+      }
+    ],
+    "foundation": [
+      {
+        "slot": "coding-discipline",
+        "need": "core",
+        "when": "for every change set, before and while writing it",
+        "why": "keeps migrations, auth and tenancy code minimal and reviewable"
+      },
+      {
+        "slot": "code-review",
+        "need": "core",
+        "when": "after each PR-sized change",
+        "why": "an independent read catches missing tenant scoping and validation"
+      },
+      {
+        "slot": "implementation-discipline",
+        "need": "optional",
+        "when": "when the build steps are large enough to need TDD and sub-plans",
+        "why": "structure inside a phase; it never replaces HyperSkill's gates"
+      }
+    ],
+    "product": [
+      {
+        "slot": "design-direction",
+        "need": "core",
+        "when": "before any pixels, once per project (one design voice only)",
+        "why": "sets the look and dials so the UI is a decision, not a default"
+      },
+      {
+        "slot": "design-system-generation",
+        "need": "situational",
+        "when": "instead of design-direction when you want generated tokens and font pairing (not both)",
+        "why": "tokens, palette and type from local data feed the design system"
+      },
+      {
+        "slot": "design-reference",
+        "need": "optional",
+        "when": "before designing, if real-product references would help (hosted, inspiration only)",
+        "why": "reference screens widen the options; never copy them"
+      },
+      {
+        "slot": "icons",
+        "need": "situational",
+        "when": "when the UI needs an icon set",
+        "why": "one collection, one licence, recorded for the icon-set-licence gate"
+      },
+      {
+        "slot": "animation",
+        "need": "situational",
+        "when": "after the UI works, only where motion explains something",
+        "why": "motion craft and a motion audit, without decorative animation"
+      },
+      {
+        "slot": "design-critique",
+        "need": "core",
+        "when": "once the screens exist, before the designer-pass gate",
+        "why": "anti-pattern detection and critique, written to docs/design-audit.md"
+      },
+      {
+        "slot": "browser-verify",
+        "need": "core",
+        "when": "after every UI change that matters",
+        "why": "drives the real UI at phone and desktop widths and shows screenshots as evidence"
+      },
+      {
+        "slot": "a11y-audit",
+        "need": "core",
+        "when": "before the a11y gates are marked passed",
+        "why": "automated accessibility findings with real selectors"
+      },
+      {
+        "slot": "copy-review",
+        "need": "situational",
+        "when": "when the UI, README or landing has written copy",
+        "why": "flags AI-sounding text; claims must still be true"
+      },
+      {
+        "slot": "site-scaffold",
+        "need": "situational",
+        "when": "only if the site was scaffolded in plan, or the project is a standard site and the stack allows it",
+        "why": "generates pages, API routes and browser checks from one config"
+      },
+      {
+        "slot": "implementation-discipline",
+        "need": "optional",
+        "when": "for build steps large enough to need a plan, tests first and sub-steps",
+        "why": "TDD and bite-sized plans inside the phase"
+      },
+      {
+        "slot": "explainer-figure",
+        "need": "situational",
+        "when": "when the product page or docs need an interactive explainer",
+        "why": "a crafted figure explains an idea better than a screenshot"
+      }
+    ],
+    "ship": [
+      {
+        "slot": "code-review",
+        "need": "core",
+        "when": "on every change set going to main",
+        "why": "the independent review the ship gates rely on"
+      },
+      {
+        "slot": "qa-browser",
+        "need": "situational",
+        "when": "for end-to-end exploration beyond the scripted e2e tests",
+        "why": "finds what scripted tests were not written to look for"
+      },
+      {
+        "slot": "browser-verify",
+        "need": "core",
+        "when": "on the preview deployment before release",
+        "why": "proves the deployed page works in a real browser"
+      },
+      {
+        "slot": "release",
+        "need": "optional",
+        "when": "only if its flow respects the CI and CD gates",
+        "why": "automates the PR and deploy steps; the gates still win"
+      },
+      {
+        "slot": "implementation-discipline",
+        "need": "optional",
+        "when": "for fixes large enough to need a written plan and tests first",
+        "why": "structure for big changes"
+      }
+    ],
+    "harden": [
+      {
+        "slot": "security-audit",
+        "need": "core",
+        "when": "for the independent review, run by hs-reviewer in a sandbox",
+        "why": "findings with evidence go to docs/security/ and become regression tests"
+      },
+      {
+        "slot": "code-review",
+        "need": "core",
+        "when": "on the diff of every security fix",
+        "why": "fixes are code too and need review"
+      }
+    ],
+    "operate": [
+      {
+        "slot": "canary",
+        "need": "optional",
+        "when": "right after a deploy, if a canary tool is installed",
+        "why": "post-deploy checks catch regressions early"
+      },
+      {
+        "slot": "performance-audit",
+        "need": "situational",
+        "when": "when response times or page weight look wrong",
+        "why": "real traces, not guesses"
+      }
+    ],
+    "launch": [
+      {
+        "slot": "video",
+        "need": "situational",
+        "when": "only if the launch needs a promo or demo video",
+        "why": "renders a video from a brief; our video file supplies brief and verification"
+      },
+      {
+        "slot": "video-captions",
+        "need": "situational",
+        "when": "only with a video that has speech",
+        "why": "captions rendered in sync"
+      },
+      {
+        "slot": "video-overlay",
+        "need": "situational",
+        "when": "only with a video that needs titles or callouts",
+        "why": "overlays on real footage"
+      },
+      {
+        "slot": "voiceover",
+        "need": "optional",
+        "when": "only with written consent for any cloned voice",
+        "why": "synthetic voice for narration; must be disclosed"
+      },
+      {
+        "slot": "video-analysis",
+        "need": "situational",
+        "when": "to verify your own rendered video",
+        "why": "frames and transcript prove the render says what the brief says"
+      },
+      {
+        "slot": "copy-review",
+        "need": "core",
+        "when": "on the launch copy, README and landing text",
+        "why": "claims must be true and the text must not read as generated"
+      },
+      {
+        "slot": "site-scaffold",
+        "need": "situational",
+        "when": "only for a missing landing or download page on a standard site",
+        "why": "generates the page and tests it in a browser"
+      },
+      {
+        "slot": "explainer-figure",
+        "need": "situational",
+        "when": "when the launch page needs one memorable explainer",
+        "why": "a figure people remember"
+      }
+    ],
+    "scale": [
+      {
+        "slot": "performance-audit",
+        "need": "core",
+        "when": "to find the real bottleneck before optimising",
+        "why": "evidence for the before/after gate"
+      },
+      {
+        "slot": "parallel-terminals",
+        "need": "optional",
+        "when": "for load tests or several instances at once",
+        "why": "persistent parallel panes"
+      },
+      {
+        "slot": "retro",
+        "need": "optional",
+        "when": "at the end of the project",
+        "why": "a closing retrospective"
+      },
+      {
+        "slot": "task-agents",
+        "need": "optional",
+        "when": "for the post-launch backlog, one agent per task",
+        "why": "every output still goes through gates and review"
+      }
+    ]
+  }
+}

@@ -2,6 +2,20 @@
 
 HyperSkill is the **conductor**. External skills are **players**: they improve *how* a step is done, never *whether* it is done. Registry: `skills/hyperskill/integrations.json` (vetted facts, licences, risks, slot -> provider order). Tool: `hyperskill.py integrations ...`.
 
+## Orchestration: which skill, where, why (every phase)
+
+`skills/hyperskill/orchestration.json` says, per phase, which capability slots to consider, how much each matters (`core` = use unless you can state a reason not to, `situational` = only when its condition holds, `optional`), **when** to use it and **why**. `hyperskill.py skills` resolves that against the registry and what is installed:
+
+| Status | Meaning | What you do |
+|---|---|---|
+| ready | a provider is installed and allowed | use it |
+| pull | allowed and bundled in `packs/`, not installed | `skills pull ID --why ...` installs it for this phase only |
+| ASK USER | an opt-in provider | ask once, quoting its risks; after a yes, `skills pull ID --user-approved` |
+| USER INSTALLS | allowed but not bundled | tell the user the install command; never run a stranger's installer yourself |
+| fallback | nothing usable | use the slot's built-in fallback |
+
+Then record the decision, because the dashboard shows it and the next session reads it: `skills use SLOT --why ... [--provider ID]` or `skills skip SLOT --why ...`. `advance` warns about core lines nobody decided, releases packs pulled in the finished phase unless the next phase wants them, and prints the next phase's plan. Phase-scoped pulling keeps Claude's context small: only the skills a phase needs are loaded. The person can override any line from the dashboard (pull, mark used, skip).
+
 ## The protocol (every phase)
 
 1. **Resolve.** At phase start run `hyperskill.py integrations phase` (current phase). For each slot it prints the provider to use, or the built-in fallback, plus what could be installed.

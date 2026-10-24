@@ -21,6 +21,9 @@ Usage:
   hyperskill.py log TEXT
   hyperskill.py event TEXT [--kind building|testing|reviewing|waiting|done]
                                                     tell the live view what is happening right now
+  hyperskill.py skills [list] [--phase P] [--json]  what each phase should use, when and why (the skill plan)
+  hyperskill.py skills pull ID [--why T] [--user-approved]   install a bundled skill for this phase (opt-in ones need the user's yes)
+  hyperskill.py skills use|skip SLOT --why TEXT     record the decision for the phase;  skills release [PHASE]
   hyperskill.py live [--port 4777] [--read-only]    open the live dashboard (127.0.0.1 only; it can also control the flow)
   hyperskill.py live --ensure | --stop              start it in the background (what the session hook does) / stop it
   hyperskill.py config --autolive on|off            start the dashboard automatically when a session opens (default on)
@@ -48,6 +51,7 @@ _HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, _HERE)
 import hs_activity as activity  # noqa: E402  (shared with the plugin hook and the live dashboard)
 import hs_control as control  # noqa: E402
+import hs_skills as skills  # noqa: E402
 GATES_PATH = os.path.join(_HERE, "..", "skills", "hyperskill", "gates.json")
 INTEGRATIONS_PATH = os.path.join(_HERE, "..", "skills", "hyperskill", "integrations.json")
 
@@ -348,6 +352,9 @@ def cmd_advance(args):
         activity.append(args.root, "refused", "Cannot leave %s: %d check%s still open" % (cur["id"], len(open_ids), "" if len(open_ids) == 1 else "s"),
                         phase=cur["id"], open=",".join(open_ids))
         die("gate not clear for '%s'. Open items: %s" % (cur["id"], ", ".join(open_ids)))
+    undecided = skills.undecided_core(sys.modules[__name__], args.root, st, cur["id"])
+    if undecided:
+        print("note: skills not decided in %s: %s (hyperskill.py skills %s)" % (cur["id"], ", ".join(undecided), cur["id"]))
     st["phases"][cur["id"]]["status"] = "done"
     st["phases"][cur["id"]]["completed"] = now()
     ids = [p["id"] for p in phases]
@@ -363,6 +370,11 @@ def cmd_advance(args):
         st["phases"][ids[idx]]["status"] = "active"
         print("advanced: %s -> %s" % (cur["id"], ids[idx]))
         activity.append(args.root, "advance", "Finished %s, now in %s" % (cur["id"], ids[idx]), phase=cur["id"], to=ids[idx])
+        me = sys.modules[__name__]
+        gone = skills.release(me, args.root, st, cur["id"], keep=skills.wanted_next(me, args.root, st, ids[idx]))
+        if gone:
+            print("released at the end of %s: %s" % (cur["id"], ", ".join(gone)))
+        print(skills.render(ids[idx], skills.plan(me, args.root, st, ids[idx]), short=True))
     save_state(args.root, st)
 
 
@@ -444,6 +456,43 @@ def cmd_live(args):
         print(url or "could not start the live view")
         return
     hs_live.serve(args.root, args.port, open_browser=not args.no_open, control=not args.read_only, idle_hours=args.idle_hours)
+
+
+def cmd_skills(args):
+    me = sys.modules[__name__]
+    st = load_state(args.root)
+    action = args.action or "list"
+    phase = args.phase or (args.target if action in ("list", "release") else None) or st["current"]
+    if action == "list":
+        if not phase:
+            die("pipeline complete; name a phase.")
+        phase_def(load_gates(), phase)
+        rows = skills.plan(me, args.root, st, phase)
+        print(json.dumps(rows, indent=2) if args.json else skills.render(phase, rows))
+        return
+    if action == "pull":
+        if not args.target:
+            die("give a provider id.")
+        copied, kept = skills.pull(me, args.root, st, args.target, args.why, args.user_approved)
+        save_state(args.root, st)
+        print("pulled %s: %s" % (args.target, ("installed " + ", ".join(copied)) if copied else "nothing new to install")
+              + ("; left your own %s alone" % ", ".join(kept) if kept else ""))
+        return
+    if action in ("use", "skip"):
+        if not args.target:
+            die("give a slot name.")
+        if not phase:
+            die("pipeline complete; name a phase with --phase.")
+        skills.record(me, args.root, st, phase, args.target, "used" if action == "use" else "skipped", args.provider if action == "use" else None, args.why)
+        save_state(args.root, st)
+        print("%s %s in %s" % ("using" if action == "use" else "skipping", args.target, phase))
+        return
+    if action == "release":
+        if not phase:
+            die("name a phase.")
+        gone = skills.release(me, args.root, st, phase)
+        save_state(args.root, st)
+        print("released: %s" % (", ".join(gone) or "(nothing was pulled for this phase)"))
 
 
 def cmd_pause(args):
@@ -723,6 +772,16 @@ def build_parser():
     p.add_argument("text")
     p.add_argument("--kind", choices=KINDS, default="building")
     p.set_defaults(fn=cmd_event)
+
+    p = sub.add_parser("skills", help="which skill each phase should use, when and why; pull one, record the decision")
+    p.add_argument("action", nargs="?", choices=["list", "pull", "use", "skip", "release"])
+    p.add_argument("target", nargs="?", help="pull: provider id; use|skip: slot; list|release: phase")
+    p.add_argument("--phase", help="phase (default: the current one)")
+    p.add_argument("--why")
+    p.add_argument("--provider", help="use: which provider you are using for the slot")
+    p.add_argument("--user-approved", dest="user_approved", action="store_true", help="pull: the user said yes to this opt-in skill")
+    p.add_argument("--json", action="store_true")
+    p.set_defaults(fn=cmd_skills)
 
     for name in ("pause", "resume"):
         p = sub.add_parser(name, help="stop / allow Claude's file writes and commands")

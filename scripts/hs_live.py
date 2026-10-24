@@ -26,6 +26,7 @@ _HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, _HERE)
 import hs_activity as activity  # noqa: E402
 import hs_control as control  # noqa: E402
+import hs_skills as skills  # noqa: E402
 import hyperskill as core  # noqa: E402
 
 LIVE_DIR = os.path.normpath(os.path.join(_HERE, "..", "site", "live"))
@@ -103,6 +104,7 @@ def build_state(root, controls=False):
         "unavailable": st["unavailable"], "commercial": st["commercial"], "phases": out,
         "decisions": [{"n": d["n"], "title": d["title"], "choice": activity.redact(d["choice"], 200)} for d in st["decisions"]],
         "integrations": rows, "slots": slots,
+        "skillplan": skills.plan(core, root, st, st["current"], installed_names(root)) if st["current"] else [],
         "control": {"enabled": controls, "paused": control.is_paused(root), "pending": len(control.pending(root)), "inbox": control.recent(root)},
     }
 
@@ -168,6 +170,20 @@ def perform(root, action, body):
         return run_tracker(root, action)
     if action == "say":
         return run_tracker(root, "say", text_field(body, "text", control.MAX_TEXT))
+    if action == "pull":  # the person clicked the button: that is the user's yes for an opt-in skill
+        pid = text_field(body, "id", 64)
+        if not ID.fullmatch(pid) or pid not in reg["providers"]:
+            raise Refused("unknown integration")
+        return run_tracker(root, "skills", "pull", pid, "--user-approved", "--why", "pulled from the dashboard")
+    if action in ("skill_use", "skill_skip"):
+        slot = text_field(body, "slot", 64)
+        if not ID.fullmatch(slot) or slot not in reg["slots"]:
+            raise Refused("unknown slot")
+        argv = ["skills", "use" if action == "skill_use" else "skip", slot, "--why", text_field(body, "why")]
+        prov = body.get("provider")
+        if action == "skill_use" and isinstance(prov, str) and ID.fullmatch(prov) and prov in reg["providers"]:
+            argv += ["--provider", prov]
+        return run_tracker(root, *argv)
     if action in ("enable", "disable"):
         pid = text_field(body, "id", 64)
         if not ID.fullmatch(pid) or pid not in reg["providers"]:

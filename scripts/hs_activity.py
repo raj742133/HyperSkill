@@ -16,7 +16,7 @@ MAX_TEXT = 240
 TYPES = (
     "init", "config", "progress", "note", "decision", "advance", "skip",
     "gate_pass", "gate_waive", "check_failed", "refused",
-    "file", "command", "test", "agent",
+    "file", "command", "test", "agent", "skill",
 )
 
 _SECRET_NAME = r"[A-Za-z0-9_]*(?:TOKEN|SECRET|PASSWORD|PASSWD|PASSPHRASE|API[_-]?KEY|PRIVATE[_-]?KEY|ACCESS[_-]?KEY|AUTH|COOKIE|SESSION)[A-Za-z0-9_]*"

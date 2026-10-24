@@ -106,3 +106,15 @@ progress { flex: 1 1 160px; height: 8px; accent-color: var(--accent); }
 }
 
 .i-more { margin-top: 10px; } .i-more summary { cursor: pointer; font-size: .9rem; color: var(--muted); }
+.sp-list { list-style: none; margin: 10px 0 0; padding: 0; }
+.sp-list > li { padding: 10px 0; border-top: 1px solid var(--rule); }
+.sp-list > li:first-child { border-top: 0; }
+.sp-head { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: baseline; }
+.sp-slot { font-weight: 700; } .sp-prov { font: 13px var(--mono); overflow-wrap: anywhere; }
+.sp-need { font: 700 11px var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); } .sp-need[data-n="core"] { color: var(--go); }
+.sp-st { font: 700 11px var(--mono); letter-spacing: .06em; text-transform: uppercase; border: 1px solid currentColor; border-radius: 999px; padding: 0 8px; color: var(--muted); }
+.sp-st[data-s="ready"] { color: var(--ok); } .sp-st[data-s="pull"], .sp-st[data-s="ask"] { color: var(--warn); }
+.sp-why { margin: 3px 0 0; color: var(--muted); font-size: .88rem; overflow-wrap: anywhere; }
+.sp-dec { margin: 3px 0 0; font: 13px var(--mono); overflow-wrap: anywhere; } .sp-dec[data-d="used"] { color: var(--ok); } .sp-dec[data-d="skipped"] { color: var(--muted); }
+.sp-btns { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.sp-btns button { font: 12px var(--mono); padding: 3px 9px; border: 1px solid var(--rule); border-radius: 6px; background: transparent; color: var(--ink); cursor: pointer; }
