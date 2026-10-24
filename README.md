@@ -20,6 +20,19 @@ HyperSkill takes a product from **idea to shipped, monitored and promoted** in n
 
 It exists because coding agents are good at saying "done". They are less good at proving the tenant isolation holds, that the rate limit really blocks, or that the thing you are about to launch has a rollback. HyperSkill turns those questions into a checklist that a script enforces, not a model's mood.
 
+## At a glance
+
+| | What you get |
+|---|---|
+| **Nine gated phases** | Research, plan, foundation, product, ship, harden, operate, launch, scale. 72 checks; a phase moves on only with evidence a script accepts. |
+| **A dashboard you can steer** | Chat with Claude (model and effort per message), a live preview you can have tested in Chrome, the skill plan, the picker, a board of helper agents. Locked to your browser. |
+| **Checks that defend themselves** | Signed state, refused fake evidence, four person-only checks behind a **Confirm** button, backups and `repair`, a local `scripts/check.sh`. |
+| **Helper agents by difficulty** | Haiku for lookups, Sonnet for coding at several efforts, Opus for architecture and review; change any tier per project to save cost. |
+| **A picker of 822 things** | Skills, checklists, Sitewright's effects and figures, fonts, palettes, ten visual styles with a recorded example and a live demo each, and self-hosted blocks (GlitchTip, Gotify, Windmill, Vikunja, celld, RAG-Anything) with their licence caveats. |
+| **Bundled skills** | 17 unmodified third-party packs (off until enabled), Hyperfigure for interactive figures, and three written here: hs-watch, hs-convert, hs-logo. |
+| **Opt-in, not bundled** | last30days (community research), Scrapling (public data), REA (analysing a bundle you ship), each with its risks written next to it. |
+| **Honest limits** | A written list of what is and is not verified, below. |
+
 ## How it works
 
 <img src="docs/img/pipeline.svg" alt="The nine phases: research, plan, foundation, product, ship, harden, operate, launch, scale, with 72 checks between them" width="860">
@@ -82,7 +95,7 @@ Phases ask for capabilities (a design direction, a security audit, video, browse
 - **Every bundled skill,** Impeccable's 23 design commands, and the Hyperfigure worked examples.
 - **Checklists that become checks:** 30 vibe-coded design tells to avoid, 111 backend and infrastructure concepts (rate limiting to postmortems, each with the phase it belongs in and a core, growth or scale tier), 20 site fixes (404 page, favicon, meta descriptions, broken links ...) and 19 add-ons (dark mode, skip link, optimistic UI, pagination ...). Whatever you tick here is tracked: Claude closes each check with evidence or you waive it with a reason, and the phase cannot end while one is open.
 
-Of the 801 items, 520 have a picture or a clip and the 192 palettes show their colour swatches: **real recordings** of Sitewright's own effects, figures and components (hero backgrounds, headline animations, buttons, cards, reveals, extras, ready-made looks, all 22 figures and all 58 components, plus stills of its generated pages); **rendered cards** for UI UX Pro Max's 74 font pairings; **screenshots** of the Hyperfigure example figures; and **diagrams drawn for this project** for the design tells (avoid and instead), the 111 production concepts, the site fixes and add-ons, UI UX Pro Max's 34 landing-page patterns (section wireframes) and 88 styles (palette and keywords). Clips play on hover and open larger from the enlarge button. The other 89 show text only: the skills inside the packs, Impeccable's commands, the two Sitewright themes, its MFA and publishing pages (the demo build did not include them), the plain and default hero backgrounds, and two Hyperfigure examples that have no built page. `scripts/capture_previews.mjs`, `render_pages.mjs` and `build_previews.py` regenerate all of it.
+Of the 822 items, 530 have a picture or a clip and the 192 palettes show their colour swatches: **real recordings** of Sitewright's own effects, figures and components (hero backgrounds, headline animations, buttons, cards, reveals, extras, ready-made looks, all 22 figures and all 58 components, plus stills of its generated pages); **rendered cards** for UI UX Pro Max's 74 font pairings; **screenshots** of the Hyperfigure example figures; and **diagrams drawn for this project** for the design tells (avoid and instead), the 111 production concepts, the site fixes and add-ons, UI UX Pro Max's 34 landing-page patterns (section wireframes) and 88 styles (palette and keywords). Clips play on hover and open larger from the enlarge button. The other 89 show text only: the skills inside the packs, Impeccable's commands, the two Sitewright themes, its MFA and publishing pages (the demo build did not include them), the plain and default hero backgrounds, and two Hyperfigure examples that have no built page. `scripts/capture_previews.mjs`, `render_pages.mjs` and `build_previews.py` regenerate all of it.
 
 <img src="docs/img/dashboard-picker.webp" alt="The picker: the design tells to avoid, each card showing a before and after picture" width="430"> <img src="docs/img/dashboard-clip.webp" alt="A recorded Sitewright hero background opened large from the picker" width="430">
 
@@ -192,6 +205,9 @@ Then, in a project:
 | `/hyperskill-gate [phase]` | Walk the gate for a phase (default: the current one) |
 | `/hyperskill-live` | Open the dashboard (it also starts on its own when a session opens in a HyperSkill project) |
 | `/hyperskill-figure <idea>` | Build a crafted, interactive isometric figure that explains an idea, with the bundled Hyperfigure skill |
+| `/hyperskill-watch <video> <question>` | Watch a video file or link (frames at each cut, the opening, captions, a report) with hs-watch |
+| `/hyperskill-convert <file> <format>` | Convert a file with the tools you already have, with hs-convert |
+| `/hyperskill-logo <what for>` | Design or fix a logo and its icon set, with hs-logo |
 
 Requires Python 3 (standard library only) for the tracker and the dashboard. The launch phase also needs Node 22+, FFmpeg and, for speech-timed video, whisper-cpp. Some bundled skills need their own tools when you use them (Sitewright: Node and Chromium; /watch: ffmpeg and yt-dlp; HyperFrames: its CLI via `npx`).
 
