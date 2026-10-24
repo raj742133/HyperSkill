@@ -218,7 +218,13 @@ class AutoStartTests(unittest.TestCase):
             import time
             time.sleep(0.2)
         self.assertFalse(self.up(url))
-        self.assertFalse(os.path.exists(os.path.join(self.p, ".hyperskill", "live.json")))
+        pointer = os.path.join(self.p, ".hyperskill", "live.json")
+        for _ in range(30):  # the server closes its port first and removes the file a moment later; on a busy machine that gap is visible
+            if not os.path.exists(pointer):
+                break
+            import time
+            time.sleep(0.2)
+        self.assertFalse(os.path.exists(pointer))
         self.assertIn("no live view", tracker(self.p, "live", "--stop").stdout)
 
     def test_it_can_be_turned_off_per_project_or_per_shell(self):
