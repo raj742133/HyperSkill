@@ -45,6 +45,7 @@ Usage:
 Use --root DIR to point at the project (default: current directory).
 """
 import argparse
+import contextlib
 import datetime
 import glob
 import json
@@ -54,6 +55,11 @@ import shutil
 import subprocess
 import sys
 
+try:
+    import fcntl
+except ImportError:  # Windows: no lock, same behaviour as before
+    fcntl = None
+
 _HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, _HERE)
 import hs_activity as activity  # noqa: E402  (shared with the plugin hook and the live dashboard)
@@ -62,6 +68,7 @@ import hs_skills as skills  # noqa: E402
 import hs_catalog as cat  # noqa: E402
 import hs_brief as brief  # noqa: E402
 import hs_preview  # noqa: E402
+import hs_work as workmod  # noqa: E402
 GATES_PATH = os.path.join(_HERE, "..", "skills", "hyperskill", "gates.json")
 INTEGRATIONS_PATH = os.path.join(_HERE, "..", "skills", "hyperskill", "integrations.json")
 
@@ -100,6 +107,21 @@ def save_state(root, st):
         json.dump(st, f, indent=2)
         f.write("\n")
     os.replace(tmp, path)
+
+
+@contextlib.contextmanager
+def state_lock(root):
+    """One tracker command at a time per project: several helpers and the hooks may call it in the same second, and each reads then rewrites the state."""
+    path = os.path.join(root, ".hyperskill")
+    if not os.path.isdir(path) or fcntl is None:
+        yield
+        return
+    with open(os.path.join(path, "state.lock"), "w") as f:
+        fcntl.flock(f, fcntl.LOCK_EX)
+        try:
+            yield
+        finally:
+            fcntl.flock(f, fcntl.LOCK_UN)
 
 
 def die(msg, code=1):
@@ -368,6 +390,12 @@ def cmd_advance(args):
                         phase=cur["id"], open=",".join(waiting))
         die("the user has not answered these gaps or conflicts in the brief yet: %s. They answer in the dashboard (or `brief resolve ID ...`); "
             "do not assume the answer." % ", ".join(waiting))
+    open_w = workmod.open_tasks(st, cur["id"])
+    if open_w:
+        activity.append(args.root, "refused", "Cannot leave %s: %d helper task%s unfinished" % (cur["id"], len(open_w), "" if len(open_w) == 1 else "s"),
+                        phase=cur["id"], open=",".join(open_w))
+        die("helper tasks still open in '%s': %s. Finish each with `work done ID --result ...` (after you verified it), or `work drop ID --why ...`; "
+            "a task marked blocked needs the user." % (cur["id"], ", ".join(open_w)))
     open_x = cat.open_extras(st, cur["id"])
     if open_x:
         activity.append(args.root, "refused", "Cannot leave %s: %d selected check%s still open" % (cur["id"], len(open_x), "" if len(open_x) == 1 else "s"),
@@ -622,6 +650,69 @@ def cmd_preview(args):
                 print("(none yet: `preview add NAME --url http://localhost:3000` or `--path index.html`)")
     except hs_preview.PreviewError as exc:
         die(str(exc))
+
+
+def cmd_work(args):
+    st = load_state(args.root)
+    a = args.action or "list"
+    ph = st["current"]
+    lines = []
+    say = lambda text: lines.append(str(text))  # printed after the state is saved, so a closed pipe cannot lose the change
+    try:
+        if a == "add":
+            if not ph:
+                die("the pipeline is complete.")
+            t = workmod.add(st, ph, args.target, args.kind, args.paths, args.risk, args.unknown, args.depends, args.tier, args.why or "")
+            activity.append(args.root, "note", "Task %s for %s: %s" % (t["id"], workmod.label(t, workmod.tiers(st)), t["title"]), task=t["id"])
+            say("%s -> %s: %s\n  because: %s" % (t["id"], workmod.label(t, workmod.tiers(st)), t["title"], "; ".join(t["reasons"])))
+        elif a == "plan":
+            say(workmod.render_plan(st, ph))
+            pol = workmod.policy(st)
+            say("(up to %d at once; bias: %s; helpers %s)" % (pol["parallel"], pol["bias"], "on" if pol["helpers"] else "off: do the tasks yourself, one at a time"))
+        elif a in ("start", "done", "fail", "drop"):
+            tid = args.target or die("give the task id, e.g. T1")
+            if a == "start":
+                t = workmod.start(st, tid)
+            elif a == "done":
+                t = workmod.finish(st, tid, args.result)
+            elif a == "fail":
+                t = workmod.fail(st, tid, args.why)
+            else:
+                t = workmod.drop(st, tid, args.why)
+            activity.append(args.root, "note", "Task %s %s" % (t["id"], t["status"] if a != "fail" else "failed -> " + (t["tier"] if t["status"] == "todo" else "needs a person")), task=t["id"])
+            say("%s is %s%s" % (t["id"], t["status"], " (now %s)" % workmod.label(t, workmod.tiers(st)) if a == "fail" and t["status"] == "todo" else ""))
+        elif a == "tier":
+            if args.preset:
+                workmod.apply_preset(st, args.root, args.preset)
+                say("preset %s applied" % args.preset)
+            elif args.target:
+                t = workmod.set_tier(st, args.root, args.target, args.model, args.effort, args.reset)
+                say("%s now uses %s, effort %s%s" % (t["label"], t["model"], t["effort"], " (this project's choice)" if t["custom"] else " (the shipped default)"))
+            for t in workmod.tiers(st).values():
+                say("  %-13s %-8s %-7s %s%s" % (t["label"], t["model"], t["effort"], workmod.agent_name(st, t["id"]), "  <- changed for this project" if t["custom"] else ""))
+        elif a == "tune":
+            r = workmod.tune(st, args.kind if args.score is not None else None, args.score, args.plus, args.value, args.reset)
+            say("scores: " + ", ".join("%s %d" % (k, v) for k, v in r["kinds"].items()) + " | add-ons: " + ", ".join("%s +%d" % (k, v) for k, v in r["plus"].items()))
+        elif a == "stats":
+            rows, advice = workmod.stats(st)
+            for r in rows:
+                say("%-14s done %-3d right first time %-5s failed here %d" % (r["label"], r["done"], "-" if r["rate"] is None else "%d%%" % r["rate"], r["failed"]))
+            for line in advice:
+                say("note: " + line)
+        elif a == "policy":
+            pol = workmod.set_policy(st, {"on": True, "off": False}.get(args.helpers), args.parallel, args.bias)
+            say("helpers %s, up to %d at once, bias %s" % ("on" if pol["helpers"] else "off", pol["parallel"], pol["bias"]))
+        else:
+            tr = workmod.tiers(st)
+            for t in workmod.work(st)["tasks"]:
+                say("%-4s %-8s %-30s %s%s" % (t["id"], t["status"], workmod.label(t, workmod.tiers(st))[:30], t["title"], "  -> " + t["result"] if t["result"] else ""))
+            if not workmod.work(st)["tasks"]:
+                say("(no tasks: `work add \"title\" --kind build --paths src/a.js`; tiers: %s)" % ", ".join(tr))
+        save_state(args.root, st)
+    except workmod.WorkError as exc:
+        die(str(exc))
+    if lines:
+        print("\n".join(lines))
 
 
 def cmd_place(args):
@@ -1021,6 +1112,29 @@ def build_parser():
     p.add_argument("target", nargs="?")
     p.set_defaults(fn=cmd_inputs)
 
+    p = sub.add_parser("work", help="split a phase's work into tasks for helper agents: who does what, at which model and effort, what runs together")
+    p.add_argument("action", nargs="?", choices=("add", "plan", "start", "done", "fail", "drop", "list", "policy", "tune", "stats", "tier"))
+    p.add_argument("target", nargs="?", help="a title (add) or a task id")
+    p.add_argument("--kind", choices=workmod.KINDS, default="build")
+    p.add_argument("--paths", default="", help="comma-separated project paths this task may change")
+    p.add_argument("--risk", choices=workmod.RISKS, default="none")
+    p.add_argument("--unknown", action="store_true", help="the cause or the requirement is not clear yet")
+    p.add_argument("--depends", default="", help="comma-separated task ids that must finish first")
+    p.add_argument("--tier", help="override the suggested tier (needs --why)")
+    p.add_argument("--why", default="")
+    p.add_argument("--result", default="")
+    p.add_argument("--model", help="tier: fable, opus, sonnet, haiku or a full model id")
+    p.add_argument("--effort", choices=("low", "medium", "high", "xhigh", "max"), help="tier: effort level")
+    p.add_argument("--preset", help="tier: balanced, economy (low cost) or quality")
+    p.add_argument("--score", type=int, help="tune: the kind's starting score, 0 to 6 (uses --kind)")
+    p.add_argument("--plus", help="tune: an add-on to change (files_4_or_more, risk, unknown)")
+    p.add_argument("--value", type=int)
+    p.add_argument("--reset", action="store_true", help="tune: back to the shipped scores")
+    p.add_argument("--helpers", choices=("on", "off"))
+    p.add_argument("--parallel", type=int)
+    p.add_argument("--bias", choices=workmod.BIAS)
+    p.set_defaults(fn=cmd_work)
+
     p = sub.add_parser("preview", help="what is being built, shown live in the dashboard")
     p.add_argument("action", nargs="?", choices=["list", "add", "remove", "detect"])
     p.add_argument("target", nargs="?", help="add|remove: the preview's name")
@@ -1094,7 +1208,10 @@ def build_parser():
 
 def main(argv=None):
     args = build_parser().parse_args(argv)
-    args.fn(args)
+    if args.fn is cmd_live:  # the dashboard runs for hours and calls the tracker itself: it must not hold the lock
+        return args.fn(args)
+    with state_lock(args.root):
+        args.fn(args)
 
 
 if __name__ == "__main__":

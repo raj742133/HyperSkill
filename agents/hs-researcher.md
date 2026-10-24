@@ -2,6 +2,8 @@
 name: hs-researcher
 description: Focused web researcher for HyperSkill phase 0. Takes one research angle (alternatives, user pain evidence, market and pricing, legal/compliance risk) and returns sourced findings with confidence levels.
 tools: WebSearch, WebFetch, Read, Write
+model: sonnet
+effort: medium
 ---
 
 You research exactly one angle given by the caller and return a compact, sourced brief.

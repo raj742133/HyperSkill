@@ -71,13 +71,16 @@
       <textarea id="chat-text" rows="3" maxlength="4000" placeholder="Tell Claude what to do, or answer it. For example: start the project from my brief."></textarea>
       <div class="chat-row">
         <label class="sub">What it may do
-          <select id="chat-mode"><option value="edits">Edit files and use the tracker (safer)</option><option value="build">Also run shell commands here (npm, git, tests)</option></select>
+          <select id="chat-mode"><option value="edits">Edit files and use the tracker (safer)</option><option value="tests">Edit files and run tests, lint and type checks</option><option value="build">Also run any shell command here (npm, git, installs)</option></select>
         </label>
         <label class="sub">Model
           <select id="chat-model"><option value="suggested">Suggested for this phase</option><option value="">Claude Code default</option></select>
         </label>
         <label class="sub">Effort
           <select id="chat-effort"><option value="suggested">Suggested for this phase</option><option value="">Claude Code default</option></select>
+        </label>
+        <label class="sub">Helper agents
+          <select id="chat-helpers"><option value="auto">Auto: split by difficulty</option><option value="split">Always split this into helpers</option><option value="economy">Cheaper where safe</option><option value="quality">Stronger</option><option value="off">Off: one Claude does it all</option></select>
         </label>
         <label class="sub chat-chrome"><input type="checkbox" id="chat-chrome"> Test in Chrome (DevTools)</label>
         <label class="sub">Spend limit
@@ -88,6 +91,18 @@
         <button type="button" id="chat-stop" class="btn warn" hidden>Stop</button>
         <button type="submit" id="chat-send" class="btn go">Send</button>
       </div>
+    </form>
+  </section>
+
+  <section id="wk" class="integ" aria-labelledby="wk-h" hidden>
+    <h2 id="wk-h" class="eyebrow">Helper agents <span id="wk-count" class="count"></span></h2>
+    <p class="sub">When a phase has several pieces of work, Claude splits it into tasks and gives each to the cheapest helper that can do it well: simple lookups and tiny edits to Haiku at low effort, ordinary coding to Sonnet, harder coding to Sonnet at high effort, hard-to-undo decisions and risky code to Opus. Tasks in the same wave run at the same time; a task that fails moves up one level.</p>
+    <div id="wk-tiers" class="wk-tiers"></div>
+    <ol id="wk-list" class="wk-list"></ol>
+    <form id="wk-form" class="pv-form" hidden>
+      <label class="sub">At most <select id="wk-par"></select> at once</label>
+      <label class="sub">Cost setting <select id="wk-preset"></select></label>
+      <span class="sub">Change any tier's model and effort on its card above; it applies to this project only.</span>
     </form>
   </section>
 

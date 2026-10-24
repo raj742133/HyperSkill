@@ -82,7 +82,7 @@
   let queued = false;
   const schedule = () => { if (!queued) { queued = true; requestAnimationFrame(() => { queued = false; drawAll(); }); } };
 
-  function drawAll() { drawFeed(); drawNow(); drawRail(); drawPanels(); drawControls(); drawKit(); drawExtras(); drawIdea(); drawChat(); drawPreview(); drawAttach(); }
+  function drawAll() { drawFeed(); drawNow(); drawRail(); drawPanels(); drawControls(); drawKit(); drawExtras(); drawIdea(); drawChat(); drawWork(); drawPreview(); drawAttach(); }
 
   function drawFeed() {
     const list = $("feed");
@@ -451,7 +451,7 @@
       : (r.allowed ? "The `claude` command was not found on this computer, so messages are queued for an open Claude session instead."
         : "Messages here are queued for the Claude session you have open, and it reads them at its next step. To let this box start Claude itself, stop the dashboard and start it with: hyperskill.py live --allow-run");
     drawModels(r, can);
-    $("chat-mode").disabled = $("chat-budget").disabled = !can; $("chat-new").hidden = !can || !r.session; $("chat-send").disabled = r.running;
+    $("chat-mode").disabled = $("chat-budget").disabled = $("chat-helpers").disabled = !can; $("chat-new").hidden = !can || !r.session; $("chat-send").disabled = r.running;
     $("chat-stop").hidden = !r.running;
     const sig = JSON.stringify([r.messages.length, r.messages.length ? r.messages[r.messages.length - 1].ts : "", r.running, r.last]);
     if (sig === chatSig) return;
@@ -479,7 +479,7 @@
     $("chat-suggest").textContent = c ? `For the ${state.current} phase we suggest ${c.model}, effort ${c.effort}. ${c.why} Pick another above any time; this is a suggestion, not a rule.` : "";
   }
   function runBody(text, extra) {
-    return Object.assign({ text, mode: $("chat-mode").value, budget: Number($("chat-budget").value), model: $("chat-model").value || null, effort: $("chat-effort").value || null, chrome: $("chat-chrome").checked }, extra || {});
+    return Object.assign({ helpers: $("chat-helpers").value, text, mode: $("chat-mode").value, budget: Number($("chat-budget").value), model: $("chat-model").value || null, effort: $("chat-effort").value || null, chrome: $("chat-chrome").checked }, extra || {});
   }
   function wireChat() {
     $("chat-form").addEventListener("submit", async (ev) => {
@@ -494,6 +494,60 @@
     $("chat-stop").addEventListener("click", () => api("run_stop"));
     $("chat-new").addEventListener("click", () => api("run_new"));
   }
+
+  /* ---------- helper agents: the work board ---------- */
+  function drawWork() {
+    const box = $("wk"), w = state.work, m = state.models || {};
+    box.hidden = !(mode === "live" && w && (w.tasks.length || controlOn()));
+    if (box.hidden) return;
+    const sig = JSON.stringify([w, controlOn()]);
+    if (box.dataset.sig === sig) return;
+    box.dataset.sig = sig;
+    $("wk-count").textContent = w.tasks.length ? `· ${w.tasks.filter((t) => ["done", "dropped"].includes(t.status)).length} of ${w.tasks.length} finished` : "· no tasks yet";
+    const tiers = $("wk-tiers"); tiers.replaceChildren(); box.querySelectorAll(".wk-advice").forEach((n) => n.remove());
+    const stat = Object.fromEntries((w.stats || []).map((x) => [x.tier, x]));
+    const models = (m.aliases || []).slice();
+    for (const t of w.tiers || []) {
+      const d = el("div", "wk-tier"), st = stat[t.id];
+      d.append(el("b", "", t.label));
+      if (controlOn()) {
+        const ms = el("select"), es = el("select");
+        ms.setAttribute("aria-label", t.label + " model"); es.setAttribute("aria-label", t.label + " effort");
+        for (const x of models.includes(t.model) ? models : models.concat([t.model])) { const o = el("option", "", x); o.value = x; ms.append(o); }
+        for (const x of m.efforts || []) { const o = el("option", "", x); o.value = x; es.append(o); }
+        ms.value = t.model; es.value = t.effort;
+        const send = () => api("work_tier", { tier: t.id, model: ms.value, effort: es.value });
+        ms.addEventListener("change", send); es.addEventListener("change", send);
+        const row = el("div", "wk-sel"); row.append(ms, es); d.append(row);
+        if (t.custom) { const r = el("button", "btn", "Back to default (" + t.default_model + ", " + t.default_effort + ")"); r.type = "button"; r.addEventListener("click", () => api("work_tier", { tier: t.id, reset: true })); d.append(r); }
+      } else d.append(el("span", "", `${t.model} · ${t.effort}${t.writes ? "" : " · read-only"}`));
+      d.append(el("div", "", t.use));
+      if (t.custom && !controlOn()) d.append(el("div", "wk-why", `changed for this project (default ${t.default_model}, ${t.default_effort})`));
+      if (st && (st.done || st.failed)) d.append(el("div", "wk-why", `${st.done} done, ${st.rate}% right first time${st.failed ? `, ${st.failed} pushed up` : ""}`));
+      tiers.append(d);
+    }
+    for (const a of w.advice || []) { const n = el("p", "sub", "Note: " + a); tiers.after(n); n.className = "sub wk-advice"; }
+    const list = $("wk-list"); list.replaceChildren();
+    if (!w.tasks.length) list.append(el("li", "", "Nothing split yet. Claude does this itself when a phase has several separate pieces of work."));
+    for (const t of w.tasks) {
+      const li = el("li"); li.dataset.s = t.status;
+      const top = el("div", "wk-top");
+      top.append(el("span", "wk-id", t.id), el("b", "", t.title), el("span", "wk-chip", t.label), el("span", "wk-chip", t.status + (t.wave && ["todo", "failed"].includes(t.status) ? ` · wave ${t.wave}` : "")));
+      if (controlOn() && ["todo", "failed", "blocked"].includes(t.status)) { const x = el("button", "btn", "Drop"); x.type = "button"; x.addEventListener("click", () => api("work_drop", { id: t.id, why: "dropped from the dashboard" })); top.append(x); }
+      li.append(top, el("div", "wk-why", t.reasons.join("; ")));
+      if (t.paths.length) li.append(el("div", "wk-paths", "owns: " + t.paths.join(", ")));
+      if (t.result) li.append(el("div", "wk-why", "result: " + t.result));
+      list.append(li);
+    }
+    const par = $("wk-par"); par.replaceChildren(...[1, 2, 3, 4, 6, 8].map((n) => { const o = el("option", "", String(n)); o.value = n; return o; })); par.value = String(w.policy.parallel);
+    const pre = $("wk-preset"); pre.replaceChildren(el("option", "", w.preset ? "Preset: " + (w.presets[w.preset] || w.preset) : "Custom or default"));
+    pre.firstChild.value = "";
+    for (const [k, v] of Object.entries(w.presets || {})) { const o = el("option", "", v); o.value = k; pre.append(o); }
+    pre.value = "";
+    $("wk-form").hidden = !controlOn();
+  }
+  function wireWork() {
+    $("wk-preset").addEventListener("change", () => { if ($("wk-preset").value) api("work_preset", { preset: $("wk-preset").value }); }); $("wk-par").addEventListener("change", () => api("work_policy", { parallel: Number($("wk-par").value) })); }
 
   /* ---------- live preview of what is being built ---------- */
   let pvSel = "", pvSrc = "";
@@ -678,7 +732,7 @@
   function startLive() {
     setMode("live");
     $("foot").textContent = controlOn() ? "Controls act on this project only, through the same tracker commands a person would type. Nothing leaves this computer." : "Read-only view of this project's .hyperskill/activity.jsonl. It never leaves this computer.";
-    wireControls(); wireKit(); wireIdea(); wireChat(); wirePreview(); wireAttach(); loadCatalog();
+    wireControls(); wireKit(); wireIdea(); wireChat(); wireWork(); wirePreview(); wireAttach(); loadCatalog();
     const es = new EventSource("/live/events");
     es.onopen = () => setMode("live");
     es.onerror = () => setMode("offline", "Reconnecting");

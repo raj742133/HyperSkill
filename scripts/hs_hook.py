@@ -10,6 +10,7 @@ Standard library only.
 import json
 import os
 import re
+import subprocess
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -56,6 +57,8 @@ def handle(data, when):
     if tool in AGENT_TOOLS:
         what = inp.get("description") or inp.get("subagent_type") or "a helper"
         started = when == "pre"
+        if started:
+            mark_running(root, inp)
         activity.append(root, "agent", ("Started a helper: " if started else "A helper finished: ") + str(what),
                         state="started" if started else "finished", agent=inp.get("subagent_type"))
         return
@@ -106,6 +109,85 @@ def handle(data, when):
                             cmd=activity.redact(cmd, 160), **summary)
 
 
+TASK_ID = re.compile(r"^\s*(T[0-9]{1,3})\b")
+NUDGE_AFTER = 8  # file edits in one phase, by one Claude, with no helper tasks, before it is reminded once
+
+
+def mark_running(root, inp):
+    """A helper dispatched for a task ("T3: ...") marks that task running at the moment it starts, so the board never lags the work."""
+    m = TASK_ID.match(str(inp.get("description") or ""))
+    if not m or not str(inp.get("subagent_type") or "").split(":")[-1].startswith("hs-"):
+        return
+    try:
+        subprocess.run([sys.executable, os.path.join(os.path.dirname(os.path.abspath(__file__)), "hyperskill.py"), "--root", root, "work", "start", m.group(1)],
+                       capture_output=True, timeout=4, stdin=subprocess.DEVNULL)
+    except (OSError, subprocess.SubprocessError):
+        pass
+
+
+def work_state(root):
+    try:
+        import hyperskill as core
+        import hs_work
+        st = core.load_state(root)
+        return st, hs_work, hs_work.policy(st)
+    except (Exception, SystemExit):
+        return None, None, None
+
+
+def work_brief(root):
+    """Open helper tasks and the next wave, so a resumed session carries on the plan instead of forgetting it."""
+    st, hw, pol = work_state(root)
+    if not st or not st.get("current"):
+        return None
+    open_ids = hw.open_tasks(st, st["current"])
+    if not open_ids:
+        return None
+    return ("HyperSkill helper tasks open in %s: %s. Next:\n%s\nDispatch a wave in one message, start the wave first, give each Agent a description that begins with its task "
+            "id (for example `T3: build the pricing section`), and verify each result yourself before `work done`." % (st["current"], ", ".join(open_ids), hw.render_plan(st, st["current"])))
+
+
+def helper_returned(data):
+    """After a helper returns, remind the conductor that the report is a claim, and name the task."""
+    inp = data.get("tool_input") or {}
+    m = TASK_ID.match(str((inp or {}).get("description") or ""))
+    if not m:
+        return None
+    return ("Helper for %s returned. Its report is a claim: read what it changed and run the check yourself, then `hyperskill.py work done %s --result \"<what you ran and saw>\"` "
+            "or `work fail %s --why \"...\"` (that moves it up a tier)." % (m.group(1), m.group(1), m.group(1)))
+
+
+def split_nudge(root, data):
+    """Once per phase: a lot of editing by one Claude and no tasks. Only a reminder; helpers off or a small phase silences it."""
+    st, hw, pol = work_state(root)
+    if not st or not st.get("current") or not pol["helpers"]:
+        return None
+    path = os.path.join(root, ".hyperskill", "work-nudge.json")
+    try:
+        with open(path, encoding="utf-8") as f:
+            n = json.load(f)
+    except (OSError, ValueError):
+        n = {}
+    if n.get("phase") != st["current"]:
+        n = {"phase": st["current"], "edits": 0, "done": False}
+    if n["done"]:
+        return None
+    n["edits"] += 1
+    if hw.work(st)["tasks"] and any(t["phase"] == st["current"] for t in hw.work(st)["tasks"]):
+        n["done"] = True
+    msg = None
+    if n["edits"] >= NUDGE_AFTER and not n["done"]:
+        n["done"] = True
+        msg = ("HyperSkill: %d files edited in %s with no helper tasks. If the remaining work has separate pieces, split it (`hyperskill.py work add ...`, `work plan`) so easy parts "
+               "go to cheap helpers and hard parts to strong ones, and independent parts run together. If it is one small thing, carry on; this reminder will not repeat in this phase." % (n["edits"], st["current"]))
+    try:
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(n, f)
+    except OSError:
+        pass
+    return msg
+
+
 def context_reply(event, text):
     print(json.dumps({"hookSpecificOutput": {"hookEventName": event, "additionalContext": text}}))
 
@@ -142,6 +224,20 @@ def steer(data, when):
         idea = idea_brief(root)
         if idea:
             parts.append(idea)
+    if when in ("start", "prompt"):
+        wb = work_brief(root)
+        if wb:
+            parts.append(wb)
+    if when == "post":
+        tool = data.get("tool_name") or ""
+        if tool in AGENT_TOOLS:
+            hr = helper_returned(data)
+            if hr:
+                parts.append(hr)
+        elif tool in FILE_TOOLS:
+            nudge = split_nudge(root, data)
+            if nudge:
+                parts.append(nudge)
     if when == "start":
         picked = picks_brief(root)
         if picked:
