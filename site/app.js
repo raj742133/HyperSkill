@@ -21,6 +21,8 @@
     [HS.counts.gateItems, "gate checks"],
     [HS.counts.slots, "capability slots"],
     [reviewed, "third-party tools reviewed"],
+    [HS.counts.packs, "skill packs bundled"],
+    [HS.counts.picks, "things to pick from"],
     [HS.counts.tests, "automated tests"]
   ];
   var dl = $("#numbers");
@@ -28,6 +30,7 @@
     dl.appendChild(el("div", {}, [el("dt", { text: String(n[0]) }), el("dd", { text: n[1] })]));
   });
   $("#gate-total").textContent = HS.counts.gateItems;
+  $("#pack-total").textContent = HS.counts.packs;
 
   /* demo terminal */
   var body = $("#term-body");

@@ -87,6 +87,8 @@ def build():
             "slots": len(reg["slots"]),
             "providers": len(providers),
             "tests": count_tests(),
+            "packs": len(json.load(open(os.path.join(ROOT, "packs", "manifest.json"), encoding="utf-8"))["packs"]),
+            "picks": sum(len(g["items"]) for g in json.load(open(os.path.join(ROOT, "skills", "hyperskill", "catalog.json"), encoding="utf-8"))["groups"]),
         },
         "policyCounts": policy_counts,
         "phases": phases,
