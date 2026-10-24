@@ -10,9 +10,9 @@
 
 [**Live site**](https://hyperskill-hazel.vercel.app) · [Install](#install) · [How it works](#how-it-works) · [The dashboard](#watch-it-work-and-steer-it) · [Screens](#screens) · [Limits](#what-is-and-is-not-verified)
 
-<img src="docs/img/site-hero.png" alt="The HyperSkill site: the headline, the install command and a terminal showing the tracker refusing to advance a phase" width="860">
+<img src="docs/img/r2/site-hero.png" alt="The HyperSkill site: the headline, the install command and a terminal showing the tracker refusing to advance a phase" width="860">
 
-<img src="docs/img/site-hero-phone-dark.png" alt="The same site on a phone in dark mode, which follows the phone's setting" width="300">
+<img src="docs/img/r2/site-hero-phone-dark.png" alt="The same site on a phone in dark mode, which follows the phone's setting" width="300">
 
 </div>
 
@@ -35,7 +35,7 @@ It exists because coding agents are good at saying "done". They are less good at
 
 ## How it works
 
-<img src="docs/img/pipeline.svg" alt="The nine phases: research, plan, foundation, product, ship, harden, operate, launch, scale, with 72 checks between them" width="860">
+<img src="docs/img/r2/pipeline.svg" alt="The nine phases: research, plan, foundation, product, ship, harden, operate, launch, scale, with 72 checks between them" width="860">
 
 | # | Phase | Skill | What it settles |
 |---|---|---|---|
@@ -53,7 +53,7 @@ It exists because coding agents are good at saying "done". They are less good at
 
 - **Gates need evidence.** `hyperskill.py advance` fails while any check is open. A check is passed with a command that exits 0 (`--run`) or with evidence that points at something checkable: a path, a backticked command, a count. "Looks fine" is refused. A negated `grep` with no existence guard is refused too, because it passes when the file is missing.
 
-  <img src="docs/img/terminal-demo.png" alt="Terminal output: a gate passes with evidence, advance is refused with the open items listed, a failing check stays open, and a noncommercial-licence tool is blocked on a commercial project" width="560">
+  <img src="docs/img/r2/terminal-demo.png" alt="Terminal output: a gate passes with evidence, advance is refused with the open items listed, a failing check stays open, and a noncommercial-licence tool is blocked on a commercial project" width="560">
 
 - **Waivers are written down.** Anything you cannot do in the current environment (no deploy target, no third-party account) is waived with a reason, recorded in the state file, and becomes your launch to-do list. `hyperskill.py config --unavailable host,provider,device,human` and `gate <phase> --waive-unavailable` do this in one recorded step.
 - **The project's shape is set once.** `init --tenancy user|organization|none` makes organisation-only checks not apply and rewords the rest.
@@ -84,7 +84,7 @@ Phases ask for capabilities (a design direction, a security audit, video, browse
 
 **Paste your idea, from the dashboard.** The "Your idea" box takes your whole brief. **Your words decide what gets built; HyperSkill decides how** (phases, checks, evidence), and it never waives a check because of the brief or rewrites your idea behind your back. Claude reads the brief, lists each requirement, and returns every gap, conflict and improvement it sees as a question you answer in the dashboard (accept, reject or answer in your own words). Open gaps and conflicts block the phase from ending, so nothing is assumed; suggestions never block. When choices clash the order is: what you ticked in the dashboard, then your brief, then the design system you selected, then Sitewright's defaults, then HyperSkill's defaults. If you picked a palette, font pairing, style or landing pattern, `hyperskill.py catalog sitewright` writes your palette into Sitewright's brand colours and your fonts into its font settings (style and landing pattern come as guidance), so the generated auth and landing pages use your design system, not Sitewright's default look. Each picked Sitewright component or figure becomes a check: Claude records where it goes (`place add`), and `place check --close` only closes it when the piece is really used in the code (Sitewright's own library and gallery do not count).
 
-<img src="docs/img/dashboard-idea.webp" alt="The dashboard's Your idea box: a pasted brief, and below it the gap, conflict and suggestion Claude found, each with an answer or accept and reject controls" width="860">
+<img src="docs/img/r2/dashboard-idea.webp" alt="The dashboard's Your idea box: a pasted brief, and below it the gap, conflict and suggestion Claude found, each with an answer or accept and reject controls" width="860">
 
 <sub>The "Your idea" box. In this screenshot the findings were added by hand to show the screen; in use, Claude adds them after reading the brief.</sub>
 
@@ -97,7 +97,7 @@ Phases ask for capabilities (a design direction, a security audit, video, browse
 
 Of the 822 items, 530 have a picture or a clip and the 192 palettes show their colour swatches: **real recordings** of Sitewright's own effects, figures and components (hero backgrounds, headline animations, buttons, cards, reveals, extras, ready-made looks, all 22 figures and all 58 components, plus stills of its generated pages); **rendered cards** for UI UX Pro Max's 74 font pairings; **screenshots** of the Hyperfigure example figures; and **diagrams drawn for this project** for the design tells (avoid and instead), the 111 production concepts, the site fixes and add-ons, UI UX Pro Max's 34 landing-page patterns (section wireframes) and 88 styles (palette and keywords). Clips play on hover and open larger from the enlarge button. The other 89 show text only: the skills inside the packs, Impeccable's commands, the two Sitewright themes, its MFA and publishing pages (the demo build did not include them), the plain and default hero backgrounds, and two Hyperfigure examples that have no built page. `scripts/capture_previews.mjs`, `render_pages.mjs` and `build_previews.py` regenerate all of it.
 
-<img src="docs/img/dashboard-picker.webp" alt="The picker: the design tells to avoid, each card showing a before and after picture" width="430"> <img src="docs/img/dashboard-clip.webp" alt="A recorded style demo opened large from the picker, with Try the live demo" width="430">
+<img src="docs/img/r2/dashboard-picker.webp" alt="The picker: the design tells to avoid, each card showing a before and after picture" width="430"> <img src="docs/img/r2/dashboard-clip.webp" alt="A recorded style demo opened large from the picker, with Try the live demo" width="430">
 
 Saving a selection queues a message for Claude, the session hook hands it the picks for the current phase, and `advance` prints the next phase's picks. The lists of tells, fixes, add-ons and concepts are written in this repository's own words (the topics come from the owner's notes); Sitewright's and UI UX Pro Max's entries are read from the bundled packs.
 
@@ -107,7 +107,7 @@ Details: [`skills/hyperskill/references/integrations.md`](skills/hyperskill/refe
 
 **It starts by itself.** When a session opens in a HyperSkill project, the plugin starts the dashboard in the background (or reuses the one already running) and Claude tells you the address, usually `http://127.0.0.1:4777/`. It stops after 4 hours with no page open, or when you run `hyperskill.py live --stop`; turn the auto-start off with `hyperskill.py config --autolive off` (or set `HYPERSKILL_NO_LIVE=1`). You can also run `/hyperskill-live` yourself, and a page opens at `http://127.0.0.1:4777/` that shows what is being made, tested and decided **as it happens**: a "Right now" card, the nine phases with their progress, a live activity feed, the checks still open, the latest test run with its pass and fail counts, the files touched and the decisions recorded.
 
-<img src="docs/img/live-view.png" alt="The live view during a recorded session: Right now, the nine phases, an activity feed with a refused advance, a passed check and files written, and panels for tests and open checks" width="860">
+<img src="docs/img/r2/live-view.png" alt="The live view during a recorded session: Right now, the nine phases, an activity feed with a refused advance, a passed check and files written, and panels for tests and open checks" width="860">
 
 [**Play a recorded session on the site**](https://hyperskill-hazel.vercel.app/live): the replay is a real session (Claude, with this plugin installed, building and testing a tiny rupee formatter), nothing added or reordered.
 
@@ -146,21 +146,21 @@ Real screenshots from a demo project, taken in a real browser from the running t
 
 **The dashboard**
 
-<img src="site/shots/dash-overview.webp" alt="The dashboard's first screen: right now, and the nine phases" width="420"> <img src="site/shots/dash-tampered.webp" alt="The dashboard refusing a state file that was edited outside HyperSkill, with two buttons: keep my change, or go back to the last good copy" width="420">
+<img src="docs/img/r2/dash-overview.webp" alt="The dashboard's first screen: right now, and the nine phases" width="420"> <img src="docs/img/r2/dash-tampered.webp" alt="The dashboard refusing a state file that was edited outside HyperSkill, with two buttons: keep my change, or go back to the last good copy" width="420">
 
-<img src="site/shots/dash-skillplan-new.webp" alt="The skill plan for the Product phase, with the new logo-design and file-convert slots answered by bundled skills" width="420">
+<img src="docs/img/r2/dash-skillplan-new.webp" alt="The skill plan for the Product phase, with the new logo-design and file-convert slots answered by bundled skills" width="420">
 
 **Pick what to use**
 
-<img src="site/shots/picker-styles.webp" alt="Popular visual styles: ten cards, each with a clip of a habit tracker built in that style" width="420"> <img src="site/shots/picker-lightbox.webp" alt="The enlarged Neumorphism card with Try the live demo and Add to my picks" width="300"> <img src="site/shots/picker-livedemo.webp" alt="The live Glassmorphism demo, running in a sandbox, after adding a habit" width="300">
+<img src="docs/img/r2/picker-styles.webp" alt="Popular visual styles: ten cards, each with a clip of a habit tracker built in that style" width="420"> <img src="docs/img/r2/picker-lightbox.webp" alt="The enlarged Neumorphism card with Try the live demo and Add to my picks" width="300"> <img src="docs/img/r2/picker-livedemo.webp" alt="The live Glassmorphism demo, running in a sandbox, after adding a habit" width="300">
 
-<img src="site/shots/picker-sitewright.webp" alt="Sitewright hero backgrounds with previews" width="280"> <img src="site/shots/picker-figures.webp" alt="Interactive line figures" width="280"> <img src="site/shots/picker-tells.webp" alt="Design tells to avoid" width="280"> <img src="site/shots/picker-selfhost.webp" alt="Self-hosted building blocks with licence caveats" width="280">
+<img src="docs/img/r2/picker-sitewright.webp" alt="Sitewright hero backgrounds with previews" width="280"> <img src="docs/img/r2/picker-figures.webp" alt="Interactive line figures" width="280"> <img src="docs/img/r2/picker-tells.webp" alt="Design tells to avoid" width="280"> <img src="docs/img/r2/picker-selfhost.webp" alt="Self-hosted building blocks with licence caveats" width="280">
 
 **Three skills written for this project**
 
-<img src="site/shots/watch-sheet.webp" alt="hs-watch: a contact sheet of frames from a clip" width="300"> <img src="site/shots/logo-sheet.webp" alt="hs-logo: the test sheet, with size ladder, one colour, reversed, blur, mirror and contexts" width="300"> <img src="site/shots/convert-terminal.webp" alt="hs-convert: real terminal output" width="300">
+<img src="docs/img/r2/watch-sheet.webp" alt="hs-watch: a contact sheet of frames from a clip" width="300"> <img src="docs/img/r2/logo-sheet.webp" alt="hs-logo: the test sheet, with size ladder, one colour, reversed, blur, mirror and contexts" width="300"> <img src="docs/img/r2/convert-terminal.webp" alt="hs-convert: real terminal output" width="300">
 
-<img src="site/shots/logo-kit.webp" alt="hs-logo: the exported icon set" width="640">
+<img src="docs/img/r2/logo-kit.webp" alt="hs-logo: the exported icon set" width="640">
 
 ## Safety and tamper-evidence
 
