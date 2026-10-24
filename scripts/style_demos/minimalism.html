@@ -1,0 +1,116 @@
+<!--fonts: Instrument Sans:wght@400;500;600 | Instrument Serif -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Daybreak: Minimalism</title>
+<style>
+/*FONTS*/
+:root { --ink: #121212; --ink-2: #5d5d58; --paper: #fbfbf8; --rule: #dcdcd6; --accent: #d9382a; --sans: "Instrument Sans", system-ui, sans-serif; --serif: "Instrument Serif", Georgia, serif; --p: 0; }
+* { box-sizing: border-box; margin: 0; }
+body { font: 400 16px/1.55 var(--sans); color: var(--ink); background: var(--paper); min-height: 100vh; overflow-x: clip; }
+.app { max-width: 1120px; margin: 0 auto; padding: 0 40px 80px; display: grid; grid-template-columns: repeat(12, 1fr); column-gap: 24px; }
+header { grid-column: 1 / -1; display: flex; align-items: baseline; justify-content: space-between; padding: 36px 0 22px; border-bottom: 1px solid var(--ink); }
+.brand { font: 500 1rem var(--sans); letter-spacing: .02em; }
+nav { display: flex; gap: 34px; font-size: .94rem; }
+nav a { color: var(--ink-2); text-decoration: none; position: relative; padding-bottom: 3px; }
+nav a::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: var(--ink); transform: scaleX(0); transform-origin: left; transition: transform .35s cubic-bezier(.2, .8, .2, 1); }
+nav a:hover, nav a[aria-current] { color: var(--ink); } nav a:hover::after, nav a[aria-current]::after { transform: scaleX(1); }
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+.hero { grid-column: 1 / span 8; padding: 64px 0 56px; }
+.hero small { font-size: .88rem; color: var(--ink-2); display: block; margin-bottom: 18px; }
+h1 { font: 400 clamp(3rem, 6.4vw, 5.4rem) / .98 var(--serif); letter-spacing: -.02em; }
+h1 em { font-style: italic; color: var(--accent); }
+.hero p { margin-top: 24px; color: var(--ink-2); max-width: 40ch; }
+.figures { grid-column: 9 / -1; padding: 64px 0 56px; display: grid; align-content: end; gap: 22px; }
+.fig b { display: block; font: 400 3.4rem/1 var(--serif); }
+.fig span { color: var(--ink-2); font-size: .88rem; }
+.rule { grid-column: 1 / -1; height: 1px; background: var(--ink); }
+.label { grid-column: 1 / span 3; font-size: .88rem; color: var(--ink-2); padding-top: 28px; }
+.habits { grid-column: 4 / -1; padding-top: 18px; }
+ul { list-style: none; padding: 0; }
+.habit { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 24px; padding: 20px 0; border-bottom: 1px solid var(--rule); position: relative; }
+.habit::before { content: ""; position: absolute; left: 0; bottom: -1px; height: 1px; width: 100%; background: var(--ink); transform: scaleX(0); transform-origin: left; transition: transform .5s cubic-bezier(.2, .8, .2, 1); }
+.habit:hover::before { transform: scaleX(1); }
+.habit strong { font: 400 1.5rem/1.2 var(--serif); display: block; transition: color .3s; }
+.habit .m { color: var(--ink-2); font-size: .9rem; }
+.habit[data-done] strong { color: var(--ink-2); text-decoration: line-through; text-decoration-thickness: 1px; }
+.ic { display: none; }
+.sw { width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid var(--ink); background: transparent; cursor: pointer; position: relative; padding: 0; transition: background .25s, transform .25s; }
+.sw:hover { transform: scale(1.12); }
+.sw::after { content: ""; position: absolute; left: 9px; top: 4px; width: 7px; height: 13px; border: solid var(--paper); border-width: 0 1.5px 1.5px 0; transform: rotate(45deg) scale(0); transition: transform .25s .05s cubic-bezier(.2, 1.6, .4, 1); }
+.sw[aria-checked=true] { background: var(--ink); }
+.sw[aria-checked=true]::after { transform: rotate(45deg) scale(1); }
+.habit.new { animation: fade .6s ease; }
+@keyframes fade { from { opacity: 0; transform: translateY(8px); } }
+.week { grid-column: 4 / span 5; padding: 18px 0 40px; }
+.chart { display: flex; align-items: flex-end; gap: 14px; height: 120px; border-bottom: 1px solid var(--ink); }
+.chart div { flex: 1; height: 100%; display: flex; align-items: flex-end; }
+.chart i { width: 100%; height: var(--h); background: var(--ink); transform-origin: bottom; animation: up .9s cubic-bezier(.2, .8, .2, 1) backwards; }
+.chart div:last-child i { background: var(--accent); }
+.chart div:nth-child(2) i { animation-delay: .05s; } .chart div:nth-child(3) i { animation-delay: .1s; } .chart div:nth-child(4) i { animation-delay: .15s; } .chart div:nth-child(5) i { animation-delay: .2s; } .chart div:nth-child(6) i { animation-delay: .25s; }
+@keyframes up { from { transform: scaleY(0); } }
+.axis { display: flex; gap: 14px; font-size: .8rem; color: var(--ink-2); padding-top: 6px; }
+.axis span { flex: 1; }
+.newbox { grid-column: 9 / -1; padding: 18px 0 40px; }
+form { display: grid; gap: 22px; }
+label { display: grid; gap: 4px; font-size: .84rem; color: var(--ink-2); }
+input, select { font: 400 1.05rem var(--sans); color: var(--ink); background: transparent; border: 0; border-bottom: 1px solid var(--ink); border-radius: 0; padding: 8px 0; transition: border-color .2s, padding .2s; }
+input::placeholder { color: #8a8a84; }
+input:focus { border-bottom-color: var(--accent); outline: none; padding-left: 4px; }
+.btn { font: 500 .95rem var(--sans); color: var(--paper); background: var(--ink); border: 0; padding: 14px 20px; cursor: pointer; text-align: left; display: flex; justify-content: space-between; transition: background .25s, padding .25s; }
+.btn::after { content: "→"; transition: transform .25s; }
+.btn:hover { background: var(--accent); } .btn:hover::after { transform: translateX(6px); }
+#toast { position: fixed; left: 40px; bottom: 32px; background: var(--paper); border: 1px solid var(--ink); padding: 10px 16px; font-size: .9rem; opacity: 0; transform: translateY(10px); transition: .4s cubic-bezier(.2, .8, .2, 1); pointer-events: none; }
+#toast.show { opacity: 1; transform: none; }
+@media (max-width: 900px) { .app { display: block; padding: 0 20px 60px; } nav { display: none; } .hero, .figures, .habits, .week, .newbox { padding-top: 28px; } .figures { display: flex; gap: 40px; } .label { padding-top: 24px; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+<!--ICONS-->
+<div class="app">
+  <header>
+    <div class="brand">Daybreak</div>
+    <nav aria-label="Main"><a href="#" aria-current="page">Today</a><a href="#">Habits</a><a href="#">Stats</a><a href="#">Settings</a></nav>
+  </header>
+  <section class="hero" aria-labelledby="h">
+    <small>Saturday, 24 October</small>
+    <h1 id="h">Good morning, <em>Riya.</em></h1>
+    <p>Small things, done daily, add up. You are ahead of last week.</p>
+  </section>
+  <aside class="figures" aria-label="Summary">
+    <div class="fig"><b data-pct>0%</b><span><i data-count style="font-style:normal">0</i> of <i data-total style="font-style:normal">3</i> done today</span></div>
+    <div class="fig"><b>12</b><span>day streak</span></div>
+  </aside>
+  <div class="rule"></div>
+  <h2 class="label" style="font-weight:400">Today</h2>
+  <section class="habits" aria-label="Today">
+    <ul id="habits">
+      <li class="habit" data-demo="card"><div><strong>Drink water</strong><span class="m">6 of 8 glasses</span></div><button class="sw" role="switch" aria-checked="false" aria-label="Drink water"></button></li>
+      <li class="habit"><div><strong>Read 20 pages</strong><span class="m">The Overstory, ch. 4</span></div><button class="sw" role="switch" aria-checked="false" aria-label="Read 20 pages" data-demo="toggle"></button></li>
+      <li class="habit"><div><strong>Evening walk</strong><span class="m">30 min, before sunset</span></div><button class="sw" role="switch" aria-checked="false" aria-label="Evening walk"></button></li>
+    </ul>
+  </section>
+  <div class="rule" style="margin-top:20px"></div>
+  <h2 class="label" style="font-weight:400">This week</h2>
+  <section class="week" aria-label="This week">
+    <div class="chart" role="img" aria-label="Habits done per day: Monday 5, Tuesday 6, Wednesday 4, Thursday 7, Friday 6, Saturday 3 so far">
+      <div style="--h:62%"><i></i></div><div style="--h:76%"><i></i></div><div style="--h:50%"><i></i></div><div style="--h:90%"><i></i></div><div style="--h:76%"><i></i></div><div style="--h:38%"><i></i></div>
+    </div>
+    <div class="axis" aria-hidden="true"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span></div>
+  </section>
+  <section class="newbox" aria-label="New habit">
+    <form id="add-form" autocomplete="off">
+      <label>New habit<input id="add-input" data-demo="input" placeholder="Stretch for 5 minutes"></label>
+      <label>How often<select><option>Every day</option><option>Weekdays</option><option>3 times a week</option></select></label>
+      <button class="btn" data-demo="add">Add habit</button>
+    </form>
+  </section>
+</div>
+<div id="toast" role="status"></div>
+<template id="tpl"><li class="habit"><div><strong data-name></strong><span class="m">Every day</span></div><button class="sw" role="switch" aria-checked="false"></button></li></template>
+<script>/*JS*/</script>
+</body>
+</html>

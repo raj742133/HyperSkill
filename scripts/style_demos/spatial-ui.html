@@ -1,0 +1,134 @@
+<!--fonts: Albert Sans:wght@400;500;600;700 -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Daybreak: Spatial UI</title>
+<style>
+/*FONTS*/
+:root { --ink: #fff; --ink-2: rgb(255 255 255 / .74); --win: rgb(255 255 255 / .13); --edge: rgb(255 255 255 / .28); --acc: #7cd4ff; --good: #7df0b4; --f: "Albert Sans", system-ui, sans-serif; --p: 0; --rx: 0deg; --ry: 0deg; }
+* { box-sizing: border-box; margin: 0; }
+html { overflow-x: clip; }
+body { font: 500 17px/1.5 var(--f); color: var(--ink); min-height: 100vh; overflow-x: clip; background: #0b1030; }
+.env { position: fixed; inset: 0; z-index: -1; overflow: hidden; background: radial-gradient(1200px 800px at 70% 20%, #2a6f95 0, transparent 60%), radial-gradient(900px 700px at 15% 80%, #5a2e94 0, transparent 60%), linear-gradient(180deg, #0b1030, #0f1a44 60%, #0a1a2e); }
+.env i { position: absolute; border-radius: 50%; filter: blur(70px); opacity: .55; animation: float 16s ease-in-out infinite alternate; }
+.env i:nth-child(1) { width: 420px; height: 420px; left: 6%; top: 10%; background: #7a4dff; } .env i:nth-child(2) { width: 360px; height: 360px; right: 8%; bottom: 8%; background: #20c4ff; animation-delay: -5s; } .env i:nth-child(3) { width: 260px; height: 260px; left: 46%; top: 50%; background: #ff7ad1; opacity: .3; animation-delay: -9s; }
+@keyframes float { to { transform: translate(60px, -40px) scale(1.12); } }
+.stage { --mx: 0; --my: 0; padding: 34px 20px 70px; min-height: 100vh; display: grid; align-content: center; }
+.rig { max-width: 1180px; margin: 0 auto; display: grid; grid-template-columns: 84px 1.25fr 1fr; gap: 26px; align-items: start; }
+.win { position: relative; background: var(--win); border: 1px solid var(--edge); border-radius: 38px; -webkit-backdrop-filter: blur(30px) saturate(1.5); backdrop-filter: blur(30px) saturate(1.5); box-shadow: 0 30px 70px rgb(0 0 10 / .55), 0 2px 0 rgb(255 255 255 / .12) inset, 0 -30px 60px rgb(255 255 255 / .04) inset; transform: perspective(1500px) translate(calc(var(--mx) * var(--depth, 10) * -1px), calc(var(--my) * var(--depth, 10) * -1px)) rotateY(calc(var(--tilt, 0deg) + var(--mx) * -3deg)) rotateX(calc(var(--my) * 2deg)); transition: transform .3s ease-out; animation: bob 7s ease-in-out infinite alternate; animation-delay: var(--d, 0s); }
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) { .win { background: rgb(28 36 80 / .94); } }
+@keyframes bob { to { translate: 0 -8px; } }
+.orn { --depth: 30; --tilt: 8deg; --d: -2s; padding: 14px 12px; border-radius: 99px; display: grid; gap: 10px; align-content: start; justify-items: center; position: sticky; top: 30px; }
+.orn a { width: 58px; height: 58px; border-radius: 50%; display: grid; place-items: center; color: var(--ink); text-decoration: none; transition: background .25s, transform .25s cubic-bezier(.3, 1.5, .5, 1); position: relative; }
+.orn a:hover, .orn a:focus-visible { background: rgb(255 255 255 / .22); transform: scale(1.1); outline: none; box-shadow: 0 0 0 2px rgb(255 255 255 / .5); }
+.orn a[aria-current] { background: rgb(255 255 255 / .3); }
+.orn a span { position: absolute; left: 72px; background: rgb(20 24 60 / .92); padding: 4px 12px; border-radius: 99px; font-size: .84rem; white-space: nowrap; opacity: 0; transform: translateX(-6px); transition: .2s; pointer-events: none; }
+.orn a:hover span { opacity: 1; transform: none; }
+.ico { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.main { --depth: 12; --tilt: 2deg; padding: 34px 38px 30px; }
+.title { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+.brand { font-weight: 600; font-size: .95rem; color: var(--ink-2); letter-spacing: .04em; display: flex; align-items: center; gap: 10px; }
+.brand i { width: 10px; height: 10px; border-radius: 50%; background: var(--acc); box-shadow: 0 0 14px var(--acc); }
+.main small { color: var(--ink-2); }
+h1 { font-size: clamp(2.1rem, 3.6vw, 3rem); line-height: 1.05; font-weight: 600; letter-spacing: -.03em; margin: 4px 0 8px; }
+.main > p { color: var(--ink-2); max-width: 38ch; }
+.streak { display: inline-flex; align-items: center; gap: 8px; margin: 14px 0 18px; padding: 8px 16px 8px 12px; border-radius: 99px; background: rgb(255 255 255 / .14); font-weight: 600; }
+.streak svg { width: 18px; height: 18px; fill: #ffb86b; }
+ul { list-style: none; padding: 0; display: grid; gap: 10px; }
+.habit { display: flex; align-items: center; gap: 16px; min-height: 76px; padding: 10px 14px; border-radius: 26px; background: rgb(255 255 255 / .08); transition: background .25s, transform .3s cubic-bezier(.3, 1.4, .5, 1), box-shadow .25s; }
+.habit:hover { background: rgb(255 255 255 / .2); transform: scale(1.025); box-shadow: 0 0 0 1.5px rgb(255 255 255 / .55), 0 14px 30px rgb(0 0 20 / .35); }
+.habit .ic { width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center; background: rgb(255 255 255 / .16); color: var(--acc); flex: none; }
+.habit .grow { flex: 1; }
+.habit strong { display: block; font-weight: 600; font-size: 1.1rem; }
+.habit .m { color: var(--ink-2); font-size: .9rem; }
+.habit[data-done] strong { opacity: .6; text-decoration: line-through; }
+.sw { width: 78px; height: 48px; border-radius: 99px; border: 0; background: rgb(255 255 255 / .22); cursor: pointer; position: relative; flex: none; padding: 0; transition: background .3s; }
+.sw::after { content: ""; position: absolute; left: 4px; top: 4px; width: 40px; height: 40px; border-radius: 50%; background: #fff; box-shadow: 0 6px 14px rgb(0 0 30 / .45); transition: transform .35s cubic-bezier(.3, 1.5, .5, 1); }
+.sw[aria-checked=true] { background: var(--good); }
+.sw[aria-checked=true]::after { transform: translateX(30px); }
+.sw:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+.habit.new { animation: emerge .6s cubic-bezier(.3, 1.4, .5, 1); }
+@keyframes emerge { from { opacity: 0; transform: scale(.9) translateY(-10px); } }
+.side { display: grid; gap: 24px; }
+.stat { --depth: 22; --tilt: -6deg; --d: -4s; padding: 28px 30px; display: grid; grid-template-columns: auto 1fr; gap: 24px; align-items: center; }
+.ring { width: 130px; height: 130px; border-radius: 50%; display: grid; place-items: center; position: relative; background: conic-gradient(var(--acc) calc(var(--p) * 360deg), rgb(255 255 255 / .16) 0); transition: background .5s; }
+.ring::before { content: ""; position: absolute; inset: 11px; border-radius: 50%; background: #101a3e; }
+.ring b { position: relative; font-size: 1.9rem; font-weight: 700; }
+.stat h2, .newwin h2 { font-size: 1.05rem; font-weight: 600; margin-bottom: 6px; }
+.stat p { color: var(--ink-2); font-size: .94rem; }
+.chart { display: flex; align-items: flex-end; gap: 8px; height: 70px; margin-top: 12px; }
+.chart div { flex: 1; height: 100%; display: flex; align-items: flex-end; }
+.chart i { width: 100%; height: var(--h); border-radius: 9px; background: linear-gradient(180deg, rgb(255 255 255 / .9), rgb(124 212 255 / .5)); transform-origin: bottom; animation: up .9s cubic-bezier(.2, .9, .3, 1) backwards; }
+.chart div:last-child i { background: linear-gradient(180deg, #fff, var(--good)); }
+.chart div:nth-child(2) i { animation-delay: .06s; } .chart div:nth-child(3) i { animation-delay: .12s; } .chart div:nth-child(4) i { animation-delay: .18s; } .chart div:nth-child(5) i { animation-delay: .24s; } .chart div:nth-child(6) i { animation-delay: .3s; }
+@keyframes up { from { transform: scaleY(.04); } }
+.newwin { --depth: 4; --tilt: -3deg; --d: -1s; padding: 28px 30px; }
+form { display: grid; gap: 12px; }
+label { display: grid; gap: 6px; font-size: .86rem; color: var(--ink-2); font-weight: 500; }
+input, select { font: 500 1.05rem var(--f); color: #fff; background: rgb(255 255 255 / .12); border: 1px solid rgb(255 255 255 / .2); border-radius: 22px; padding: 15px 18px; min-height: 56px; transition: background .25s, border-color .25s; }
+input::placeholder { color: rgb(255 255 255 / .6); }
+input:focus, select:focus { background: rgb(255 255 255 / .2); border-color: #fff; }
+select option { color: #111; }
+.btn { font: 600 1.05rem var(--f); color: #07203a; min-height: 58px; border: 0; border-radius: 99px; padding: 0 26px; cursor: pointer; background: linear-gradient(180deg, #d6f1ff, var(--acc)); box-shadow: 0 10px 26px rgb(124 212 255 / .4), inset 0 1px 0 #fff; transition: transform .3s cubic-bezier(.3, 1.5, .5, 1), box-shadow .3s; }
+.btn:hover { transform: scale(1.04); box-shadow: 0 0 0 3px rgb(255 255 255 / .5), 0 16px 34px rgb(124 212 255 / .55), inset 0 1px 0 #fff; }
+.btn:active { transform: scale(.97); }
+#toast { position: fixed; left: 50%; bottom: 36px; transform: translate(-50%, 30px) scale(.92); opacity: 0; padding: 14px 26px; border-radius: 99px; -webkit-backdrop-filter: blur(24px); backdrop-filter: blur(24px); background: rgb(255 255 255 / .2); border: 1px solid var(--edge); font-weight: 600; box-shadow: 0 20px 40px rgb(0 0 20 / .5); transition: .4s cubic-bezier(.3, 1.5, .5, 1); pointer-events: none; }
+#toast.show { opacity: 1; transform: translate(-50%, 0); }
+@media (max-width: 960px) { .rig { grid-template-columns: 1fr; } .orn { position: static; grid-auto-flow: column; justify-content: center; border-radius: 99px; --tilt: 0deg; } .orn a span { display: none; } .win { transform: none; } .stat { grid-template-columns: 1fr; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } .win { transform: none; } }
+</style>
+</head>
+<body>
+<!--ICONS-->
+<div class="env" aria-hidden="true"><i></i><i></i><i></i></div>
+<div class="stage" id="stage">
+ <div class="rig" id="rig">
+  <nav class="win orn" aria-label="Main">
+    <a href="#" aria-current="page" aria-label="Today"><svg class="ico"><use href="#i-sun"/></svg><span>Today</span></a>
+    <a href="#" aria-label="Habits"><svg class="ico"><use href="#i-list"/></svg><span>Habits</span></a>
+    <a href="#" aria-label="Stats"><svg class="ico"><use href="#i-bars"/></svg><span>Stats</span></a>
+    <a href="#" aria-label="Settings"><svg class="ico"><use href="#i-gear"/></svg><span>Settings</span></a>
+  </nav>
+  <main class="win main" aria-labelledby="h">
+    <div class="title"><div class="brand"><i></i>DAYBREAK</div><small>Saturday, 24 October</small></div>
+    <h1 id="h">Good morning, Riya</h1>
+    <p>Small things, done daily, add up. You are ahead of last week.</p>
+    <span class="streak"><svg viewBox="0 0 24 24"><use href="#i-flame"/></svg>12-day streak</span>
+    <ul id="habits">
+      <li class="habit" data-demo="card"><span class="ic" aria-hidden="true"><svg class="ico"><use href="#i-drop"/></svg></span><div class="grow"><strong>Drink water</strong><span class="m">6 of 8 glasses</span></div><button class="sw" role="switch" aria-checked="false" aria-label="Drink water"></button></li>
+      <li class="habit"><span class="ic" aria-hidden="true"><svg class="ico"><use href="#i-book"/></svg></span><div class="grow"><strong>Read 20 pages</strong><span class="m">The Overstory, ch. 4</span></div><button class="sw" role="switch" aria-checked="false" aria-label="Read 20 pages" data-demo="toggle"></button></li>
+      <li class="habit"><span class="ic" aria-hidden="true"><svg class="ico"><use href="#i-moon"/></svg></span><div class="grow"><strong>Evening walk</strong><span class="m">30 min, before sunset</span></div><button class="sw" role="switch" aria-checked="false" aria-label="Evening walk"></button></li>
+    </ul>
+  </main>
+  <div class="side">
+    <aside class="win stat" aria-label="Progress">
+      <div class="ring" role="img" aria-label="Progress today"><b data-pct>0%</b></div>
+      <div><h2><span data-count>0</span> of <span data-total>3</span> done today</h2><p>This week</p>
+        <div class="chart" role="img" aria-label="Habits done per day: Monday 5, Tuesday 6, Wednesday 4, Thursday 7, Friday 6, Saturday 3 so far"><div style="--h:62%"><i></i></div><div style="--h:76%"><i></i></div><div style="--h:50%"><i></i></div><div style="--h:90%"><i></i></div><div style="--h:76%"><i></i></div><div style="--h:38%"><i></i></div></div>
+      </div>
+    </aside>
+    <section class="win newwin" aria-labelledby="n"><h2 id="n">New habit</h2>
+      <form id="add-form" autocomplete="off">
+        <label>Name<input id="add-input" data-demo="input" placeholder="e.g. Stretch for 5 minutes"></label>
+        <label>How often<select><option>Every day</option><option>Weekdays</option><option>3 times a week</option></select></label>
+        <button class="btn" data-demo="add">Add habit</button>
+      </form>
+    </section>
+  </div>
+ </div>
+</div>
+<div id="toast" role="status"></div>
+<template id="tpl"><li class="habit"><span class="ic" aria-hidden="true"><svg class="ico"><use href="#i-spark"/></svg></span><div class="grow"><strong data-name></strong><span class="m">Every day</span></div><button class="sw" role="switch" aria-checked="false"></button></li></template>
+<script>/*JS*/</script>
+<script>
+(function () {
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  var st = document.getElementById("stage");
+  st.addEventListener("pointermove", function (e) { st.style.setProperty("--mx", (e.clientX / innerWidth - .5).toFixed(3)); st.style.setProperty("--my", (e.clientY / innerHeight - .5).toFixed(3)); });
+  st.addEventListener("pointerleave", function () { st.style.setProperty("--mx", 0); st.style.setProperty("--my", 0); });
+})();
+</script>
+</body>
+</html>

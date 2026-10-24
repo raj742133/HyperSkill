@@ -230,6 +230,9 @@ def hyperfigure_group():
 
 
 # ---------------------------------------------------------------- hand-written lists
+PREVIEWS_DIR = os.path.join(ROOT, "site", "live", "previews")
+
+
 def curated_groups():
     g = []
     g.append(group("tells", "Vibe-coded design tells to avoid", "hyperskill",
@@ -245,7 +248,8 @@ def curated_groups():
                    [item("addons", n, d, ph, "track", key=slug(n), text="%s: %s" % (n, d), tags=[h] if h else [], rec=False) for n, ph, d, h in data.ADDONS]))
     g.append(group("styles-popular", "Popular visual styles (with build rules)", "hyperskill",
                    "The ten styles people ask for by name. Claude follows the rules in skills/hs-product/references/style-recipes.md for the one you pick: the recipe, the traps and the checks. One style per product: a pick here replaces a pick in the big UI UX Pro Max list.", "build",
-                   [item("styles-popular", n, d, "product", "build", key=slug(n), exclusive="uu-styles", media={"kind": "svg", "src": "uu-styles/%s.svg" % uu}) for n, uu, d in data.POPULAR_STYLES],
+                   [item("styles-popular", n, d, "product", "build", key=slug(n), exclusive="uu-styles", media={"kind": "svg", "src": "uu-styles/%s.svg" % uu},
+                         demo="styles-popular/%s.html" % slug(n) if os.path.exists(os.path.join(PREVIEWS_DIR, "styles-popular", slug(n) + ".html")) else None) for n, uu, d in data.POPULAR_STYLES],
                    exclusive="uu-styles"))  # shares one exclusive set with the big style list: one style per product
     g.append(group("selfhost", "Self-hosted building blocks", "hyperskill",
                    "Open-source services you can run yourself. Each one you select becomes a check with a clear 'done' and its licence caveat, so you choose with the facts in front of you. None is installed for you.", "track",

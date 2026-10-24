@@ -12223,9 +12223,11 @@
      "mode": "build",
      "exclusive": "uu-styles",
      "media": {
-      "kind": "svg",
-      "src": "uu-styles/skeuomorphism.svg"
-     }
+      "kind": "video",
+      "src": "styles-popular/skeuomorphism.mp4",
+      "poster": "styles-popular/skeuomorphism.webp"
+     },
+     "demo": "styles-popular/skeuomorphism.html"
     },
     {
      "id": "styles-popular/neumorphism",
@@ -12235,9 +12237,11 @@
      "mode": "build",
      "exclusive": "uu-styles",
      "media": {
-      "kind": "svg",
-      "src": "uu-styles/neumorphism.svg"
-     }
+      "kind": "video",
+      "src": "styles-popular/neumorphism.mp4",
+      "poster": "styles-popular/neumorphism.webp"
+     },
+     "demo": "styles-popular/neumorphism.html"
     },
     {
      "id": "styles-popular/glassmorphism",
@@ -12247,9 +12251,11 @@
      "mode": "build",
      "exclusive": "uu-styles",
      "media": {
-      "kind": "svg",
-      "src": "uu-styles/glassmorphism.svg"
-     }
+      "kind": "video",
+      "src": "styles-popular/glassmorphism.mp4",
+      "poster": "styles-popular/glassmorphism.webp"
+     },
+     "demo": "styles-popular/glassmorphism.html"
     },
     {
      "id": "styles-popular/claymorphism",
@@ -12259,9 +12265,11 @@
      "mode": "build",
      "exclusive": "uu-styles",
      "media": {
-      "kind": "svg",
-      "src": "uu-styles/claymorphism.svg"
-     }
+      "kind": "video",
+      "src": "styles-popular/claymorphism.mp4",
+      "poster": "styles-popular/claymorphism.webp"
+     },
+     "demo": "styles-popular/claymorphism.html"
     },
     {
      "id": "styles-popular/brutalism",
@@ -12271,9 +12279,11 @@
      "mode": "build",
      "exclusive": "uu-styles",
      "media": {
-      "kind": "svg",
-      "src": "uu-styles/brutalism.svg"
-     }
+      "kind": "video",
+      "src": "styles-popular/brutalism.mp4",
+      "poster": "styles-popular/brutalism.webp"
+     },
+     "demo": "styles-popular/brutalism.html"
     },
     {
      "id": "styles-popular/minimalism",
@@ -12283,9 +12293,11 @@
      "mode": "build",
      "exclusive": "uu-styles",
      "media": {
-      "kind": "svg",
-      "src": "uu-styles/minimalism-swiss-style.svg"
-     }
+      "kind": "video",
+      "src": "styles-popular/minimalism.mp4",
+      "poster": "styles-popular/minimalism.webp"
+     },
+     "demo": "styles-popular/minimalism.html"
     },
     {
      "id": "styles-popular/maximalism",
@@ -12295,9 +12307,11 @@
      "mode": "build",
      "exclusive": "uu-styles",
      "media": {
-      "kind": "svg",
-      "src": "uu-styles/gen-z-chaos-maximalism.svg"
-     }
+      "kind": "video",
+      "src": "styles-popular/maximalism.mp4",
+      "poster": "styles-popular/maximalism.webp"
+     },
+     "demo": "styles-popular/maximalism.html"
     },
     {
      "id": "styles-popular/liquid-glass",
@@ -12307,9 +12321,11 @@
      "mode": "build",
      "exclusive": "uu-styles",
      "media": {
-      "kind": "svg",
-      "src": "uu-styles/liquid-glass.svg"
-     }
+      "kind": "video",
+      "src": "styles-popular/liquid-glass.mp4",
+      "poster": "styles-popular/liquid-glass.webp"
+     },
+     "demo": "styles-popular/liquid-glass.html"
     },
     {
      "id": "styles-popular/bento-grid",
@@ -12319,9 +12335,11 @@
      "mode": "build",
      "exclusive": "uu-styles",
      "media": {
-      "kind": "svg",
-      "src": "uu-styles/bento-box-grid.svg"
-     }
+      "kind": "video",
+      "src": "styles-popular/bento-grid.mp4",
+      "poster": "styles-popular/bento-grid.webp"
+     },
+     "demo": "styles-popular/bento-grid.html"
     },
     {
      "id": "styles-popular/spatial-ui",
@@ -12331,9 +12349,11 @@
      "mode": "build",
      "exclusive": "uu-styles",
      "media": {
-      "kind": "svg",
-      "src": "uu-styles/spatial-ui-visionos.svg"
-     }
+      "kind": "video",
+      "src": "styles-popular/spatial-ui.mp4",
+      "poster": "styles-popular/spatial-ui.webp"
+     },
+     "demo": "styles-popular/spatial-ui.html"
     }
    ],
    "exclusive": "uu-styles"

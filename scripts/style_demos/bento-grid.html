@@ -1,0 +1,126 @@
+<!--fonts: DM Sans:wght@400;500;700 | DM Mono:wght@400;500 -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Daybreak: Bento Grid</title>
+<style>
+/*FONTS*/
+@property --n { syntax: "<integer>"; initial-value: 0; inherits: false; }
+:root { --ink: #111113; --ink-2: #5b5b63; --bg: #efeee9; --gap: 14px; --r: 28px; --lav: #e9e1ff; --sun: #ffe27a; --sky: #dcefff; --mint: #d9f7e6; --coral: #ff6a4d; --acc: #6c4cff;
+  --sans: "DM Sans", system-ui, sans-serif; --mono: "DM Mono", ui-monospace, monospace; --p: 0; }
+* { box-sizing: border-box; margin: 0; }
+body { font: 500 16px/1.45 var(--sans); color: var(--ink); background: var(--bg); min-height: 100vh; overflow-x: clip; }
+.wrap { max-width: 1160px; margin: 0 auto; padding: 22px 24px 40px; }
+header { display: flex; align-items: center; justify-content: space-between; padding: 4px 8px 18px; }
+.brand { font-weight: 700; font-size: 1.2rem; display: flex; align-items: center; gap: 10px; }
+.brand i { width: 26px; height: 26px; border-radius: 8px; background: var(--ink); position: relative; }
+.brand i::after { content: ""; position: absolute; inset: 7px; border-radius: 50%; background: var(--sun); }
+nav { display: flex; gap: 4px; background: #fff; padding: 4px; border-radius: 99px; }
+nav a { color: var(--ink-2); text-decoration: none; font-weight: 500; font-size: .92rem; padding: 7px 16px; border-radius: 99px; transition: background .2s, color .2s; }
+nav a:hover { color: var(--ink); } nav a[aria-current] { background: var(--ink); color: #fff; }
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid var(--acc); outline-offset: 3px; }
+.grid { display: grid; grid-template-columns: repeat(6, 1fr); grid-auto-rows: minmax(118px, auto); gap: var(--gap); }
+.tile { border-radius: var(--r); padding: 22px 24px; background: #fff; position: relative; overflow: hidden; transition: transform .35s cubic-bezier(.2, .9, .3, 1.2), box-shadow .35s; animation: rise .7s cubic-bezier(.2, .9, .3, 1) backwards; }
+.tile:hover { transform: translateY(-4px); box-shadow: 0 16px 36px rgb(17 17 19 / .1); }
+.tile h2 { font: 500 .8rem var(--mono); text-transform: uppercase; letter-spacing: .08em; color: var(--ink-2); margin-bottom: 10px; }
+.t1 { grid-column: 1 / span 4; grid-row: span 2; background: var(--lav); animation-delay: 0s; display: flex; flex-direction: column; justify-content: space-between; }
+.t2 { grid-column: 5 / span 2; grid-row: span 2; background: var(--ink); color: #fff; animation-delay: .06s; display: grid; place-items: center; }
+.t3 { grid-column: 1 / span 3; grid-row: span 3; animation-delay: .12s; }
+.t4 { grid-column: 4 / span 3; background: var(--sun); animation-delay: .18s; display: flex; align-items: center; justify-content: space-between; }
+.t5 { grid-column: 4 / span 3; grid-row: span 2; background: var(--sky); animation-delay: .24s; }
+.t6 { grid-column: 1 / -1; background: var(--mint); animation-delay: .3s; }
+@keyframes rise { from { opacity: 0; transform: translateY(18px) scale(.97); } }
+.t1 small { font: 500 .8rem var(--mono); color: #5a4aa0; }
+h1 { font-size: clamp(2.2rem, 4.6vw, 3.9rem); line-height: .98; font-weight: 700; letter-spacing: -.04em; }
+.t1 p { color: #4b3f80; max-width: 40ch; }
+.ring { width: 150px; height: 150px; border-radius: 50%; background: conic-gradient(#b9f35e calc(var(--p) * 360deg), rgb(255 255 255 / .12) 0); display: grid; place-items: center; position: relative; transition: background .5s; }
+.ring::before { content: ""; position: absolute; inset: 14px; border-radius: 50%; background: var(--ink); }
+.ring div { position: relative; text-align: center; line-height: 1.1; }
+.ring b { font-size: 2.3rem; font-weight: 700; display: block; letter-spacing: -.03em; }
+.ring span { font: 400 .74rem var(--mono); color: #b8b8c2; }
+.big { font: 700 4.2rem/1 var(--sans); letter-spacing: -.05em; counter-reset: n var(--n); animation: count 1.6s cubic-bezier(.2, .8, .2, 1) .5s backwards; --n: 12; }
+.big::after { content: counter(n); }
+@keyframes count { from { --n: 0; } }
+.t4 .lbl { font-weight: 500; line-height: 1.2; }
+.t4 .lbl span { display: block; font: 400 .78rem var(--mono); color: #6a5a10; margin-top: 4px; }
+.dots { display: flex; gap: 6px; }
+.dots i { width: 14px; height: 14px; border-radius: 50%; background: rgb(17 17 19 / .85); }
+.dots i:nth-child(n+6) { background: rgb(17 17 19 / .18); }
+ul { list-style: none; padding: 0; display: grid; gap: 4px; }
+.habit { display: flex; align-items: center; gap: 12px; padding: 10px 10px; border-radius: 18px; transition: background .2s; }
+.habit:hover { background: #f5f4f0; }
+.ico { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.habit .ic { width: 42px; height: 42px; border-radius: 14px; display: grid; place-items: center; background: var(--c, var(--sky)); flex: none; }
+.habit:nth-child(2) { --c: #ffe9c9; } .habit:nth-child(3) { --c: var(--lav); } .habit:nth-child(4) { --c: var(--mint); }
+.habit .grow { flex: 1; min-width: 0; }
+.habit strong { display: block; font-weight: 700; }
+.habit .m { color: var(--ink-2); font-size: .85rem; }
+.habit[data-done] strong { color: #9a9aa3; text-decoration: line-through; }
+.sw { width: 28px; height: 28px; border-radius: 9px; border: 2px solid var(--ink); background: #fff; cursor: pointer; position: relative; flex: none; padding: 0; transition: background .2s, transform .2s cubic-bezier(.3, 1.8, .5, 1); }
+.sw:hover { transform: scale(1.1); }
+.sw::after { content: ""; position: absolute; left: 7px; top: 2px; width: 7px; height: 13px; border: solid #fff; border-width: 0 2.5px 2.5px 0; transform: rotate(45deg) scale(0); transition: transform .25s .05s cubic-bezier(.3, 1.8, .5, 1); }
+.sw[aria-checked=true] { background: var(--ink); }
+.sw[aria-checked=true]::after { transform: rotate(45deg) scale(1); }
+.habit.new { animation: rise .5s cubic-bezier(.2, .9, .3, 1.2); }
+.chart { display: flex; align-items: flex-end; gap: 10px; height: 118px; }
+.chart div { flex: 1; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; text-align: center; font: 400 .74rem var(--mono); color: #3a5a78; }
+.chart i { display: block; height: var(--h); border-radius: 10px; background: #fff; margin-bottom: 4px; transform-origin: bottom; animation: up .9s cubic-bezier(.2, .9, .3, 1) .4s backwards; }
+.chart div:last-child i { background: var(--ink); }
+.chart div:nth-child(2) i { animation-delay: .46s; } .chart div:nth-child(3) i { animation-delay: .52s; } .chart div:nth-child(4) i { animation-delay: .58s; } .chart div:nth-child(5) i { animation-delay: .64s; } .chart div:nth-child(6) i { animation-delay: .7s; }
+@keyframes up { from { transform: scaleY(.03); } }
+form { display: grid; grid-template-columns: 1.6fr 1fr auto; gap: 14px; align-items: end; }
+label { display: grid; gap: 6px; font: 500 .78rem var(--mono); text-transform: uppercase; letter-spacing: .06em; color: #2f6a4a; }
+input, select { font: 500 1rem var(--sans); color: var(--ink); background: rgb(255 255 255 / .75); border: 2px solid transparent; border-radius: 16px; padding: 13px 16px; text-transform: none; letter-spacing: 0; transition: border-color .2s, background .2s; }
+input:focus, select:focus { background: #fff; border-color: var(--ink); outline: none; }
+input::placeholder { color: #6b7a72; }
+.btn { font: 700 1rem var(--sans); color: #fff; background: var(--ink); border: 0; border-radius: 16px; padding: 14px 26px; cursor: pointer; transition: transform .2s cubic-bezier(.3, 1.8, .5, 1), background .2s; }
+.btn:hover { background: var(--acc); transform: translateY(-2px); } .btn:active { transform: scale(.96); }
+#toast { position: fixed; left: 50%; bottom: 26px; transform: translate(-50%, 24px); opacity: 0; background: var(--ink); color: #fff; padding: 12px 22px; border-radius: 18px; font-weight: 500; transition: .4s cubic-bezier(.2, .9, .3, 1.2); pointer-events: none; }
+#toast.show { opacity: 1; transform: translate(-50%, 0); }
+@media (max-width: 900px) { .grid { grid-template-columns: 1fr; grid-auto-rows: auto; } .tile { grid-column: 1 !important; grid-row: auto !important; } form { grid-template-columns: 1fr; } nav { display: none; } .t1 { gap: 40px; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+<!--ICONS-->
+<div class="wrap">
+  <header>
+    <div class="brand"><i></i>Daybreak</div>
+    <nav aria-label="Main"><a href="#" aria-current="page">Today</a><a href="#">Habits</a><a href="#">Stats</a><a href="#">Settings</a></nav>
+  </header>
+  <main class="grid">
+    <section class="tile t1" aria-labelledby="h">
+      <small>SAT 24 OCT</small>
+      <div><h1 id="h">Good morning,<br>Riya.</h1><p style="margin-top:14px">Small things, done daily, add up. You are ahead of last week.</p></div>
+    </section>
+    <section class="tile t2" aria-label="Progress today"><div class="ring" role="img" aria-label="Progress today"><div><b data-pct>0%</b><span><i data-count style="font-style:normal">0</i>/<i data-total style="font-style:normal">3</i> done</span></div></div></section>
+    <section class="tile t3" aria-labelledby="t">
+      <h2 id="t">Today</h2>
+      <ul id="habits">
+        <li class="habit" data-demo="card"><span class="ic" aria-hidden="true"><svg class="ico"><use href="#i-drop"/></svg></span><div class="grow"><strong>Drink water</strong><span class="m">6 of 8 glasses</span></div><button class="sw" role="switch" aria-checked="false" aria-label="Drink water"></button></li>
+        <li class="habit"><span class="ic" aria-hidden="true"><svg class="ico"><use href="#i-book"/></svg></span><div class="grow"><strong>Read 20 pages</strong><span class="m">The Overstory, ch. 4</span></div><button class="sw" role="switch" aria-checked="false" aria-label="Read 20 pages" data-demo="toggle"></button></li>
+        <li class="habit"><span class="ic" aria-hidden="true"><svg class="ico"><use href="#i-moon"/></svg></span><div class="grow"><strong>Evening walk</strong><span class="m">30 min, before sunset</span></div><button class="sw" role="switch" aria-checked="false" aria-label="Evening walk"></button></li>
+      </ul>
+    </section>
+    <section class="tile t4" aria-label="Streak"><div><div class="big" aria-hidden="true"></div></div><div class="lbl">day streak<span>best: 21 days</span></div><div class="dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></section>
+    <section class="tile t5" aria-labelledby="w"><h2 id="w">This week</h2>
+      <div class="chart" role="img" aria-label="Habits done per day: Monday 5, Tuesday 6, Wednesday 4, Thursday 7, Friday 6, Saturday 3 so far">
+        <div style="--h:62%"><i></i>M</div><div style="--h:76%"><i></i>T</div><div style="--h:50%"><i></i>W</div><div style="--h:90%"><i></i>T</div><div style="--h:76%"><i></i>F</div><div style="--h:38%"><i></i>S</div>
+      </div>
+    </section>
+    <section class="tile t6" aria-labelledby="n"><h2 id="n">New habit</h2>
+      <form id="add-form" autocomplete="off">
+        <label>Name<input id="add-input" data-demo="input" placeholder="e.g. Stretch for 5 minutes"></label>
+        <label>How often<select><option>Every day</option><option>Weekdays</option><option>3 times a week</option></select></label>
+        <button class="btn" data-demo="add">Add habit</button>
+      </form>
+    </section>
+  </main>
+</div>
+<div id="toast" role="status"></div>
+<template id="tpl"><li class="habit"><span class="ic" aria-hidden="true"><svg class="ico"><use href="#i-spark"/></svg></span><div class="grow"><strong data-name></strong><span class="m">Every day</span></div><button class="sw" role="switch" aria-checked="false"></button></li></template>
+<script>/*JS*/</script>
+</body>
+</html>

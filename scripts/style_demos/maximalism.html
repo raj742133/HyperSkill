@@ -1,0 +1,123 @@
+<!--fonts: Bricolage Grotesque:wght@500;800 | DM Serif Display:ital@1 | Rubik Mono One -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Daybreak: Maximalism</title>
+<style>
+/*FONTS*/
+:root { --ink: #140a2e; --yellow: #ffe14d; --pink: #ff3d8b; --blue: #2d3bff; --green: #00d68f; --orange: #ff7a1a; --cream: #fff6dc; --lilac: #c9b6ff;
+  --sans: "Bricolage Grotesque", system-ui, sans-serif; --serif: "DM Serif Display", Georgia, serif; --mono: "Rubik Mono One", Impact, sans-serif; --p: 0; }
+* { box-sizing: border-box; margin: 0; }
+html { overflow-x: clip; }
+body { font: 500 16px/1.45 var(--sans); color: var(--ink); min-height: 100vh; overflow-x: clip; background: var(--yellow);
+  background-image: radial-gradient(var(--orange) 2px, transparent 2.5px), radial-gradient(var(--pink) 2px, transparent 2.5px); background-size: 28px 28px; background-position: 0 0, 14px 14px; }
+.marq { background: var(--ink); color: var(--yellow); font: 400 .9rem var(--mono); overflow: hidden; white-space: nowrap; transform: rotate(-1deg) scale(1.02); margin: 6px 0; border-block: 3px solid var(--pink); }
+.marq div { display: inline-block; padding: 7px 0; animation: m 20s linear infinite; }
+@keyframes m { to { transform: translateX(-50%); } }
+.app { max-width: 1220px; margin: 0 auto; padding: 18px 26px 54px; display: grid; gap: 30px; grid-template-columns: 1.2fr 1fr; position: relative; }
+header { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; }
+.brand { font: 400 1.7rem var(--mono); color: var(--blue); text-shadow: 3px 3px 0 var(--pink), 6px 6px 0 var(--ink); transform: rotate(-2deg); }
+nav { display: flex; gap: 8px; }
+nav a { font: 800 .9rem var(--sans); color: var(--ink); text-decoration: none; background: var(--cream); border: 3px solid var(--ink); border-radius: 99px; padding: 5px 16px; box-shadow: 3px 3px 0 var(--ink); transition: transform .2s cubic-bezier(.3, 1.8, .5, 1), background .2s; }
+nav a:nth-child(2) { background: var(--green); } nav a:nth-child(3) { background: var(--lilac); } nav a:nth-child(4) { background: var(--orange); }
+nav a:hover { transform: rotate(-4deg) scale(1.1); }
+nav a[aria-current] { background: var(--pink); }
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible { outline: 4px solid var(--blue); outline-offset: 3px; }
+.hero { grid-column: 1 / -1; position: relative; background: linear-gradient(120deg, var(--blue), #6a2bff 60%, var(--pink)); color: #fff; border: 4px solid var(--ink); border-radius: 36px; box-shadow: 10px 10px 0 var(--ink); padding: 34px 44px; overflow: hidden; transform: rotate(-.6deg); }
+.hero::before { content: ""; position: absolute; right: -60px; top: -60px; width: 300px; height: 300px; border-radius: 50%; background: repeating-radial-gradient(circle, var(--yellow) 0 12px, transparent 12px 24px); opacity: .9; animation: spin 40s linear infinite; }
+.hero::after { content: "★ ★ ★ ★ ★ ★ ★ ★"; position: absolute; left: 44px; bottom: 12px; font-size: 1.1rem; letter-spacing: .6em; color: var(--yellow); }
+@keyframes spin { to { transform: rotate(360deg); } }
+.hero small { font: 400 .8rem var(--mono); background: var(--yellow); color: var(--ink); padding: 3px 10px; border: 3px solid var(--ink); display: inline-block; transform: rotate(-2deg); }
+h1 { font: 800 clamp(2.6rem, 5.4vw, 4.6rem) / .95 var(--sans); letter-spacing: -.03em; margin: 14px 0 6px; position: relative; text-shadow: 4px 4px 0 var(--ink); }
+h1 em { font: italic 400 1.05em var(--serif); color: var(--yellow); text-shadow: 4px 4px 0 var(--ink); }
+.hero p { max-width: 38ch; font-weight: 500; position: relative; margin-bottom: 40px; }
+.burst { position: absolute; right: 120px; top: 36px; width: 160px; height: 160px; display: grid; place-items: center; text-align: center; background: var(--yellow); color: var(--ink); font: 400 .78rem/1.1 var(--mono); clip-path: polygon(50% 0, 61% 14%, 79% 8%, 82% 27%, 100% 32%, 90% 50%, 100% 68%, 82% 73%, 79% 92%, 61% 86%, 50% 100%, 39% 86%, 21% 92%, 18% 73%, 0 68%, 10% 50%, 0 32%, 18% 27%, 21% 8%, 39% 14%); animation: wig 2.4s ease-in-out infinite; z-index: 2; }
+.burst b { display: block; font-size: 2.6rem; line-height: 1; }
+@keyframes wig { 50% { transform: rotate(8deg) scale(1.06); } }
+.sticker { position: absolute; right: 36px; bottom: 26px; background: var(--green); color: var(--ink); border: 3px solid var(--ink); border-radius: 18px; padding: 8px 14px; font: 800 1rem var(--sans); transform: rotate(5deg); box-shadow: 4px 4px 0 var(--ink); z-index: 2; }
+.sticker b { font: 400 1.4rem var(--mono); }
+.panel { background: #fff; border: 4px solid var(--ink); border-radius: 30px; box-shadow: 8px 8px 0 var(--ink); padding: 26px; position: relative; }
+.panel.tilt { transform: rotate(.7deg); } .panel.tilt2 { transform: rotate(-.8deg); }
+h2 { font: 400 1.35rem var(--mono); margin-bottom: 16px; display: inline-block; background: var(--pink); color: #fff; padding: 2px 12px; border: 3px solid var(--ink); transform: rotate(-1.5deg); box-shadow: 3px 3px 0 var(--ink); }
+ul { list-style: none; padding: 0; display: grid; gap: 14px; }
+.habit { display: flex; align-items: center; gap: 14px; padding: 12px 16px; border: 3px solid var(--ink); border-radius: 22px; background: var(--c, var(--cream)); box-shadow: 4px 4px 0 var(--ink); transition: transform .2s cubic-bezier(.3, 1.8, .5, 1); }
+.habit:nth-child(3n+1) { --c: #ffd8ea; } .habit:nth-child(3n+2) { --c: #d6f9ea; } .habit:nth-child(3n) { --c: #ece3ff; }
+.habit:hover { transform: rotate(-1.2deg) scale(1.02); }
+.habit[data-done] { --c: var(--yellow); }
+.habit[data-done] strong { text-decoration: line-through wavy var(--pink); text-decoration-thickness: 2px; }
+.ico { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.habit .ic { width: 50px; height: 50px; border: 3px solid var(--ink); border-radius: 16px; display: grid; place-items: center; background: #fff; flex: none; }
+.habit .grow { flex: 1; }
+.habit strong { display: block; font: 800 1.25rem/1.1 var(--sans); letter-spacing: -.01em; }
+.habit .m { font-size: .9rem; font-weight: 500; }
+.sw { width: 84px; height: 44px; border: 3px solid var(--ink); border-radius: 99px; background: #fff; cursor: pointer; position: relative; flex: none; padding: 0; transition: background .25s; box-shadow: 3px 3px 0 var(--ink); }
+.sw::after { content: ""; position: absolute; left: 4px; top: 4px; width: 30px; height: 30px; border: 3px solid var(--ink); border-radius: 50%; background: var(--orange); transition: transform .4s cubic-bezier(.3, 1.8, .5, 1), background .3s; }
+.sw[aria-checked=true] { background: var(--green); }
+.sw[aria-checked=true]::after { transform: translateX(38px) rotate(180deg); background: var(--pink); }
+.habit.new { animation: boom .6s cubic-bezier(.3, 1.8, .5, 1); }
+@keyframes boom { from { transform: scale(.2) rotate(-12deg); opacity: 0; } }
+.stack { display: grid; gap: 30px; align-content: start; }
+.chart { display: flex; align-items: flex-end; gap: 10px; height: 140px; }
+.chart div { flex: 1; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; text-align: center; font: 400 .8rem var(--mono); }
+.chart i { display: block; height: var(--h); border: 3px solid var(--ink); border-radius: 14px 14px 4px 4px; background: var(--c); box-shadow: 3px 3px 0 var(--ink); transform-origin: bottom; animation: pop .7s cubic-bezier(.3, 1.8, .5, 1) backwards; margin-bottom: 4px; }
+.chart div:nth-child(1) i { --c: var(--pink); } .chart div:nth-child(2) i { --c: var(--blue); animation-delay: .06s; } .chart div:nth-child(3) i { --c: var(--orange); animation-delay: .12s; } .chart div:nth-child(4) i { --c: var(--green); animation-delay: .18s; } .chart div:nth-child(5) i { --c: var(--lilac); animation-delay: .24s; } .chart div:nth-child(6) i { --c: var(--yellow); animation-delay: .3s; }
+@keyframes pop { from { transform: scaleY(0); } }
+form { display: grid; gap: 14px; }
+label { display: grid; gap: 4px; font: 800 .9rem var(--sans); text-transform: uppercase; letter-spacing: .05em; }
+input, select { font: 500 1.05rem var(--sans); color: var(--ink); background: var(--cream); border: 3px solid var(--ink); border-radius: 16px; padding: 11px 14px; }
+input::placeholder { color: #5b5470; }
+input:focus { background: #fff; box-shadow: 4px 4px 0 var(--blue); }
+.btn { font: 400 1.1rem var(--mono); color: #fff; background: var(--blue); border: 4px solid var(--ink); border-radius: 18px; padding: 13px 18px; cursor: pointer; box-shadow: 6px 6px 0 var(--ink); transition: transform .15s, box-shadow .15s; }
+.btn:hover { transform: translate(-2px, -2px) rotate(-1deg); box-shadow: 8px 8px 0 var(--ink); background: var(--pink); }
+.btn:active { transform: translate(5px, 5px); box-shadow: 1px 1px 0 var(--ink); }
+#toast { position: fixed; right: 26px; bottom: 26px; background: var(--green); border: 4px solid var(--ink); border-radius: 20px; padding: 12px 20px; font: 800 1.05rem var(--sans); box-shadow: 6px 6px 0 var(--ink); transform: translateY(160%) rotate(4deg); transition: transform .45s cubic-bezier(.3, 1.8, .5, 1); }
+#toast.show { transform: rotate(-2deg); }
+@media (max-width: 900px) { .app { grid-template-columns: 1fr; padding: 14px; } nav, .burst { display: none; } .hero { padding: 24px; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+<!--ICONS-->
+<div class="marq" aria-hidden="true"><div>DAYBREAK ✦ SMALL THINGS ✦ BIG STREAKS ✦ DAYBREAK ✦ SMALL THINGS ✦ BIG STREAKS ✦ DAYBREAK ✦ SMALL THINGS ✦ BIG STREAKS ✦ DAYBREAK ✦ SMALL THINGS ✦ BIG STREAKS ✦ </div></div>
+<div class="app">
+  <header>
+    <div class="brand">DAYBREAK</div>
+    <nav aria-label="Main"><a href="#" aria-current="page">Today</a><a href="#">Habits</a><a href="#">Stats</a><a href="#">Settings</a></nav>
+  </header>
+  <section class="hero" aria-labelledby="h">
+    <small>SAT 24 OCT</small>
+    <h1 id="h">Good morning, <em>Riya!</em></h1>
+    <p>Small things, done daily, add up. You are ahead of last week.</p>
+    <div class="burst" aria-label="12-day streak"><div><b>12</b>DAY<br>STREAK</div></div>
+    <div class="sticker"><b data-pct>0%</b> done · <span data-count>0</span>/<span data-total>3</span></div>
+  </section>
+  <section class="panel tilt" aria-labelledby="t">
+    <h2 id="t">TODAY</h2>
+    <ul id="habits">
+      <li class="habit" data-demo="card"><span class="ic" aria-hidden="true"><svg class="ico"><use href="#i-drop"/></svg></span><div class="grow"><strong>Drink water</strong><span class="m">6 of 8 glasses</span></div><button class="sw" role="switch" aria-checked="false" aria-label="Drink water"></button></li>
+      <li class="habit"><span class="ic" aria-hidden="true"><svg class="ico"><use href="#i-book"/></svg></span><div class="grow"><strong>Read 20 pages</strong><span class="m">The Overstory, ch. 4</span></div><button class="sw" role="switch" aria-checked="false" aria-label="Read 20 pages" data-demo="toggle"></button></li>
+      <li class="habit"><span class="ic" aria-hidden="true"><svg class="ico"><use href="#i-moon"/></svg></span><div class="grow"><strong>Evening walk</strong><span class="m">30 min, before sunset</span></div><button class="sw" role="switch" aria-checked="false" aria-label="Evening walk"></button></li>
+    </ul>
+  </section>
+  <aside class="stack" aria-label="This week">
+    <section class="panel tilt2"><h2>THIS WEEK</h2>
+      <div class="chart" role="img" aria-label="Habits done per day: Monday 5, Tuesday 6, Wednesday 4, Thursday 7, Friday 6, Saturday 3 so far">
+        <div style="--h:62%"><i></i>M</div><div style="--h:76%"><i></i>T</div><div style="--h:50%"><i></i>W</div><div style="--h:90%"><i></i>T</div><div style="--h:76%"><i></i>F</div><div style="--h:38%"><i></i>S</div>
+      </div>
+    </section>
+    <section class="panel"><h2>NEW HABIT</h2>
+      <form id="add-form" autocomplete="off">
+        <label>Name<input id="add-input" data-demo="input" placeholder="e.g. Stretch for 5 minutes"></label>
+        <label>How often<select><option>Every day</option><option>Weekdays</option><option>3 times a week</option></select></label>
+        <button class="btn" data-demo="add">ADD HABIT</button>
+      </form>
+    </section>
+  </aside>
+</div>
+<div id="toast" role="status"></div>
+<template id="tpl"><li class="habit"><span class="ic" aria-hidden="true"><svg class="ico"><use href="#i-spark"/></svg></span><div class="grow"><strong data-name></strong><span class="m">Every day</span></div><button class="sw" role="switch" aria-checked="false"></button></li></template>
+<script>/*JS*/</script>
+</body>
+</html>

@@ -54,8 +54,11 @@ COOKIE = "hs_session_%d"  # one cookie per port: cookies are shared between port
 LOCKED = (b"<!doctype html><meta charset=utf-8><title>HyperSkill is locked</title><p>This dashboard is locked. Open the address HyperSkill printed in your terminal "
           b"(it ends with <code>?k=...</code>), or run <code>hyperskill.py live</code> in the project again. The key is in <code>.hyperskill/live.key</code>, readable only by you.</p>")
 PREVIEW_DIR = os.path.normpath(os.path.join(_HERE, "..", "site", "live", "previews"))
-PREVIEW_RE = re.compile(r"^/live/previews/([a-z0-9-]{1,40})/([a-z0-9][a-z0-9._-]{0,80}\.(mp4|webp|svg|png))$")
-PREVIEW_TYPES = {"mp4": "video/mp4", "webp": "image/webp", "svg": "image/svg+xml", "png": "image/png"}
+PREVIEW_RE = re.compile(r"^/live/previews/([a-z0-9-]{1,40})/([a-z0-9][a-z0-9._-]{0,80}\.(mp4|webp|svg|png|html))$")
+PREVIEW_TYPES = {"mp4": "video/mp4", "webp": "image/webp", "svg": "image/svg+xml", "png": "image/png", "html": "text/html; charset=utf-8"}
+# A style demo is a page of someone's design with its own script and styles: it runs in a sandbox with no network, no storage and no way to reach the dashboard's key.
+DEMO_CSP = ("sandbox allow-scripts allow-forms; default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; font-src data:; "
+            "connect-src 'none'; frame-ancestors 'self'")
 
 
 _NAMES = {"at": 0.0, "names": set(), "root": None}
@@ -541,7 +544,10 @@ def make_handler(root, port, token=None, runner=None, key=None, session=None):
                 status, body = 206, body[a:b + 1]
                 extra["Content-Range"] = "bytes %d-%d/%d" % (a, b, size)
             extra["Cache-Control"] = "public, max-age=600"
-            return self._send(status, body, PREVIEW_TYPES[m.group(2).rsplit(".", 1)[1]], extra)
+            kind = m.group(2).rsplit(".", 1)[1]
+            if kind == "html":
+                extra["Content-Security-Policy"] = DEMO_CSP
+            return self._send(status, body, PREVIEW_TYPES[kind], extra)
 
         def _events(self):
             last_id = self.headers.get("Last-Event-ID", "")

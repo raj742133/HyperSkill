@@ -147,3 +147,14 @@
   order.forEach(function (k) { if (HS.policyCounts[k]) chip(k, labels[k], HS.policyCounts[k]); });
   renderTable();
 })();
+
+// The style clips play on hover or keyboard focus, and not at all when the visitor asked for less motion.
+(function () {
+  if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  document.querySelectorAll(".style-grid video").forEach(function (v) {
+    var on = function () { var p = v.play(); if (p && p.catch) p.catch(function () {}); };
+    var off = function () { v.pause(); };
+    v.addEventListener("mouseenter", on); v.addEventListener("mouseleave", off);
+    v.tabIndex = 0; v.addEventListener("focus", on); v.addEventListener("blur", off);
+  });
+})();

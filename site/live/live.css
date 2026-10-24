@@ -191,3 +191,5 @@ a.btn { display: inline-flex; align-items: center; text-decoration: none; }
 .wk-top { display: flex; flex-wrap: wrap; gap: 8px; align-items: baseline; } .wk-id { font: 700 12px var(--mono); } .wk-chip { font: 11px var(--mono); border: 1px solid var(--rule); border-radius: 999px; padding: 1px 8px; }
 .wk-why { color: var(--muted); font-size: .85rem; } .wk-paths { font: 11px var(--mono); color: var(--muted); overflow-wrap: anywhere; }
 .wk-sel { display: flex; gap: 6px; margin: 4px 0; } .wk-sel select { min-height: 34px; font-size: .8rem; padding: 0 6px; } .wk-tier .btn { min-height: 32px; font-size: .75rem; margin: 4px 0; } .wk-tier { max-width: 250px; }
+
+.demo-row { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0 0; } .kit-demo { width: 100%; height: min(62vh, 660px); border: 1px solid var(--rule); border-radius: 12px; background: #fff; display: block; }

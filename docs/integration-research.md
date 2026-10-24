@@ -25,7 +25,7 @@ Checked on 2026-10-24. The posts were screenshots: a list of ten UI styles, a "1
 
 All ten (Skeuomorphism, Neumorphism, Glassmorphism, Claymorphism, Brutalism, Minimalism, Maximalism, Liquid Glass, Bento Grid, Spatial UI) were **already selectable** in the "UI UX Pro Max: visual styles" group, with previews. What was missing was a way to find them in one click and, more important, guidance on building each one without its usual failure (neumorphism's low contrast, glass over a busy backdrop, brutalism's lost focus states, bento grids with wrong reading order). So:
 
-- a new group **Popular visual styles (with build rules)** holds the ten, reusing the existing previews, and replaces a pick in the big list (one style per product);
+- a new group **Popular visual styles (with build rules)** holds the ten, each with its own end-to-end demo (one habit tracker in ten treatments, `scripts/style_demos/`), a recorded clip and a sandboxed live page, and replaces a pick in the big list (one style per product);
 - `skills/hs-product/references/style-recipes.md` gives each style a recipe, its traps and the checks it must pass;
 - the catalogue's list of vibe-coded tells already warns against "Liquid glass" and "Bento grids by default". Both stay: the tell is using them by reflex, the recipe is using them on purpose.
 

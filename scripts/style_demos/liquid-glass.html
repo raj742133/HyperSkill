@@ -1,0 +1,146 @@
+<!--fonts: Onest:wght@400;500;600;700 -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Daybreak: Liquid Glass</title>
+<style>
+/*FONTS*/
+:root { --ink: #14202e; --ink-2: #52627a; --card: rgb(255 255 255 / .9); --accent: #0a84ff; --good: #12b886; --f: "Onest", system-ui, sans-serif; --p: 0; }
+* { box-sizing: border-box; margin: 0; }
+html { overflow-x: clip; }
+body { font: 500 16px/1.5 var(--f); color: var(--ink); min-height: 100vh; overflow-x: clip; background: linear-gradient(180deg, #ffd7a8 0%, #ffb3a7 28%, #c79bff 58%, #6fb1ff 100%); }
+.scene { position: fixed; inset: 0; z-index: -1; overflow: hidden; }
+.sun { position: absolute; width: 360px; height: 360px; border-radius: 50%; left: 62%; top: 7%; background: radial-gradient(circle at 40% 35%, #fff7d6, #ffd36b 55%, #ff9a5a); box-shadow: 0 0 120px 40px rgb(255 190 120 / .6); animation: sun 18s ease-in-out infinite alternate; }
+@keyframes sun { to { transform: translate(-60px, 40px); } }
+.wave { position: absolute; left: -10%; width: 120%; border-radius: 50% 50% 0 0 / 100% 100% 0 0; }
+.w1 { bottom: 0; height: 36%; background: linear-gradient(180deg, #3e7bff, #1c3fa8); animation: sway 9s ease-in-out infinite alternate; }
+.w2 { bottom: 0; height: 26%; background: linear-gradient(180deg, #5aa8ff, #2b5fd0); opacity: .9; animation: sway 12s ease-in-out infinite alternate-reverse; }
+.w3 { bottom: 0; height: 17%; background: linear-gradient(180deg, #8fd0ff, #3f86e8); opacity: .95; animation: sway 7s ease-in-out infinite alternate; }
+@keyframes sway { to { transform: translateX(-4%) scaleY(1.06); } }
+.lg { position: relative; background: rgb(255 255 255 / .16); -webkit-backdrop-filter: blur(7px) saturate(1.7) brightness(1.1); backdrop-filter: url(#lens) blur(7px) saturate(1.7) brightness(1.1);
+  box-shadow: inset 0 1.5px 1px rgb(255 255 255 / .95), inset 0 -2px 6px rgb(255 255 255 / .35), inset 0 0 22px rgb(255 255 255 / .22), 0 14px 40px rgb(30 40 120 / .28), 0 2px 6px rgb(30 40 120 / .15); border: 1px solid rgb(255 255 255 / .55); overflow: hidden; }
+@supports not (backdrop-filter: url(#lens)) { .lg { backdrop-filter: blur(14px) saturate(1.6); -webkit-backdrop-filter: blur(14px) saturate(1.6); } }
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) { .lg { background: rgb(236 240 255 / .94); } }
+.lg::before { content: ""; position: absolute; inset: 0; background: linear-gradient(115deg, transparent 20%, rgb(255 255 255 / .55) 38%, transparent 52%); background-size: 260% 100%; background-position: 130% 0; animation: glint 7s ease-in-out infinite; pointer-events: none; mix-blend-mode: overlay; }
+@keyframes glint { 55%, 100% { background-position: -60% 0; } }
+.top { position: sticky; top: 16px; z-index: 5; margin: 16px auto 0; width: min(1000px, calc(100% - 32px)); height: 64px; border-radius: 99px; display: flex; align-items: center; justify-content: space-between; padding: 0 12px 0 24px; }
+.brand { font-weight: 700; font-size: 1.15rem; display: flex; align-items: center; gap: 10px; color: #0d1b36; }
+.brand i { width: 22px; height: 22px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff, var(--accent) 60%); box-shadow: 0 0 12px rgb(10 132 255 / .8); }
+.seg { display: flex; gap: 2px; padding: 4px; border-radius: 99px; background: rgb(255 255 255 / .22); box-shadow: inset 0 1px 3px rgb(20 40 100 / .2); }
+.seg a { color: #0d1b36; text-decoration: none; font-weight: 600; font-size: .94rem; padding: 8px 18px; border-radius: 99px; transition: background .25s, box-shadow .25s; }
+.seg a:hover { background: rgb(255 255 255 / .35); }
+.seg a[aria-current] { background: rgb(255 255 255 / .85); box-shadow: 0 2px 8px rgb(30 40 120 / .25); }
+.av { width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(145deg, #ffe0b5, #ff8fa8); display: grid; place-items: center; font-weight: 700; color: #5a1230; border: 2px solid rgb(255 255 255 / .8); }
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid #fff; outline-offset: 3px; box-shadow: 0 0 0 6px var(--accent); }
+.app { width: min(1000px, calc(100% - 32px)); margin: 24px auto 130px; display: grid; gap: 20px; grid-template-columns: 1.3fr 1fr; }
+.card { background: var(--card); border-radius: 30px; padding: 24px; box-shadow: 0 10px 40px rgb(30 40 120 / .18); }
+.hero { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 28px 34px; background: linear-gradient(120deg, rgb(255 255 255 / .94), rgb(255 255 255 / .8)); }
+.hero small { color: var(--ink-2); font-weight: 500; }
+h1 { font-size: clamp(2rem, 3.6vw, 2.8rem); line-height: 1.05; font-weight: 700; letter-spacing: -.025em; margin: 4px 0 8px; }
+.hero p { color: var(--ink-2); max-width: 36ch; }
+.streak { display: inline-flex; align-items: center; gap: 8px; margin-top: 14px; font-weight: 600; color: #b45309; background: #fff1de; padding: 6px 14px 6px 10px; border-radius: 99px; }
+.streak svg { width: 18px; height: 18px; fill: #f59e0b; }
+.ring { width: 140px; height: 140px; border-radius: 50%; flex: none; position: relative; display: grid; place-items: center; background: conic-gradient(var(--accent) calc(var(--p) * 360deg), #e6edf8 0); transition: background .5s; }
+.ring::before { content: ""; position: absolute; inset: 12px; border-radius: 50%; background: #fff; }
+.ring div { position: relative; text-align: center; line-height: 1.1; }
+.ring b { font-size: 1.9rem; font-weight: 700; display: block; }
+.ring span { font-size: .76rem; color: var(--ink-2); }
+h2 { font-size: 1.05rem; font-weight: 700; margin-bottom: 14px; }
+ul { list-style: none; padding: 0; display: grid; gap: 4px; }
+.habit { display: flex; align-items: center; gap: 14px; padding: 12px 8px; border-radius: 18px; transition: background .2s; }
+.habit:hover { background: #f1f5fd; }
+.ico { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.habit .ic { width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center; background: #eaf2ff; color: var(--accent); flex: none; }
+.habit:nth-child(2) .ic { background: #fff0e4; color: #e8590c; } .habit:nth-child(3) .ic { background: #efe9ff; color: #6d3df0; } .habit:nth-child(4) .ic { background: #e3fbf1; color: var(--good); }
+.habit .grow { flex: 1; }
+.habit strong { display: block; font-weight: 600; }
+.habit .m { color: var(--ink-2); font-size: .88rem; }
+.habit[data-done] strong { color: #7b8aa3; text-decoration: line-through; }
+.sw { width: 62px; height: 36px; border-radius: 99px; border: 0; background: #d5dded; position: relative; cursor: pointer; flex: none; padding: 0; transition: background .3s; box-shadow: inset 0 1px 3px rgb(20 40 100 / .25); }
+.sw::after { content: ""; position: absolute; top: 2px; left: 2px; width: 46px; height: 32px; border-radius: 99px; background: rgb(255 255 255 / .9); box-shadow: inset 0 1px 1px #fff, 0 3px 10px rgb(20 40 100 / .3); transition: transform .4s cubic-bezier(.3, 1.5, .5, 1), width .2s; }
+.sw:active::after { width: 52px; }
+.sw[aria-checked=true] { background: var(--good); }
+.sw[aria-checked=true]::after { transform: translateX(12px); }
+.habit.new { animation: drop .6s cubic-bezier(.3, 1.4, .5, 1); }
+@keyframes drop { from { opacity: 0; transform: translateY(-14px) scale(.96); } }
+.stack { display: grid; gap: 20px; align-content: start; }
+.chart { display: flex; align-items: flex-end; gap: 10px; height: 120px; }
+.chart div { flex: 1; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 6px; font-size: .76rem; color: var(--ink-2); font-weight: 600; }
+.chart i { width: 100%; height: var(--h); border-radius: 12px; background: linear-gradient(180deg, #7cc0ff, var(--accent)); transform-origin: bottom; animation: up .9s cubic-bezier(.2, .9, .3, 1) backwards; }
+.chart div:last-child i { background: linear-gradient(180deg, #ffd08a, #ff8a3d); }
+.chart div:nth-child(2) i { animation-delay: .06s; } .chart div:nth-child(3) i { animation-delay: .12s; } .chart div:nth-child(4) i { animation-delay: .18s; } .chart div:nth-child(5) i { animation-delay: .24s; } .chart div:nth-child(6) i { animation-delay: .3s; }
+@keyframes up { from { transform: scaleY(.04); } }
+form { display: grid; gap: 12px; }
+label { display: grid; gap: 5px; font-size: .84rem; color: var(--ink-2); font-weight: 600; }
+input, select { font: 500 1rem var(--f); color: var(--ink); background: #f1f5fd; border: 1.5px solid transparent; border-radius: 16px; padding: 12px 14px; transition: border-color .2s, background .2s; }
+input:focus, select:focus { background: #fff; border-color: var(--accent); outline: none; }
+.btn { font: 600 1rem var(--f); color: #fff; border: 0; border-radius: 99px; padding: 14px 22px; cursor: pointer; background: linear-gradient(180deg, #4aa3ff, #0a6cf0); box-shadow: inset 0 1.5px 1px rgb(255 255 255 / .6), 0 8px 20px rgb(10 108 240 / .4); transition: transform .2s cubic-bezier(.3, 1.5, .5, 1), box-shadow .2s; }
+.btn:hover { transform: translateY(-2px) scale(1.02); box-shadow: inset 0 1.5px 1px rgb(255 255 255 / .6), 0 12px 28px rgb(10 108 240 / .5); }
+.btn:active { transform: scale(.96); }
+.dock { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); z-index: 6; height: 74px; padding: 0 14px; border-radius: 99px; display: flex; align-items: center; gap: 6px; }
+.dock a { width: 54px; height: 54px; border-radius: 50%; display: grid; place-items: center; color: #0d1b36; transition: transform .3s cubic-bezier(.3, 1.6, .5, 1), background .25s; }
+.dock a:hover { transform: scale(1.18) translateY(-4px); background: rgb(255 255 255 / .4); }
+.dock a[aria-current] { background: rgb(255 255 255 / .6); box-shadow: inset 0 1px 1px #fff; }
+.dock .ico { width: 24px; height: 24px; }
+#toast { position: fixed; left: 50%; top: 96px; transform: translate(-50%, -30px) scale(.9); opacity: 0; z-index: 9; padding: 12px 22px; border-radius: 99px; font-weight: 600; color: #0d1b36; pointer-events: none; transition: .45s cubic-bezier(.3, 1.5, .5, 1); }
+#toast.show { opacity: 1; transform: translate(-50%, 0); }
+@media (max-width: 860px) { .app { grid-template-columns: 1fr; } .seg { display: none; } .hero { flex-direction: column; align-items: flex-start; } }
+@media (prefers-reduced-transparency: reduce) { .lg { background: rgb(240 244 255 / .96); backdrop-filter: none; -webkit-backdrop-filter: none; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+<!--ICONS-->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><filter id="lens" color-interpolation-filters="sRGB" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="0.011 0.018" numOctaves="2" seed="11" result="n"/><feGaussianBlur in="n" stdDeviation="2.2" result="s"/><feDisplacementMap in="SourceGraphic" in2="s" scale="38" xChannelSelector="R" yChannelSelector="G"/></filter></svg>
+<div class="scene" aria-hidden="true"><div class="sun"></div><div class="wave w1"></div><div class="wave w2"></div><div class="wave w3"></div></div>
+<header class="top lg">
+  <div class="brand"><i></i>Daybreak</div>
+  <nav class="seg" aria-label="Main"><a href="#" aria-current="page">Today</a><a href="#">Habits</a><a href="#">Stats</a><a href="#">Settings</a></nav>
+  <div class="av" aria-hidden="true">R</div>
+</header>
+<main class="app">
+  <section class="card hero" aria-labelledby="h">
+    <div>
+      <small>Saturday, 24 October</small>
+      <h1 id="h">Good morning, Riya</h1>
+      <p>Small things, done daily, add up. You are ahead of last week.</p>
+      <span class="streak"><svg viewBox="0 0 24 24"><use href="#i-flame"/></svg>12-day streak</span>
+    </div>
+    <div class="ring" role="img" aria-label="Progress today"><div><b data-pct>0%</b><span><i data-count style="font-style:normal">0</i> of <i data-total style="font-style:normal">3</i> done</span></div></div>
+  </section>
+  <section class="card" aria-labelledby="t">
+    <h2 id="t">Today</h2>
+    <ul id="habits">
+      <li class="habit" data-demo="card"><span class="ic" aria-hidden="true"><svg class="ico"><use href="#i-drop"/></svg></span><div class="grow"><strong>Drink water</strong><span class="m">6 of 8 glasses</span></div><button class="sw" role="switch" aria-checked="false" aria-label="Drink water"></button></li>
+      <li class="habit"><span class="ic" aria-hidden="true"><svg class="ico"><use href="#i-book"/></svg></span><div class="grow"><strong>Read 20 pages</strong><span class="m">The Overstory, ch. 4</span></div><button class="sw" role="switch" aria-checked="false" aria-label="Read 20 pages" data-demo="toggle"></button></li>
+      <li class="habit"><span class="ic" aria-hidden="true"><svg class="ico"><use href="#i-moon"/></svg></span><div class="grow"><strong>Evening walk</strong><span class="m">30 min, before sunset</span></div><button class="sw" role="switch" aria-checked="false" aria-label="Evening walk"></button></li>
+    </ul>
+  </section>
+  <aside class="stack" aria-label="This week">
+    <section class="card"><h2>This week</h2>
+      <div class="chart" role="img" aria-label="Habits done per day: Monday 5, Tuesday 6, Wednesday 4, Thursday 7, Friday 6, Saturday 3 so far">
+        <div style="--h:62%"><i></i>M</div><div style="--h:76%"><i></i>T</div><div style="--h:50%"><i></i>W</div><div style="--h:90%"><i></i>T</div><div style="--h:76%"><i></i>F</div><div style="--h:38%"><i></i>S</div>
+      </div>
+    </section>
+    <section class="card"><h2>New habit</h2>
+      <form id="add-form" autocomplete="off">
+        <label>Name<input id="add-input" data-demo="input" placeholder="e.g. Stretch for 5 minutes"></label>
+        <label>How often<select><option>Every day</option><option>Weekdays</option><option>3 times a week</option></select></label>
+        <button class="btn" data-demo="add">Add habit</button>
+      </form>
+    </section>
+  </aside>
+</main>
+<nav class="dock lg" aria-label="Quick">
+  <a href="#" aria-current="page" aria-label="Today"><svg class="ico"><use href="#i-sun"/></svg></a>
+  <a href="#" aria-label="Habits"><svg class="ico"><use href="#i-list"/></svg></a>
+  <a href="#" aria-label="Add"><svg class="ico"><use href="#i-plus"/></svg></a>
+  <a href="#" aria-label="Stats"><svg class="ico"><use href="#i-bars"/></svg></a>
+</nav>
+<div id="toast" class="lg" role="status"></div>
+<template id="tpl"><li class="habit"><span class="ic" aria-hidden="true"><svg class="ico"><use href="#i-spark"/></svg></span><div class="grow"><strong data-name></strong><span class="m">Every day</span></div><button class="sw" role="switch" aria-checked="false"></button></li></template>
+<script>/*JS*/</script>
+</body>
+</html>

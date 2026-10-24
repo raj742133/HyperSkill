@@ -5,7 +5,7 @@ window.HS = {
   "gateItems": 72,
   "slots": 38,
   "providers": 38,
-  "tests": 329,
+  "tests": 331,
   "packs": 17,
   "picks": 821
  },
