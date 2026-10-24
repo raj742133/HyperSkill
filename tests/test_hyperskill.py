@@ -281,13 +281,13 @@ class IntegrationTests(IntegrationBase):
         run(nc, "init", "--noncommercial")
         self.assertEqual(self.resolve("video-continuous", root=nc)["use"], "onetake")
 
-    def test_opt_in_provider_needs_enable(self):
+    def test_bundled_provider_answers_first_and_the_opt_in_one_stays_off(self):
         self.install_fake_skill("watch")
-        self.assertIsNone(self.resolve("video-analysis")["use"])
+        self.assertEqual(self.resolve("video-analysis")["use"], "hs-watch")
         self.assertEqual(self.irun("integrations", "enable", "watch").returncode, 0)
-        self.assertEqual(self.resolve("video-analysis")["use"], "watch")
+        self.assertEqual(self.resolve("video-analysis")["use"], "hs-watch", "the bundled one keeps its place; the upstream one is an alternative")
         self.irun("integrations", "disable", "watch")
-        self.assertIsNone(self.resolve("video-analysis")["use"])
+        self.assertEqual(self.resolve("video-analysis")["use"], "hs-watch")
 
     def test_gstack_stays_off_unless_enabled(self):
         self.install_fake_skill("office-hours")

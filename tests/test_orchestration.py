@@ -173,7 +173,7 @@ class DashboardTests(unittest.TestCase):
         _, state = self.call("GET", "/live/state.json")
         rows = {r["slot"]: r for r in state["skillplan"]}
         self.assertIn("deep-research", rows)
-        self.assertEqual(rows["video-analysis"]["status"], "ask")
+        self.assertEqual(rows["video-analysis"]["status"], "ready", "the bundled hs-watch answers the slot without a pull")
         status, res = self.call("POST", "/live/api/skill_skip", {"slot": "deep-research", "why": "known market"})
         self.assertTrue(res["ok"])
         status, res = self.call("POST", "/live/api/pull", {"id": "watch"})

@@ -225,7 +225,9 @@
         "copy-review",
         "explainer-figure",
         "site-scaffold",
-        "design-lint"
+        "design-lint",
+        "logo-design",
+        "file-convert"
       ]
     },
     {
@@ -460,7 +462,8 @@
         "voiceover",
         "copy-review",
         "explainer-figure",
-        "site-scaffold"
+        "site-scaffold",
+        "file-convert"
       ]
     },
     {
