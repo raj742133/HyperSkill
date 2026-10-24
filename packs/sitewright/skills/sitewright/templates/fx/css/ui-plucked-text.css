@@ -1,0 +1,11 @@
+.ui-plucked-text { display: block; font-family: var(--font-body, system-ui); color: var(--ink, #111); position: relative; }
+.ui-plucked-text-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.ui-plucked-text-line { display: block; font-size: clamp(1.2rem, 5.5vw, 1.6rem); font-weight: 650; letter-spacing: -0.01em; line-height: 1.2; text-align: center; padding-bottom: 2px; }
+.ui-plucked-text-ch { display: inline-block; will-change: transform; }
+.ui-plucked-text-string { position: relative; display: block; height: 44px; }
+.ui-plucked-text-string svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.ui-plucked-text-hit { position: absolute; inset: 0; width: 100%; padding: 0; border: 0; background: transparent; cursor: grab; touch-action: none; border-radius: 8px; }
+.ui-plucked-text-hit:active { cursor: grabbing; }
+.ui-plucked-text-hit:focus-visible { outline: 2px solid var(--primary, #2563eb); outline-offset: 2px; }
+@media (pointer: coarse) { .ui-plucked-text-string { height: 48px; } }
+.ui-plucked-text-word { display: inline-block; white-space: nowrap; }

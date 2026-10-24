@@ -90,7 +90,8 @@
         "coding-discipline",
         "plan-review",
         "ui-library-choice",
-        "explainer-figure"
+        "explainer-figure",
+        "site-scaffold"
       ]
     },
     {
@@ -216,7 +217,8 @@
         "icons",
         "implementation-discipline",
         "copy-review",
-        "explainer-figure"
+        "explainer-figure",
+        "site-scaffold"
       ]
     },
     {
@@ -448,7 +450,8 @@
         "video-overlay",
         "voiceover",
         "copy-review",
-        "explainer-figure"
+        "explainer-figure",
+        "site-scaffold"
       ]
     },
     {

@@ -1,0 +1,3 @@
+.ui-drape-background { user-select: none; -webkit-user-select: none; }
+.ui-drape-background svg { pointer-events: none; }
+@media (prefers-reduced-motion: reduce) { .ui-drape-background { cursor: default !important; } }

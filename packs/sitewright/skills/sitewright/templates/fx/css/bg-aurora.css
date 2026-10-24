@@ -1,0 +1,13 @@
+.fx-aurora i { position: absolute; border-radius: 50%; filter: blur(70px); opacity: 0.42; will-change: transform; }
+/* a thin veil of the page colour keeps body text readable over the clouds */
+.fx-aurora::after { content: ''; position: absolute; inset: 0; background: color-mix(in srgb, var(--surface) 34%, transparent); }
+.fx-aurora i:nth-child(1) { width: 52vmax; height: 52vmax; left: -12%; top: -30%; background: var(--primary); animation: fx-aur-a 22s ease-in-out infinite alternate; }
+.fx-aurora i:nth-child(2) { width: 44vmax; height: 44vmax; right: -10%; top: -18%; background: var(--signal); animation: fx-aur-b 26s ease-in-out infinite alternate; }
+.fx-aurora i:nth-child(3) { width: 38vmax; height: 38vmax; left: 28%; bottom: -34%; background: color-mix(in srgb, var(--primary) 55%, var(--signal)); animation: fx-aur-c 30s ease-in-out infinite alternate; }
+.fx-aurora i:nth-child(4) { width: 26vmax; height: 26vmax; right: 18%; bottom: -12%; background: var(--signal); opacity: 0.32; animation: fx-aur-a 34s ease-in-out infinite alternate-reverse; }
+:root[data-theme='dark'] .fx-aurora i { opacity: 0.34; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme='light']) .fx-aurora i { opacity: 0.34; } }
+@media (max-width: 640px) { .fx-aurora i { filter: blur(48px); } }
+@keyframes fx-aur-a { to { transform: translate3d(12%, 14%, 0) scale(1.15); } }
+@keyframes fx-aur-b { to { transform: translate3d(-14%, 18%, 0) scale(0.9); } }
+@keyframes fx-aur-c { to { transform: translate3d(-10%, -16%, 0) scale(1.2); } }

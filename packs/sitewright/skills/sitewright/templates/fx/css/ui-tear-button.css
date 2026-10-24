@@ -1,0 +1,15 @@
+.ui-tear-button { position: relative; display: inline-grid; grid-template-columns: 1fr auto; font-family: var(--font-body, system-ui, sans-serif); color: var(--ink, #111); }
+.ui-tear-button-main { display: flex; align-items: center; justify-content: center; gap: 8px; min-width: 150px; min-height: 52px; padding: 0 18px; font-weight: 700; font-size: 15px; background: var(--primary, #2563eb); color: var(--on-primary, #fff); border-radius: 12px 0 0 12px; transition: border-radius .2s; }
+.ui-tear-button[data-phase="done"] .ui-tear-button-main { border-radius: 12px; background: #166534; color: #fff; min-width: 210px; }
+.ui-tear-button-stub { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; width: 62px; min-height: 52px; padding: 0 8px; border: 0; border-left: 2px dashed var(--on-primary, #fff); border-radius: 0 12px 12px 0; background: var(--primary, #2563eb); color: var(--on-primary, #fff); filter: brightness(.88); font: inherit; font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; transform-origin: 0 100%; transition: transform .25s cubic-bezier(.3,1.5,.5,1); }
+.ui-tear-button-stub:active { cursor: grabbing; }
+.ui-tear-button-stub:focus-visible { outline: 2px solid var(--ink, #111); outline-offset: 3px; }
+.ui-tear-button-stub[data-torn] { animation: ui-tear-button-away .42s cubic-bezier(.4,0,.8,.6) forwards; pointer-events: none; }
+.ui-tear-button-reset { margin-left: 6px; min-height: 32px; padding: 0 12px; border-radius: 999px; border: 1px solid currentColor; background: transparent; color: inherit; font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; }
+.ui-tear-button-reset:hover { background: rgba(255,255,255,.18); }
+.ui-tear-button-reset:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.ui-tear-button-hint { grid-column: 1 / -1; margin: 8px 0 0; font-size: 11px; text-align: center; color: var(--muted, #555); }
+.ui-tear-button-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+@media (pointer: coarse) { .ui-tear-button-reset { min-height: 44px; } .ui-tear-button-stub { min-height: 56px; width: 72px; } }
+@keyframes ui-tear-button-away { 0% { opacity: 1; transform: rotate(24deg) translate(8px, 6px); } 100% { opacity: 0; transform: rotate(70deg) translate(40px, 90px); } }
+@media (prefers-reduced-motion: reduce) { .ui-tear-button-stub { transition: none; } .ui-tear-button-stub[data-torn] { animation: none; opacity: 0; } }

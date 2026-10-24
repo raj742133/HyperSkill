@@ -1,0 +1,11 @@
+.ui-logo-trace-loader-root { display: inline-flex; color: var(--primary, #2563eb); }
+.ui-logo-trace-loader-svg { width: 100%; height: 100%; overflow: visible; }
+.ui-logo-trace-loader-fill { fill: currentColor; opacity: 1; }
+.ui-logo-trace-loader-line { stroke: var(--signal, currentColor); stroke-dasharray: 1; stroke-dashoffset: 0; opacity: 0; }
+.ui-logo-trace-loader-root[data-loop] .ui-logo-trace-loader-fill { animation: ui-logo-trace-loader-fill var(--ui-ltl-d, 2.6s) ease-in-out 1 both; }
+.ui-logo-trace-loader-root[data-loop='true'] .ui-logo-trace-loader-fill { animation-iteration-count: infinite; }
+.ui-logo-trace-loader-root[data-loop] .ui-logo-trace-loader-line { animation: ui-logo-trace-loader-line var(--ui-ltl-d, 2.6s) ease-in-out 1 both; }
+.ui-logo-trace-loader-root[data-loop='true'] .ui-logo-trace-loader-line { animation-iteration-count: infinite; }
+@keyframes ui-logo-trace-loader-line { 0% { stroke-dashoffset: 1; opacity: 1; } 55% { stroke-dashoffset: 0; opacity: 1; } 75%, 100% { stroke-dashoffset: 0; opacity: 0; } }
+@keyframes ui-logo-trace-loader-fill { 0%, 50% { opacity: 0; transform: scale(0.96); } 70%, 88% { opacity: 1; transform: none; } 100% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .ui-logo-trace-loader-root .ui-logo-trace-loader-fill, .ui-logo-trace-loader-root .ui-logo-trace-loader-line { animation: none !important; } }

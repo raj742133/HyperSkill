@@ -1,0 +1,9 @@
+.ui-invite-code-root { display: grid; gap: 8px; width: 100%; max-width: 280px; margin-inline: auto; font-family: var(--font-body, inherit); color: var(--ink, #111); }
+.ui-invite-code-label { font-size: 12px; color: var(--muted, #6b7280); }
+.ui-invite-code-field { width: 100%; box-sizing: border-box; padding: 10px 12px; min-height: 44px; border: 1px solid var(--line-strong, #bbb); border-radius: var(--radius, 10px); background: var(--raised-2, #f3f4f6); color: var(--ink, #111); font-family: var(--font-mono, ui-monospace, monospace); font-size: 20px; font-weight: 600; letter-spacing: 0.12em; text-align: center; }
+.ui-invite-code-field:focus-visible { outline: 2px solid var(--primary, #2563eb); outline-offset: 2px; }
+.ui-invite-code-actions { display: flex; gap: 8px; }
+.ui-invite-code-btn { flex: 1; min-height: 44px; padding: 0 12px; border: 1px solid var(--line-strong, #bbb); border-radius: var(--radius, 10px); background: var(--raised, #fff); color: var(--ink, #111); font: inherit; font-weight: 600; cursor: pointer; }
+.ui-invite-code-btn[data-primary='true'] { background: var(--primary, #2563eb); border-color: transparent; color: var(--on-primary, #fff); }
+.ui-invite-code-btn:focus-visible { outline: 2px solid var(--primary, #2563eb); outline-offset: 2px; }
+.ui-invite-code-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }

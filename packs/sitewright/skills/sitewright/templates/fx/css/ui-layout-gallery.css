@@ -1,0 +1,17 @@
+.ui-layout-gallery-root { position: relative; width: 100%; min-height: 140px; font: 13px/1.4 var(--font-body, system-ui, sans-serif); color: var(--ink, #111); }
+.ui-layout-gallery-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; }
+.ui-layout-gallery-grid > li { display: flex; }
+.ui-layout-gallery-card { flex: 1; min-height: 62px; text-align: left; display: flex; flex-direction: column; justify-content: flex-end; gap: 2px; padding: 10px; border: 1px solid var(--line, #ddd); border-radius: 10px; background: var(--raised, #fff); color: var(--ink, #111); cursor: pointer; font: inherit; transition: border-color .15s, box-shadow .15s; }
+.ui-layout-gallery-card[data-tone="0"], .ui-layout-gallery-panel[data-tone="0"] { background: var(--primary-wash, #e8efff); }
+.ui-layout-gallery-card[data-tone="1"] { background: var(--signal-wash, #fff3dc); }
+.ui-layout-gallery-card[data-tone="2"] { background: var(--raised-2, #f1f1f1); }
+.ui-layout-gallery-card:hover { border-color: var(--primary, #2563eb); box-shadow: var(--shadow, 0 2px 8px #0002); }
+.ui-layout-gallery-tag { font: 600 10px/1 var(--font-mono, monospace); letter-spacing: .06em; text-transform: uppercase; color: var(--muted, #555); }
+.ui-layout-gallery-title { font-weight: 700; font-size: 14px; }
+.ui-layout-gallery-panel { position: absolute; inset: 0; z-index: 2; transform-origin: 0 0; background: var(--surface, #fff); border: 1px solid var(--line-strong, #aaa); border-radius: 10px; box-shadow: var(--shadow-lift, 0 8px 24px #0004); padding: 14px; overflow: auto; }
+.ui-layout-gallery-h { margin: 4px 0 6px; font-size: 17px; }
+.ui-layout-gallery-p { margin: 0; color: var(--ink, #111); max-width: 52ch; }
+.ui-layout-gallery-close { position: absolute; top: 8px; right: 8px; width: 32px; height: 32px; display: grid; place-items: center; border-radius: 50%; border: 1px solid var(--line-strong, #aaa); background: var(--raised, #fff); color: var(--ink, #111); cursor: pointer; }
+.ui-layout-gallery-close:hover { background: var(--raised-2, #eee); }
+.ui-layout-gallery-card:focus-visible, .ui-layout-gallery-close:focus-visible { outline: 2px solid var(--primary, #2563eb); outline-offset: 2px; }
+@media (pointer: coarse) { .ui-layout-gallery-close { width: 44px; height: 44px; top: 4px; right: 4px; } .ui-layout-gallery-card { min-height: 64px; } }

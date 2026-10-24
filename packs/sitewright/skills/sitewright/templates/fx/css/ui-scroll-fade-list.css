@@ -1,0 +1,11 @@
+.ui-scroll-fade-list-root { position: relative; width: 100%; max-width: 320px; margin-inline: auto; border: 1px solid var(--line, #ddd); border-radius: var(--radius, 10px); background: var(--raised, #fff); overflow: hidden; }
+.ui-scroll-fade-list-ul { list-style: none; margin: 0; padding: 4px 0; height: 100%; overflow-y: auto; overscroll-behavior: contain; color: var(--ink, #111); font-family: var(--font-body, inherit); font-size: 14px; scrollbar-width: thin; }
+.ui-scroll-fade-list-ul:focus-visible { outline: 2px solid var(--primary, #2563eb); outline-offset: -2px; }
+.ui-scroll-fade-list-item { display: flex; justify-content: space-between; gap: 12px; padding: 9px 14px; min-height: 40px; align-items: center; border-bottom: 1px solid var(--line, #eee); }
+.ui-scroll-fade-list-item:last-child { border-bottom: 0; }
+.ui-scroll-fade-list-meta { color: var(--muted, #6b7280); font-family: var(--font-mono, monospace); font-size: 12px; }
+.ui-scroll-fade-list-root::before, .ui-scroll-fade-list-root::after { content: ''; position: absolute; left: 0; right: 0; height: 36px; pointer-events: none; opacity: 0; transition: opacity 0.2s; z-index: 1; }
+.ui-scroll-fade-list-root::before { top: 0; background: linear-gradient(var(--raised, #fff), transparent); }
+.ui-scroll-fade-list-root::after { bottom: 0; background: linear-gradient(transparent, var(--raised, #fff)); }
+.ui-scroll-fade-list-root[data-top='true']::before, .ui-scroll-fade-list-root[data-bottom='true']::after { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .ui-scroll-fade-list-root::before, .ui-scroll-fade-list-root::after { transition: none; } }

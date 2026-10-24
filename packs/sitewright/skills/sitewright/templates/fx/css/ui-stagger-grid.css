@@ -1,0 +1,11 @@
+.ui-stagger-grid-root{display:flex;flex-direction:column;gap:8px;width:100%;color:var(--ink,currentColor);font-family:var(--font-body,system-ui,sans-serif)}
+.ui-stagger-grid-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ui-stagger-grid-btn{font:600 12px/1 var(--font-body,system-ui,sans-serif);min-height:32px;padding:0 12px;border-radius:999px;border:1px solid var(--line-strong,rgba(128,128,128,.5));background:var(--raised,transparent);color:var(--ink,currentColor);cursor:pointer}
+.ui-stagger-grid-btn:hover{border-color:var(--primary,#2563eb)}
+.ui-stagger-grid-btn:focus-visible,.ui-stagger-grid-focus:focus-visible,.ui-stagger-grid-range:focus-visible{outline:2px solid var(--primary,#2563eb);outline-offset:2px}
+@media (pointer:coarse){.ui-stagger-grid-btn{min-height:44px;padding:0 16px}}
+.ui-stagger-grid-range{flex:1;min-width:80px;accent-color:var(--primary,#2563eb);min-height:24px}
+@media (pointer:coarse){.ui-stagger-grid-range{min-height:44px}}
+.ui-stagger-grid-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.ui-stagger-grid-grid{display:grid;gap:3px;width:100%;cursor:pointer;touch-action:manipulation}
+.ui-stagger-grid-cell{aspect-ratio:1;border-radius:4px;background:var(--primary,#2563eb);will-change:transform,opacity}

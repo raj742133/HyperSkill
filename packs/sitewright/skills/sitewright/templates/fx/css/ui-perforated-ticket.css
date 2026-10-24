@@ -1,0 +1,20 @@
+.ui-perforated-ticket-root { perspective: 700px; width: 100%; max-width: 320px; margin-inline: auto; }
+.ui-perforated-ticket-shape { position: relative; color: var(--ink, #111); font-family: var(--font-body, inherit); filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.18)); transform: rotateX(var(--ui-pt-rx, 0deg)) rotateY(var(--ui-pt-ry, 0deg)); transition: transform 0.2s var(--ease, ease-out); }
+.ui-perforated-ticket-top, .ui-perforated-ticket-stub { --n: 9px; background: var(--raised, #fff); overflow: hidden; }
+.ui-perforated-ticket-top { border-radius: calc(var(--radius, 12px) * 0.6) calc(var(--radius, 12px) * 0.6) 0 0; }
+.ui-perforated-ticket-stub { position: relative; border-radius: 0 0 calc(var(--radius, 12px) * 0.6) calc(var(--radius, 12px) * 0.6); }
+.ui-perforated-ticket-shape[data-stub='false'] .ui-perforated-ticket-top { border-radius: calc(var(--radius, 12px) * 0.6); }
+.ui-perforated-ticket-shape[data-stub='true'] .ui-perforated-ticket-top {
+  -webkit-mask: radial-gradient(circle var(--n) at 0 100%, #0000 98%, #000) left / 51% 100% no-repeat, radial-gradient(circle var(--n) at 100% 100%, #0000 98%, #000) right / 51% 100% no-repeat;
+  mask: radial-gradient(circle var(--n) at 0 100%, #0000 98%, #000) left / 51% 100% no-repeat, radial-gradient(circle var(--n) at 100% 100%, #0000 98%, #000) right / 51% 100% no-repeat;
+}
+.ui-perforated-ticket-stub {
+  -webkit-mask: radial-gradient(circle var(--n) at 0 0, #0000 98%, #000) left / 51% 100% no-repeat, radial-gradient(circle var(--n) at 100% 0, #0000 98%, #000) right / 51% 100% no-repeat;
+  mask: radial-gradient(circle var(--n) at 0 0, #0000 98%, #000) left / 51% 100% no-repeat, radial-gradient(circle var(--n) at 100% 0, #0000 98%, #000) right / 51% 100% no-repeat;
+}
+.ui-perforated-ticket-stub::before { content: ''; position: absolute; top: 0; left: 14px; right: 14px; border-top: 2px dashed var(--line-strong, #999); }
+.ui-perforated-ticket-head, .ui-perforated-ticket-stub { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 8px 20px; font-size: 11px; letter-spacing: 0.08em; }
+.ui-perforated-ticket-head { background: var(--primary, #2563eb); color: var(--on-primary, #fff); }
+.ui-perforated-ticket-body { padding: 14px 20px; translate: calc(var(--ui-pt-x, 0px) * -0.3) 0; transition: translate 0.2s var(--ease, ease-out); }
+.ui-perforated-ticket-stub { padding-block: 12px 10px; }
+@media (prefers-reduced-motion: reduce) { .ui-perforated-ticket-shape, .ui-perforated-ticket-body { transition: none; transform: none; translate: none; } }

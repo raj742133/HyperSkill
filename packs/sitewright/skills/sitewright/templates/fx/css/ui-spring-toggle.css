@@ -1,0 +1,13 @@
+.ui-spring-toggle-demo { display: grid; gap: 2px; }
+.ui-spring-toggle-row { position: relative; display: inline-flex; align-items: center; gap: 10px; min-height: 44px; padding: 0; border: 0; background: none; color: var(--ink, #111); font: 600 14px/1.2 var(--font-body, system-ui, sans-serif); cursor: pointer; text-align: left; -webkit-tap-highlight-color: transparent; }
+.ui-spring-toggle-row[data-disabled], .ui-spring-toggle-row:disabled { opacity: .5; cursor: not-allowed; }
+.ui-spring-toggle-track { flex: none; width: 48px; height: 28px; padding: 3px; border-radius: 999px; background: var(--line-strong, #aaa); transition: background-color .2s; box-sizing: border-box; }
+.ui-spring-toggle-track[data-on] { background: var(--primary, #2563eb); }
+.ui-spring-toggle-thumb { display: block; width: 22px; height: 22px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px #0005; will-change: transform; }
+.ui-spring-toggle-input { position: absolute; opacity: 0; width: 22px; height: 22px; margin: 0; left: 0; cursor: pointer; }
+.ui-spring-toggle-box { position: relative; flex: none; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 6px; border: 2px solid var(--line-strong, #888); box-sizing: border-box; background: var(--raised, #fff); }
+.ui-spring-toggle-fill { position: absolute; inset: -2px; border-radius: 6px; background: var(--primary, #2563eb); }
+.ui-spring-toggle-box svg { position: relative; }
+.ui-spring-toggle-text { color: var(--ink, #111); }
+.ui-spring-toggle-row:focus-visible .ui-spring-toggle-track, .ui-spring-toggle-input:focus-visible + .ui-spring-toggle-box { outline: 2px solid var(--ink, #111); outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) { .ui-spring-toggle-track { transition: none; } }

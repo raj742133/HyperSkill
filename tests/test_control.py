@@ -67,6 +67,12 @@ class PackTests(unittest.TestCase):
             lic = reg[pid]["license"]
             self.assertTrue(lic.startswith(("MIT", "Apache-2.0")), "%s: %s" % (pid, lic))
 
+    def test_sitewright_keeps_the_notice_of_the_third_party_code_it_embeds(self):
+        with open(os.path.join(PACKS, "sitewright", "THIRD_PARTY_NOTICES.md"), encoding="utf-8") as f:
+            text = f.read()
+        self.assertIn("Hairline", text)
+        self.assertIn("Copyright (c) 2026 Lucas Marques", text)
+
     def test_licences_that_forbid_redistribution_are_not_bundled(self):
         for banned in ("onetake", "hypit", "mirofish", "gstack"):
             self.assertNotIn(banned, self.packs())

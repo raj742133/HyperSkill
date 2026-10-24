@@ -1,0 +1,28 @@
+.ui-hold-to-confirm { position: relative; display: inline-block; min-width: 200px; max-width: 100%; color: var(--ink, #0f172a); font-family: var(--font-body, inherit); }
+.ui-hold-to-confirm-btn {
+  --ui-hold-to-confirm-p: 0; position: relative; display: grid; place-items: center; width: 100%; min-height: 48px; padding: 0 1.25rem; overflow: hidden;
+  border: 1.5px solid var(--critical, #dc2626); border-radius: var(--radius, 12px); background: var(--raised, transparent); color: var(--ink, #0f172a);
+  font: 600 0.95rem var(--font-body, inherit); cursor: pointer; user-select: none; -webkit-user-select: none; touch-action: none; -webkit-touch-callout: none;
+}
+.ui-hold-to-confirm-btn[hidden] { display: none; }
+.ui-hold-to-confirm-btn > span { grid-area: 1 / 1; }
+.ui-hold-to-confirm-fill {
+  position: absolute; inset: 0; display: grid; place-items: center; padding: 0 1.25rem; background: var(--critical, #dc2626); color: #fff; pointer-events: none;
+  clip-path: inset(0 calc(100% - var(--ui-hold-to-confirm-p) * 100%) 0 0); transition: clip-path 0.25s var(--ease, ease);
+}
+[data-phase='holding'] .ui-hold-to-confirm-fill { transition: none; }
+.ui-hold-to-confirm-btn:focus-visible, .ui-hold-to-confirm-undo-btn:focus-visible { outline: 3px solid var(--signal, #f59e0b); outline-offset: 3px; }
+.ui-hold-to-confirm-undo {
+  position: relative; display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 48px; padding: 0 0.5rem 0 1rem; overflow: hidden;
+  border: 1.5px solid var(--line-strong, #94a3b8); border-radius: var(--radius, 12px); background: var(--raised, transparent); font-size: 0.9rem; font-weight: 500;
+}
+.ui-hold-to-confirm-done { justify-content: center; padding: 0 1rem; color: var(--ok, #16a34a); font-weight: 600; }
+.ui-hold-to-confirm-undo-btn {
+  min-height: 44px; min-width: 64px; padding: 0 1rem; border: 0; border-radius: calc(var(--radius, 12px) - 3px); background: var(--primary, #2563eb); color: var(--on-primary, #fff); font: 600 0.9rem var(--font-body, inherit); cursor: pointer;
+}
+.ui-hold-to-confirm-count { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: var(--critical, #dc2626); transform-origin: left; }
+.ui-hold-to-confirm-sr { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+@media (prefers-reduced-motion: reduce) { .ui-hold-to-confirm-fill { transition: none; } }
+/* the filling colour is lighter in the dark theme, so its label turns dark to keep 4.5:1 */
+:root[data-theme='dark'] .ui-hold-to-confirm-fill { color: #0b1116; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme='light']) .ui-hold-to-confirm-fill { color: #0b1116; } }

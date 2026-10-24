@@ -1,0 +1,14 @@
+{
+  "_comment": "Just the /effects gallery: every animated background, headline, button and card effect, live, with a colour picker and the config to copy.",
+  "brand": {
+    "name": "Effect Lab",
+    "tagline": "Every effect, live.",
+    "colors": {
+      "primary": "#4f46e5",
+      "signal": "#06b6d4"
+    }
+  },
+  "modules": [
+    "fxgallery"
+  ]
+}

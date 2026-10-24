@@ -1,0 +1,16 @@
+.ui-presence-list-root { width: 100%; max-width: 420px; font: 13px/1.3 var(--font-body, system-ui, sans-serif); color: var(--ink, #111); }
+.ui-presence-list-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.ui-presence-list-count { color: var(--muted, #555); font: 600 11px/1 var(--font-mono, monospace); }
+.ui-presence-list-add { font: inherit; font-weight: 600; min-height: 28px; padding: 0 12px; border-radius: 999px; border: 0; background: var(--primary, #2563eb); color: var(--on-primary, #fff); cursor: pointer; }
+.ui-presence-list-add:disabled { opacity: .5; cursor: not-allowed; }
+.ui-presence-list-list { list-style: none; margin: 0; padding: 0; max-height: 96px; overflow-y: auto; display: grid; gap: 4px; align-content: start; position: relative; }
+.ui-presence-list-item { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 28px; padding: 0 4px 0 10px; border-radius: 8px; border: 1px solid var(--line, #ddd); background: var(--raised, #fff); animation: ui-presence-list-in .26s var(--ease, cubic-bezier(.2,.8,.2,1)); }
+.ui-presence-list-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ui-presence-list-x { flex: none; width: 24px; height: 24px; display: grid; place-items: center; border-radius: 50%; border: 0; background: transparent; color: var(--muted, #555); cursor: pointer; }
+.ui-presence-list-x:hover { background: var(--raised-2, #eee); color: var(--ink, #111); }
+.ui-presence-list-empty { margin: 6px 0 0; color: var(--muted, #555); }
+.ui-presence-list-sr { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.ui-presence-list-add:focus-visible, .ui-presence-list-x:focus-visible { outline: 2px solid var(--primary, #2563eb); outline-offset: 2px; }
+@keyframes ui-presence-list-in { from { opacity: 0; transform: translateY(-8px) scale(.97); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .ui-presence-list-item { animation: none; } }
+@media (pointer: coarse) { .ui-presence-list-add { min-height: 44px; } .ui-presence-list-x { width: 44px; height: 44px; margin: -8px 0; } .ui-presence-list-item { min-height: 44px; } .ui-presence-list-list { max-height: 200px; } }

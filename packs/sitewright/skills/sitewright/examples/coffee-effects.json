@@ -1,0 +1,413 @@
+{
+  "_comment": "Bean & Barrel with the aurora-glass effects preset plus a few extras. Fictional demo content. Compare with coffee.json: only the effects block is new.",
+  "brand": {
+    "name": "Bean & Barrel",
+    "tagline": "Small-batch coffee, roasted to order.",
+    "description": "Bean & Barrel roasts small batches to order and ships them within two days.",
+    "logo": {
+      "style": "drop"
+    },
+    "colors": {
+      "primary": "#7a4a21",
+      "signal": "#e8a33d"
+    },
+    "footerNote": "Roasted in Leeds."
+  },
+  "vocab": {
+    "device": "tablet",
+    "artifact": "catalogue",
+    "record": "order",
+    "records": "orders",
+    "area": "Publishing"
+  },
+  "modules": [
+    "landing",
+    "signin",
+    "dashboard",
+    "connect",
+    "mfa",
+    "publishing"
+  ],
+  "landing": {
+    "badge": {
+      "tag": "New"
+    },
+    "headline": "Every cup, {accent} to order.",
+    "accent": "roasted",
+    "sub": "Pick a bean, pick a roast, and we send it within two days of roasting. Track every order from the roaster to your door.",
+    "primaryAction": {
+      "label": "Browse the beans",
+      "href": "#story"
+    },
+    "downloadLabel": "Download the price list",
+    "howToInstall": [
+      "Tap Download to get the price list.",
+      "Open it from your downloads.",
+      "Place your order from the table at the back."
+    ],
+    "story": {
+      "kicker": "From green bean to your door",
+      "title": "Four stops, two days.",
+      "lead": "Follow the line from the roaster to your kitchen.",
+      "steps": [
+        {
+          "time": "Mon 07:00",
+          "title": "You order",
+          "text": "Choose the bean and how dark you like it. The order reaches the roaster before the kettle is on.",
+          "tags": [
+            "Pick a roast",
+            "Grind to suit"
+          ],
+          "screen": {
+            "kind": "list",
+            "title": "New order",
+            "sub": "Today",
+            "cards": [
+              {
+                "title": "Ethiopia Guji",
+                "sub": "Light roast, 250 g",
+                "pill": "Chosen",
+                "tone": "dark"
+              },
+              {
+                "title": "Brazil Santos",
+                "sub": "Medium roast, 500 g",
+                "pill": "Add"
+              }
+            ],
+            "cta": "Place order"
+          }
+        },
+        {
+          "time": "Mon 09:30",
+          "title": "We roast",
+          "text": "Your batch goes into the drum and comes out when the colour is right, not when the timer says so.",
+          "tags": [
+            "Small batch",
+            "By eye and ear"
+          ],
+          "screen": {
+            "kind": "grid",
+            "title": "Roasting",
+            "sub": "Batch 214",
+            "guide": "First crack in 40 s",
+            "bar": 62
+          }
+        },
+        {
+          "time": "Tue 08:00",
+          "title": "Rested and packed",
+          "text": "Coffee needs a day to settle. We pack it the next morning with the roast date on the bag.",
+          "tags": [
+            "Roast date on the bag"
+          ],
+          "screen": {
+            "kind": "result",
+            "title": "Packed",
+            "sub": "Order #1042",
+            "big": {
+              "label": "Bags today",
+              "value": "38"
+            },
+            "cards": [
+              {
+                "title": "Ethiopia Guji",
+                "sub": "x 12",
+                "pill": "Packed",
+                "tone": "green"
+              },
+              {
+                "title": "Brazil Santos",
+                "sub": "x 9",
+                "pill": "Packed",
+                "tone": "green"
+              }
+            ]
+          }
+        },
+        {
+          "time": "Wed 10:15",
+          "title": "At your door",
+          "text": "A tracked parcel, a text when it leaves us, and a card with how to brew it.",
+          "tags": [
+            "Tracked",
+            "Brew guide"
+          ],
+          "screen": {
+            "kind": "progress",
+            "title": "On its way",
+            "sub": "Courier",
+            "cards": [
+              {
+                "title": "Order #1042",
+                "sub": "2 bags",
+                "pill": "78%"
+              }
+            ],
+            "bar": 78
+          }
+        }
+      ],
+      "end": "Delivered. Put the kettle on."
+    },
+    "proof": {
+      "kicker": "Why Bean & Barrel",
+      "title": "Fresher than the shelf.",
+      "lead": "Most coffee is weeks old by the time you open it. Ours is days.",
+      "figure": "2 days",
+      "bigTitle": "Roast to door, measured.",
+      "bigText": "Average time from roasting to delivery across last month's orders (demo figures).",
+      "numbers": [
+        {
+          "value": "2.1",
+          "label": "days, roast to door"
+        },
+        {
+          "value": "38",
+          "label": "bags roasted a day"
+        }
+      ],
+      "bars": [
+        {
+          "label": "Bean & Barrel",
+          "value": 96
+        },
+        {
+          "label": "Supermarket",
+          "value": 31,
+          "them": true
+        }
+      ],
+      "cards": [
+        {
+          "icon": "leaf",
+          "title": "Single origin",
+          "text": "Every bag names the farm and the harvest."
+        },
+        {
+          "icon": "bolt",
+          "title": "Roasted to order",
+          "text": "Nothing sits on a shelf waiting for you."
+        },
+        {
+          "icon": "heart",
+          "title": "Fair prices",
+          "text": "Growers are paid above the market."
+        }
+      ]
+    },
+    "features": {
+      "kicker": "What you get",
+      "title": "What Bean & Barrel does today",
+      "ready": [
+        [
+          "Roast to order",
+          "Every bag is roasted after you order it."
+        ],
+        [
+          "Tracked delivery",
+          "A text when it leaves, a link to follow it."
+        ],
+        [
+          "Subscriptions",
+          "Pause or skip a delivery in two taps."
+        ],
+        [
+          "Brew guides",
+          "A card in every bag for the way you make coffee."
+        ]
+      ],
+      "next": [
+        [
+          "Grinder rentals",
+          "Try a grinder before you buy one.",
+          true
+        ],
+        [
+          "Gift boxes",
+          "Three origins in one box.",
+          false
+        ]
+      ]
+    },
+    "compat": {
+      "kicker": "Roast levels",
+      "title": "Pick how dark you go",
+      "lead": "Tap a level to see what it tastes like.",
+      "okText": "Available in every bean",
+      "items": [
+        {
+          "n": "1",
+          "name": "Light",
+          "year": "bright, fruity",
+          "first": "our most popular for filter"
+        },
+        {
+          "n": "2",
+          "name": "Medium-light",
+          "year": "balanced"
+        },
+        {
+          "n": "3",
+          "name": "Medium",
+          "year": "sweet, nutty"
+        },
+        {
+          "n": "4",
+          "name": "Medium-dark",
+          "year": "chocolate"
+        },
+        {
+          "n": "5",
+          "name": "Dark",
+          "year": "bold, smoky"
+        }
+      ],
+      "facts": [
+        {
+          "title": "Two days",
+          "text": "From roasting to your door."
+        },
+        {
+          "title": "Whole bean or ground",
+          "text": "Ground to suit your brewer."
+        },
+        {
+          "title": "250 g and 1 kg",
+          "text": "Sizes that fit a month or a week.",
+          "mono": true
+        }
+      ]
+    },
+    "cta": {
+      "title": "Ready for a better cup?",
+      "text": "Order today and it is roasted tomorrow."
+    },
+    "faq": [
+      [
+        "How fresh is the coffee?",
+        "Roasted the day after you order and posted the day after that."
+      ],
+      [
+        "Can I get it ground?",
+        "Yes - choose your brewer at checkout and we grind to suit."
+      ],
+      [
+        "Do you ship abroad?",
+        "Not yet. Within the UK only for now."
+      ]
+    ],
+    "releasesTitle": "Every price list, newest first"
+  },
+  "signin": {
+    "eyebrow": "Bean & Barrel · back office",
+    "title": "Orders, in one place.",
+    "text": "Enter the shared password to see today's orders."
+  },
+  "publishing": {
+    "artifact": "catalogue",
+    "extensions": [
+      ".pdf",
+      ".zip"
+    ],
+    "parseApk": false,
+    "testers": true,
+    "title": "Publishing"
+  },
+  "dashboard": {
+    "eyebrow": "Today's orders",
+    "title": "Orders from roaster to door.",
+    "sub": "Open an order to see what was packed. Filter by status, search by customer, or pick a roast.",
+    "statuses": [
+      {
+        "id": "new",
+        "label": "New",
+        "tone": "accent"
+      },
+      {
+        "id": "roasting",
+        "label": "Roasting",
+        "tone": "corrected"
+      },
+      {
+        "id": "shipped",
+        "label": "Shipped",
+        "tone": "ok"
+      },
+      {
+        "id": "issue",
+        "label": "Issue",
+        "tone": "unsure"
+      }
+    ],
+    "labels": {
+      "title": "Customer",
+      "subtitle": "Postcode",
+      "category": "Roast",
+      "owner": "Packer",
+      "source": "Channel"
+    },
+    "facets": [
+      "category",
+      "owner",
+      "status"
+    ],
+    "metrics": [
+      {
+        "key": "total",
+        "label": "total",
+        "unit": "£"
+      }
+    ],
+    "stats": [
+      {
+        "label": "orders",
+        "kind": "count"
+      },
+      {
+        "label": "revenue",
+        "kind": "sum",
+        "metric": "total",
+        "prefix": "£",
+        "tone": "accent"
+      },
+      {
+        "label": "customers",
+        "kind": "distinct",
+        "field": "title"
+      },
+      {
+        "label": "with an issue",
+        "kind": "status",
+        "status": "issue",
+        "tone": "unsure"
+      }
+    ],
+    "itemsLabel": "Bags in this order",
+    "filesLabel": "Photos",
+    "search": "Search customer, postcode or packer"
+  },
+  "connect": {
+    "title": "Connect a tablet",
+    "sub": "Point the packing-room tablet at this back office with one link.",
+    "where": "Settings → Back office"
+  },
+  "icons": "auto",
+  "effects": {
+    "preset": "aurora-glass",
+    "loginBackground": "beams",
+    "extras": [
+      "cursor-glow",
+      "scroll-progress",
+      "count-up"
+    ],
+    "figures": {
+      "hero": "terrain",
+      "signin": "padlock",
+      "mfa": "vault",
+      "connect": "scanner",
+      "empty": "bars",
+      "notfound": "dish"
+    }
+  }
+}

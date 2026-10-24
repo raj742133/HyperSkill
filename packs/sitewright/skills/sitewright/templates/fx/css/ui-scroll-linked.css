@@ -1,0 +1,16 @@
+.ui-scroll-linked-root { position: relative; width: 100%; display: flex; flex-direction: column; border: 1px solid var(--line, #ddd); border-radius: var(--radius, 12px); overflow: hidden; background: var(--surface, #fff); color: var(--ink, #111); font: 13px/1.45 var(--font-body, system-ui, sans-serif); }
+.ui-scroll-linked-head { display: flex; align-items: center; gap: 10px; flex: none; padding: 5px 10px; border-bottom: 1px solid var(--line, #ddd); }
+.ui-scroll-linked-bar { flex: 1; height: 6px; border-radius: 3px; overflow: hidden; background: var(--raised-2, #eee); border: 1px solid var(--line, #ddd); box-sizing: border-box; }
+.ui-scroll-linked-fill { display: block; height: 100%; background: var(--primary, #2563eb); transform-origin: 0 50%; transform: scaleX(0); }
+.ui-scroll-linked-num { min-width: 34px; text-align: right; font: 700 11px/1.5 var(--font-mono, monospace); color: var(--ink, #111); }
+.ui-scroll-linked-scroller { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; position: relative; }
+.ui-scroll-linked-track { position: relative; }
+.ui-scroll-linked-layer { position: sticky; top: 0; overflow: hidden; pointer-events: none; }
+.ui-scroll-linked-shape { position: absolute; display: block; will-change: transform; }
+.ui-scroll-linked-s1 { right: 18%; top: 62%; width: 54px; height: 54px; border-radius: 12px; background: var(--signal-wash, #fff3dc); border: 2px solid var(--signal, #f59e0b); opacity: .75; }
+.ui-scroll-linked-s2 { left: 8%; top: 70%; width: 70px; height: 70px; border-radius: 50%; background: var(--primary-wash, #e8efff); }
+.ui-scroll-linked-text { position: relative; padding: 10px 14px 18px; }
+.ui-scroll-linked-text p { margin: 0 0 54px; max-width: 34ch; font-weight: 500; }
+.ui-scroll-linked-text p:last-child { margin-bottom: 0; }
+.ui-scroll-linked-scroller:focus-visible { outline: 2px solid var(--primary, #2563eb); outline-offset: -2px; }
+@media (prefers-reduced-motion: reduce) { .ui-scroll-linked-shape { transform: none !important; } }

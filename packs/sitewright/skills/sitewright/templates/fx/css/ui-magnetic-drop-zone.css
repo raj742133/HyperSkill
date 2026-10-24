@@ -1,0 +1,20 @@
+.ui-magnetic-drop-zone {
+  position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; width: 100%; max-width: 280px; min-height: 120px; margin: 0 auto; padding: 12px;
+  border: 2px dashed var(--line-strong, #94a3b8); border-radius: calc(var(--radius, 12px) + 4px); background: var(--raised, transparent); color: var(--ink, #0f172a);
+  text-align: center; font-family: var(--font-body, inherit); will-change: transform; transition: border-color 0.2s, background-color 0.2s, box-shadow 0.2s;
+}
+.ui-magnetic-drop-zone[data-state='near'] { border-color: var(--primary, #2563eb); }
+.ui-magnetic-drop-zone[data-state='over'] { border-color: var(--primary, #2563eb); border-style: solid; background: var(--primary-wash, rgba(37, 99, 235, 0.1)); box-shadow: var(--shadow-lift, 0 10px 24px -10px rgba(0, 0, 0, 0.35)); }
+.ui-magnetic-drop-zone-icon { color: var(--primary, #2563eb); }
+.ui-magnetic-drop-zone-label { margin: 0; font-weight: 600; font-size: 0.9rem; }
+.ui-magnetic-drop-zone-browse {
+  position: relative; display: inline-grid; place-items: center; min-height: 44px; min-width: 44px; padding: 0 0.5rem; color: var(--primary, #2563eb); font-size: 0.82rem; font-weight: 600;
+  text-decoration: underline; text-underline-offset: 3px; cursor: pointer;
+}
+.ui-magnetic-drop-zone-browse input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+.ui-magnetic-drop-zone-browse:focus-within { outline: 3px solid var(--signal, #f59e0b); outline-offset: 2px; border-radius: 6px; }
+.ui-magnetic-drop-zone-files { max-width: 100%; font: 0.72rem var(--font-mono, ui-monospace, monospace); color: var(--muted, #475569); }
+.ui-magnetic-drop-zone-files ul { margin: 0; padding: 0; list-style: none; }
+.ui-magnetic-drop-zone-files li { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ui-magnetic-drop-zone-sr { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+@media (prefers-reduced-motion: reduce) { .ui-magnetic-drop-zone { transition: none; } }

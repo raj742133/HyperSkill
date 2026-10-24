@@ -1,0 +1,12 @@
+.ui-iridescent-foil-root {
+  --ui-foil-s: 0deg; --ui-foil-x: 30%; --ui-foil-y: 20%;
+  position: relative; width: 100%; max-width: 300px; margin-inline: auto; border-radius: calc(var(--radius, 12px) + 4px); isolation: isolate;
+  background:
+    radial-gradient(circle at var(--ui-foil-x) var(--ui-foil-y), rgba(255, 255, 255, 0.85), transparent 45%),
+    conic-gradient(from var(--ui-foil-s) at var(--ui-foil-x) var(--ui-foil-y), #ff7ad9, #ffd36e, #7dffb3, #6ec8ff, #b18cff, #ff7ad9),
+    linear-gradient(115deg, #ffffff22, #00000033);
+  background-blend-mode: soft-light, normal, overlay;
+  box-shadow: var(--shadow, 0 4px 14px rgba(0, 0, 0, 0.18));
+}
+.ui-iridescent-foil-inner { background: var(--raised, #fff); color: var(--ink, #111); border-radius: var(--radius, 12px); padding: 14px 16px; font-family: var(--font-body, inherit); }
+@media (prefers-reduced-motion: reduce) { .ui-iridescent-foil-root { background-blend-mode: soft-light, normal, overlay; } }

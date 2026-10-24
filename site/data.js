@@ -3,13 +3,13 @@ window.HS = {
  "counts": {
   "phases": 9,
   "gateItems": 72,
-  "slots": 32,
-  "providers": 32,
-  "tests": 143
+  "slots": 33,
+  "providers": 33,
+  "tests": 144
  },
  "policyCounts": {
   "recommended": 11,
-  "opt-in": 12,
+  "opt-in": 13,
   "blocked-if-commercial": 1,
   "reference-only": 6,
   "unreviewed": 2
@@ -55,7 +55,8 @@ window.HS = {
     "coding-discipline",
     "plan-review",
     "ui-library-choice",
-    "explainer-figure"
+    "explainer-figure",
+    "site-scaffold"
    ],
    "gate": [
     {
@@ -167,7 +168,8 @@ window.HS = {
     "icons",
     "implementation-discipline",
     "copy-review",
-    "explainer-figure"
+    "explainer-figure",
+    "site-scaffold"
    ],
    "gate": [
     {
@@ -371,7 +373,8 @@ window.HS = {
     "video-overlay",
     "voiceover",
     "copy-review",
-    "explainer-figure"
+    "explainer-figure",
+    "site-scaffold"
    ],
    "gate": [
     {
@@ -904,6 +907,24 @@ window.HS = {
     "can import cookies from local browser profiles and stores credentials under ~/.api-anything",
     "automating sites you do not own can breach their terms of service",
     "not needed by any phase: prefer official APIs"
+   ]
+  },
+  {
+   "id": "sitewright",
+   "name": "Sitewright (the owner's own skill, bundled in packs/sitewright)",
+   "repo": "raj742133/sitewright",
+   "kind": "skill",
+   "license": "MIT",
+   "policy": "opt-in",
+   "slots": [
+    "site-scaffold"
+   ],
+   "risks": [
+    "it generates a whole app and backend: choose it in the plan phase, before the stack is decided, or it will fight your own architecture",
+    "generated code is a starting point: the foundation, product, ship and harden gates still apply (auth, tenant scoping, validation, rate limits)",
+    "its templates fetch fonts from Google Fonts and icons from api.iconify.design, and the browser checks need Chromium: review that against your privacy and CSP decisions",
+    "sign-in and MFA modules ship development-only passwords and secrets in .env.local: replace them before any deploy",
+    "bundles Hairline (MIT, Lucas Marques) figures: keep packs/sitewright/THIRD_PARTY_NOTICES.md with it"
    ]
   }
  ],

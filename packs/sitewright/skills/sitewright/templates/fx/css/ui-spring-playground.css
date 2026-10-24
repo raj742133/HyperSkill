@@ -1,0 +1,23 @@
+.ui-spring-playground-root { display: grid; gap: 8px; width: 100%; max-width: 560px; font: 12px/1.3 var(--font-body, system-ui, sans-serif); color: var(--ink, #111); container-type: inline-size; }
+.ui-spring-playground-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.ui-spring-playground-presets { display: flex; gap: 4px; flex-wrap: wrap; }
+.ui-spring-playground-chip, .ui-spring-playground-play { font: inherit; font-weight: 600; min-height: 28px; padding: 0 10px; border-radius: 999px; border: 1px solid var(--line-strong, #aaa); background: var(--raised, #fff); color: var(--ink, #111); cursor: pointer; text-transform: capitalize; }
+.ui-spring-playground-play { background: var(--primary, #2563eb); border-color: var(--primary, #2563eb); color: var(--on-primary, #fff); text-transform: none; }
+.ui-spring-playground-chip:hover { background: var(--raised-2, #f1f1f1); }
+.ui-spring-playground-body { display: grid; gap: 10px; grid-template-columns: 1fr 1fr; align-items: center; }
+.ui-spring-playground-sliders { display: grid; gap: 2px; }
+.ui-spring-playground-row { display: grid; grid-template-columns: 1fr 26px; grid-template-areas: "l v" "i i"; align-items: center; column-gap: 4px; }
+.ui-spring-playground-lab { grid-area: l; color: var(--muted, #555); font-size: 11px; }
+.ui-spring-playground-val { grid-area: v; font-family: var(--font-mono, monospace); font-size: 11px; text-align: right; }
+.ui-spring-playground-row input { grid-area: i; width: 100%; margin: 0; height: 16px; accent-color: var(--primary, #2563eb); }
+.ui-spring-playground-viz { display: grid; gap: 4px; min-width: 0; }
+.ui-spring-playground-svg { width: 100%; height: auto; display: block; background: var(--raised, transparent); border: 1px solid var(--line, #ddd); border-radius: 6px; }
+.ui-spring-playground-target { stroke: var(--line-strong, #aaa); stroke-dasharray: 3 3; stroke-width: 1; }
+.ui-spring-playground-curve { stroke: var(--primary, #2563eb); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.ui-spring-playground-track { position: relative; height: 18px; border-radius: 8px; background: var(--raised-2, #eee); border: 1px solid var(--line, #ddd); box-sizing: border-box; }
+.ui-spring-playground-ball { position: absolute; top: 0; width: 16px; height: 16px; border-radius: 50%; background: var(--signal, #f59e0b); box-shadow: var(--shadow, 0 1px 3px #0003); }
+.ui-spring-playground-settle { margin: 0; color: var(--muted, #555); font-size: 11px; }
+.ui-spring-playground-settle b { color: var(--ink, #111); font-family: var(--font-mono, monospace); }
+.ui-spring-playground-root button:focus-visible, .ui-spring-playground-root input:focus-visible { outline: 2px solid var(--primary, #2563eb); outline-offset: 2px; }
+@container (max-width: 240px) { .ui-spring-playground-body { grid-template-columns: 1fr; } }
+@media (pointer: coarse) { .ui-spring-playground-chip, .ui-spring-playground-play { min-height: 44px; } .ui-spring-playground-row input { height: 28px; } }

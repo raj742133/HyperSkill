@@ -1,0 +1,10 @@
+.fx-mesh {
+  background:
+    radial-gradient(40% 50% at 15% 20%, color-mix(in srgb, var(--primary) 34%, transparent), transparent 70%),
+    radial-gradient(45% 55% at 85% 12%, color-mix(in srgb, var(--signal) 32%, transparent), transparent 70%),
+    radial-gradient(50% 60% at 70% 90%, color-mix(in srgb, var(--primary) 24%, transparent), transparent 70%),
+    radial-gradient(40% 50% at 10% 85%, color-mix(in srgb, var(--signal) 22%, transparent), transparent 70%);
+  background-size: 140% 140%;
+  animation: fx-mesh 24s ease-in-out infinite alternate;
+}
+@keyframes fx-mesh { 0% { background-position: 0% 0%; } 50% { background-position: 60% 30%; } 100% { background-position: 100% 100%; } }

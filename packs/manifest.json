@@ -12,6 +12,7 @@
     "slopmonster": {"repo": "ItsssssJack/SlopMonster", "license": "MIT", "copy": [["SKILL.md", "skills/slopmonster/SKILL.md"], ["docs", "skills/slopmonster/docs"], ["examples", "skills/slopmonster/examples"], ["prompts", "skills/slopmonster/prompts"], ["references", "skills/slopmonster/references"], ["tools", "skills/slopmonster/tools"]]},
     "better-icons": {"repo": "better-auth/better-icons", "license": "MIT", "copy": [["skills/SKILL.md", "skills/better-icons/SKILL.md"]]},
     "watch": {"repo": "mathiaschu/watch", "license": "MIT", "copy": [["SKILL.md", "skills/watch/SKILL.md"], ["scripts", "skills/watch/scripts"]]},
+    "sitewright": {"repo": "raj742133/sitewright", "license": "MIT", "copy": [["skill/sitewright", "skills/sitewright"], ["THIRD_PARTY_NOTICES.md", "THIRD_PARTY_NOTICES.md"]]},
     "hyperframes": {"repo": "heygen-com/hyperframes", "license": "Apache-2.0", "copy": [["skills/figma", "skills/figma"], ["skills/hyperframes", "skills/hyperframes"], ["skills/hyperframes-cli", "skills/hyperframes-cli"], ["skills/hyperframes-registry", "skills/hyperframes-registry"], ["skills/media-use", "skills/media-use"], ["skills/remotion-to-hyperframes", "skills/remotion-to-hyperframes"], ["skills/slideshow", "skills/slideshow"]]}
   }
 }

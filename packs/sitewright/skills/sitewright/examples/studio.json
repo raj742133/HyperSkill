@@ -1,0 +1,40 @@
+{
+  "_comment": "Demo content for testing Sitewright: landing + authenticator accounts only, no shared-password sign-in. Fictional.",
+  "brand": {
+    "name": "Pixel Studio",
+    "tagline": "Design for small teams.",
+    "description": "Pixel Studio designs brands and sites for small teams.",
+    "logo": { "style": "square" },
+    "colors": { "primary": "#6d28d9", "signal": "#22d3ee" }
+  },
+  "vocab": { "device": "browser", "artifact": "asset", "record": "project", "records": "projects", "area": "Studio" },
+  "modules": ["landing", "mfa"],
+  "nav": { "team": "Team" },
+  "landing": {
+    "headline": "Design that {accent} with you.",
+    "accent": "grows",
+    "sub": "Brand, site and the small things in between. One studio, one invoice.",
+    "primaryAction": { "label": "Start a project", "href": "#story" },
+    "story": {
+      "kicker": "How we work", "title": "Three steps.", "lead": "Brief, build, hand over.",
+      "steps": [
+        { "time": "Week 1", "title": "Brief", "text": "A workshop, a written brief, a fixed scope.", "tags": ["Fixed scope"], "screen": { "kind": "list", "title": "Brief", "sub": "Workshop", "cards": [{ "title": "Goals", "sub": "Agreed", "pill": "Done", "tone": "green" }], "cta": "Sign off" } },
+        { "time": "Weeks 2-4", "title": "Build", "text": "Weekly reviews, no surprises.", "tags": ["Weekly review"], "screen": { "kind": "grid", "title": "Build", "sub": "Week 3", "guide": "Review Friday", "bar": 70 } },
+        { "time": "Week 5", "title": "Hand over", "text": "Files, guidelines and a recorded walkthrough.", "tags": ["Guidelines"], "screen": { "kind": "result", "title": "Handover", "sub": "Done", "big": { "label": "Files", "value": "64" }, "cards": [{ "title": "Brand guide", "sub": "PDF", "pill": "Sent", "tone": "green" }] } }
+      ],
+      "end": "Handed over. Go and use it."
+    },
+    "features": {
+      "kicker": "Services", "title": "What we do",
+      "ready": [["Brand identity", "Logo, colour, type."], ["Websites", "Fast, accessible, yours."], ["Design systems", "Tokens and components."]],
+      "next": [["Motion packs", "Animated logos and titles.", true], ["Workshops", "Teach your team our process.", false]]
+    },
+    "compat": {
+      "kicker": "Packages", "title": "Pick your size", "lead": "Tap a package.", "okText": "Fixed price",
+      "items": [{ "n": "S", "name": "Starter", "year": "1 week" }, { "n": "M", "name": "Studio", "year": "4 weeks" }, { "n": "L", "name": "Full brand", "year": "8 weeks" }]
+    },
+    "cta": { "title": "Have a project?", "text": "Tell us about it." },
+    "faq": [["Do you work with startups?", "Yes - most of our clients are under ten people."]]
+  },
+  "mfa": { "eyebrow": "Pixel Studio · team" }
+}

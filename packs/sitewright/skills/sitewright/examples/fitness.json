@@ -1,0 +1,48 @@
+{
+  "_comment": "Demo content for testing Sitewright (Android app distribution with a real APK). Fictional.",
+  "brand": {
+    "name": "PulseFit",
+    "tagline": "Workouts that fit your week.",
+    "description": "PulseFit plans your workouts around your week and tracks how you get on.",
+    "logo": { "style": "circle" },
+    "colors": { "primary": "#0b7a53", "signal": "#ff5a5f" },
+    "footerNote": "Made by a tiny team."
+  },
+  "vocab": { "device": "phone", "artifact": "app", "record": "workout", "records": "workouts", "area": "Releases" },
+  "modules": ["landing", "signin", "dashboard", "connect", "mfa", "publishing"],
+  "nav": { "dashboard": "Workouts", "publishing": "Releases", "connect": "Pair a phone" },
+  "landing": {
+    "headline": "A plan that bends, not {accent}.",
+    "accent": "breaks",
+    "sub": "Tell PulseFit how many days you have and it builds the week. Miss a day and it moves the work, not the goal.",
+    "downloadLabel": "Download for Android",
+    "story": {
+      "kicker": "A week with PulseFit", "title": "Seven days, one plan.", "lead": "Follow the line through a normal week.",
+      "steps": [
+        { "time": "Sun", "title": "Set your week", "text": "Pick the days you can train and how long you have.", "tags": ["3-6 days", "20-60 min"],
+          "screen": { "kind": "list", "title": "My week", "sub": "Plan", "cards": [{ "title": "Mon - Legs", "sub": "40 min", "pill": "Set", "tone": "dark" }, { "title": "Wed - Push", "sub": "30 min", "pill": "Set", "tone": "dark" }], "cta": "Build plan" } },
+        { "time": "Mon", "title": "Train", "text": "A guide on screen counts reps and times rests.", "tags": ["Rep counter", "Rest timer"],
+          "screen": { "kind": "grid", "title": "Legs", "sub": "Set 3 of 4", "guide": "Rest 45 s", "bar": 55 } },
+        { "time": "Tue", "title": "Missed one?", "text": "Skip a day and the plan moves it to the next free slot.", "tags": ["Auto-reschedule"],
+          "screen": { "kind": "result", "title": "Rescheduled", "sub": "Thu", "big": { "label": "Moved", "value": "1" }, "cards": [{ "title": "Pull day", "sub": "Thu 18:00", "pill": "Moved", "tone": "amber" }] } },
+        { "time": "Sun", "title": "See the week", "text": "A summary of what you did, and what next week looks like.", "tags": ["Weekly summary"],
+          "screen": { "kind": "progress", "title": "Week 6", "sub": "Summary", "cards": [{ "title": "Workouts done", "sub": "4 of 4", "pill": "100%" }], "bar": 100 } }
+      ],
+      "end": "Week done. Plan updated."
+    },
+    "cta": { "title": "Ready to move?", "text": "Get PulseFit and plan this week." },
+    "faq": [["Is it free?", "The first month is free, then a small monthly fee."], ["Does it need an account?", "An email is enough."]]
+  },
+  "signin": { "eyebrow": "PulseFit · coaches", "title": "Coach dashboard.", "text": "Enter the shared password." },
+  "publishing": { "artifact": "app", "extensions": [".apk"], "parseApk": true, "packageName": "com.example.fitness", "testers": false },
+  "dashboard": {
+    "eyebrow": "This week", "title": "Workouts, one by one.", "sub": "Open a workout to see the sets. Filter by status or by coach.",
+    "statuses": [{ "id": "planned", "label": "Planned", "tone": "accent" }, { "id": "done", "label": "Done", "tone": "ok" }, { "id": "skipped", "label": "Skipped", "tone": "unsure" }],
+    "labels": { "title": "Member", "subtitle": "Plan", "category": "Type", "owner": "Coach", "source": "Source" },
+    "facets": ["category", "owner"],
+    "metrics": [{ "key": "minutes", "label": "min" }],
+    "stats": [{ "label": "workouts", "kind": "count" }, { "label": "minutes trained", "kind": "sum", "metric": "minutes", "tone": "accent" }, { "label": "members", "kind": "distinct", "field": "title" }, { "label": "skipped", "kind": "status", "status": "skipped", "tone": "unsure" }],
+    "itemsLabel": "Sets", "filesLabel": "Form checks", "search": "Search member, plan or coach"
+  },
+  "connect": { "title": "Pair a phone", "sub": "Link a coach's phone to this dashboard.", "where": "Settings → Coach link" }
+}

@@ -1,0 +1,22 @@
+.ui-scroll-timeline-root{display:flex;flex-direction:column;gap:8px;width:100%;color:var(--ink,currentColor);font-family:var(--font-body,system-ui,sans-serif)}
+.ui-scroll-timeline-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ui-scroll-timeline-btn{font:600 12px/1 var(--font-body,system-ui,sans-serif);min-height:32px;padding:0 12px;border-radius:999px;border:1px solid var(--line-strong,rgba(128,128,128,.5));background:var(--raised,transparent);color:var(--ink,currentColor);cursor:pointer}
+.ui-scroll-timeline-btn:hover{border-color:var(--primary,#2563eb)}
+.ui-scroll-timeline-btn:focus-visible,.ui-scroll-timeline-focus:focus-visible,.ui-scroll-timeline-range:focus-visible{outline:2px solid var(--primary,#2563eb);outline-offset:2px}
+@media (pointer:coarse){.ui-scroll-timeline-btn{min-height:44px;padding:0 16px}}
+.ui-scroll-timeline-range{flex:1;min-width:80px;accent-color:var(--primary,#2563eb);min-height:24px}
+@media (pointer:coarse){.ui-scroll-timeline-range{min-height:44px}}
+.ui-scroll-timeline-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.ui-scroll-timeline-scroller{height:150px;overflow-y:auto;overscroll-behavior:contain;border-radius:var(--radius,12px);border:1px solid var(--line,rgba(128,128,128,.3));background:var(--surface,transparent);position:relative}
+.ui-scroll-timeline-track{height:520px;position:relative}
+.ui-scroll-timeline-stage{position:sticky;top:0;height:148px;display:flex;flex-direction:column;justify-content:center;gap:9px;padding:0 16px}
+.ui-scroll-timeline-title{font:700 17px/1.2 var(--font-body,system-ui);margin:0}
+.ui-scroll-timeline-bar{height:8px;border-radius:99px;background:var(--line,rgba(128,128,128,.3));overflow:hidden}
+.ui-scroll-timeline-fill{height:100%;width:100%;transform-origin:left;background:var(--primary,#2563eb);border-radius:99px}
+.ui-scroll-timeline-num{font:700 26px/1 var(--font-mono,ui-monospace,monospace);font-variant-numeric:tabular-nums;margin:0}
+.ui-scroll-timeline-icon{position:absolute;right:16px;bottom:16px;width:36px;height:36px;color:var(--signal,#f59e0b)}
+.ui-scroll-timeline-hint{position:absolute;left:0;right:0;bottom:6px;text-align:center;font-size:11px;color:var(--muted,#6b7280);pointer-events:none}
+.ui-scroll-timeline-scroller[data-static="1"]{overflow:visible;height:auto}
+.ui-scroll-timeline-scroller[data-static="1"] .ui-scroll-timeline-track{height:auto}
+.ui-scroll-timeline-scroller[data-static="1"] .ui-scroll-timeline-stage{position:static;padding:14px 16px}
+.ui-scroll-timeline-scroller[data-static="1"] .ui-scroll-timeline-icon{position:static;margin:0}

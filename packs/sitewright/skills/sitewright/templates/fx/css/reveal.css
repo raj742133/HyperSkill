@@ -1,0 +1,9 @@
+/* Scroll-reveal styles for the landing page's .rv elements. Only the hidden (not yet .in) state is changed, so the settled look is untouched. */
+[data-fx-reveal='fade'] .rv:not(.in) { transform: none; }
+[data-fx-reveal='scale'] .rv:not(.in) { transform: scale(0.93); }
+[data-fx-reveal='blur'] .rv:not(.in) { transform: translateY(12px); filter: blur(12px); }
+[data-fx-reveal='blur'] .rv.in { filter: none; transition-property: opacity, transform, filter; }
+[data-fx-reveal='slide'] .rv:not(.in) { transform: translateX(-34px); }
+@media (prefers-reduced-motion: reduce) {
+  [data-fx-reveal] .rv:not(.in) { transform: none; filter: none; }
+}

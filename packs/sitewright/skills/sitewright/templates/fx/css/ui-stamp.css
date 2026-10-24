@@ -1,0 +1,11 @@
+.ui-stamp-root { --ui-stamp-p: 5px; position: relative; display: inline-block; margin: 0; padding: 0; color: var(--ink, #111); filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.22)); }
+.ui-stamp-edge {
+  padding: calc(var(--ui-stamp-p) * 2); background: var(--raised, #fff);
+  --r: var(--ui-stamp-p);
+  --m: radial-gradient(circle var(--r) at 50% 0, #0000 96%, #000) 0 0 / calc(var(--r) * 3) 100% repeat-x, radial-gradient(circle var(--r) at 50% 100%, #0000 96%, #000) 0 0 / calc(var(--r) * 3) 100% repeat-x,
+    radial-gradient(circle var(--r) at 0 50%, #0000 96%, #000) 0 0 / 100% calc(var(--r) * 3) repeat-y, radial-gradient(circle var(--r) at 100% 50%, #0000 96%, #000) 0 0 / 100% calc(var(--r) * 3) repeat-y;
+  -webkit-mask: var(--m); -webkit-mask-composite: source-in; mask: var(--m); mask-composite: intersect;
+}
+.ui-stamp-inner { overflow: hidden; outline: 1px solid var(--line, #ddd); }
+.ui-stamp-mark { position: absolute; right: -26px; bottom: -8px; width: 92px; color: var(--ink, #111); opacity: 0.6; transform: rotate(-12deg); mix-blend-mode: multiply; pointer-events: none; }
+[data-theme='dark'] .ui-stamp-mark { mix-blend-mode: screen; }

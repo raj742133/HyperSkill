@@ -1,0 +1,7 @@
+.fx-waves svg { position: absolute; left: 0; bottom: 0; width: 200%; height: 46%; will-change: transform; }
+.fx-waves path { fill: var(--primary); }
+.fx-waves .w0 { opacity: 0.16; animation: fx-wave 34s linear infinite; height: 58%; }
+.fx-waves .w1 { opacity: 0.18; animation: fx-wave 24s linear infinite reverse; height: 46%; }
+.fx-waves .w1 path { fill: var(--signal); }
+.fx-waves .w2 { opacity: 0.22; animation: fx-wave 16s linear infinite; height: 34%; }
+@keyframes fx-wave { to { transform: translateX(-50%); } }
