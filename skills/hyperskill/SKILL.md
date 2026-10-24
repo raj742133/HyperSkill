@@ -60,6 +60,28 @@ End each work block with this report, filled with facts:
 
 If any test is failing or skipped, the work is not complete and you must not describe it as complete.
 
+## 3b. Helpers: split big work by difficulty
+
+When a phase has more than a couple of separate pieces of work, split it instead of doing everything yourself in one long context. The tracker does the arithmetic so the choice is explainable and repeatable:
+
+1. **Break the work into tasks.** `hyperskill.py work add "<title>" --kind lookup|docs|edit|build|refactor|debug|design|review --paths src/a,src/b [--risk data|security|money] [--unknown] [--depends T1]`. It prints the tier and why. Give every task the paths it may change; an editing task with no paths is assumed to touch everything and runs alone.
+2. **Look at the plan.** `hyperskill.py work plan` lists waves: tasks in one wave have their dependencies met and own different files, so they can run at the same time.
+3. **Dispatch a wave in one message**, one Agent call per task, with the agent the plan names (`hyperskill:hs-scout`, `hs-fixer`, `hs-builder`, `hs-builder-deep`, `hs-architect`; reviews go to `hs-reviewer`). Before the Agent calls, mark the whole wave running in one command (`work start T1 && work start T2 && work start T3`; never from parallel calls, they would overwrite each other's state), then send the Agent calls together. Give each helper its task, the paths it owns, and the relevant decision files, nothing else. Helpers do not run the tracker.
+
+| Tier | Model, effort | For |
+| --- | --- | --- |
+| scout | haiku, low | read-only: find, list, summarise |
+| fixer | haiku, low | a small exact edit in one or two files |
+| builder | sonnet, medium | ordinary coding from a clear spec |
+| deep builder | sonnet, high | several files, tricky logic, must be right first time |
+| architect | opus, high | decisions that are costly to undo, security or money code, unexplained bugs |
+| reviewer | opus, high | fresh-context review, read-only |
+
+4. **Verify, never trust.** A helper's report is a claim. Read its diff, run the tests or the gate command yourself, then `work done ID --result "<what you ran and saw>"`. If it is wrong, `work fail ID --why ...`: the task moves up one tier and is dispatched again; a failure at the top tier is blocked and goes to the user.
+5. **Overrides need a reason**: `--tier X --why "..."`. Cheaper is not always better: security, money and data work never goes below a deep builder, whatever the bias.
+
+`advance` refuses while helper tasks are open. The user can switch helpers off, set how many run at once and lean cheaper or stronger from the dashboard (`hyperskill.py work policy --helpers on|off --parallel N --bias economy|balanced|quality`); when helpers are off, do the tasks yourself one at a time. For a small phase, skip all of this: three or four edits do not need a plan.
+
 ## 4. External skills (slots)
 
 Phases ask for capabilities (design direction, security audit, video, browser verification, ...) called **slots**. `skills/hyperskill/integrations.json` maps each slot to vetted third-party providers in priority order, with licence, risks and policy; `hyperskill.py integrations` resolves them against what is actually installed and what this project allows.

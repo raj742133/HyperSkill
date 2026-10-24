@@ -1,19 +1,184 @@
 {
   "_about": "Suggested Claude model and effort per phase. These are suggestions from reading what each phase asks for, not benchmarks: edit them freely. Models are Claude Code's aliases (they follow the newest model of that name); which ones you can use depends on your account. Effort is Claude Code's --effort level: low, medium, high, xhigh, max. Higher effort is slower and uses more of your usage.",
   "phases": {
-    "research": {"model": "opus", "effort": "high", "why": "Judging sources and making a go, pivot or stop call is reasoning-heavy and cheap to get wrong now, expensive later."},
-    "plan": {"model": "opus", "effort": "high", "why": "Architecture, tenancy and security choices here are the hardest to undo once code exists."},
-    "foundation": {"model": "opus", "effort": "medium", "why": "Auth, tenant scoping and migrations must be right; with a clear plan, medium effort is usually enough."},
-    "product": {"model": "sonnet", "effort": "medium", "why": "UI work is many small build-and-look steps where speed helps; the browser check catches mistakes."},
-    "ship": {"model": "sonnet", "effort": "medium", "why": "CI, environments and rollbacks are routine once decided; the gates verify the result."},
-    "harden": {"model": "opus", "effort": "high", "why": "A security review that misses something is worse than a slow one; use the strongest setting you have."},
-    "operate": {"model": "sonnet", "effort": "medium", "why": "Logging, health checks and alerts are well-trodden patterns."},
-    "launch": {"model": "sonnet", "effort": "medium", "why": "Copy, legal pages and video briefs benefit from iteration more than from deep reasoning."},
-    "scale": {"model": "sonnet", "effort": "high", "why": "Finding a real bottleneck from measurements takes careful reasoning, but the build steps are small."}
+    "research": {
+      "model": "opus",
+      "effort": "high",
+      "why": "Judging sources and making a go, pivot or stop call is reasoning-heavy and cheap to get wrong now, expensive later."
+    },
+    "plan": {
+      "model": "opus",
+      "effort": "high",
+      "why": "Architecture, tenancy and security choices here are the hardest to undo once code exists."
+    },
+    "foundation": {
+      "model": "opus",
+      "effort": "medium",
+      "why": "Auth, tenant scoping and migrations must be right; with a clear plan, medium effort is usually enough."
+    },
+    "product": {
+      "model": "sonnet",
+      "effort": "medium",
+      "why": "UI work is many small build-and-look steps where speed helps; the browser check catches mistakes."
+    },
+    "ship": {
+      "model": "sonnet",
+      "effort": "medium",
+      "why": "CI, environments and rollbacks are routine once decided; the gates verify the result."
+    },
+    "harden": {
+      "model": "opus",
+      "effort": "high",
+      "why": "A security review that misses something is worse than a slow one; use the strongest setting you have."
+    },
+    "operate": {
+      "model": "sonnet",
+      "effort": "medium",
+      "why": "Logging, health checks and alerts are well-trodden patterns."
+    },
+    "launch": {
+      "model": "sonnet",
+      "effort": "medium",
+      "why": "Copy, legal pages and video briefs benefit from iteration more than from deep reasoning."
+    },
+    "scale": {
+      "model": "sonnet",
+      "effort": "high",
+      "why": "Finding a real bottleneck from measurements takes careful reasoning, but the build steps are small."
+    }
   },
   "tasks": [
-    {"task": "A small copy or style tweak", "model": "haiku", "effort": "low", "why": "Fast and cheap; nothing to reason about."},
-    {"task": "A bug you cannot explain", "model": "opus", "effort": "high", "why": "Diagnosis rewards depth."},
-    {"task": "Reading a long document or PDF", "model": "sonnet", "effort": "medium", "why": "Comprehension is rarely the bottleneck."}
-  ]
+    {
+      "task": "A small copy or style tweak",
+      "model": "haiku",
+      "effort": "low",
+      "why": "Fast and cheap; nothing to reason about."
+    },
+    {
+      "task": "A bug you cannot explain",
+      "model": "opus",
+      "effort": "high",
+      "why": "Diagnosis rewards depth."
+    },
+    {
+      "task": "Reading a long document or PDF",
+      "model": "sonnet",
+      "effort": "medium",
+      "why": "Comprehension is rarely the bottleneck."
+    }
+  ],
+  "tiers": [
+    {
+      "id": "scout",
+      "agent": "hs-scout",
+      "model": "haiku",
+      "effort": "low",
+      "writes": false,
+      "label": "Scout",
+      "use": "Find, list, read and summarise. Never changes a file.",
+      "examples": [
+        "where is X used",
+        "list the routes",
+        "summarise this file or log"
+      ]
+    },
+    {
+      "id": "fixer",
+      "agent": "hs-fixer",
+      "model": "haiku",
+      "effort": "low",
+      "writes": true,
+      "label": "Fixer",
+      "use": "A small, exact change in one or two files: copy, a rename, a config value, a style tweak, formatting.",
+      "examples": [
+        "change the button label",
+        "rename a variable",
+        "add an env var to the example file"
+      ]
+    },
+    {
+      "id": "builder",
+      "agent": "hs-builder",
+      "model": "sonnet",
+      "effort": "medium",
+      "writes": true,
+      "label": "Builder",
+      "use": "Ordinary coding with a clear spec: a component, an endpoint, a test, a migration with no data risk.",
+      "examples": [
+        "build the pricing section",
+        "add the CRUD endpoint",
+        "write tests for this module"
+      ]
+    },
+    {
+      "id": "builder-deep",
+      "agent": "hs-builder-deep",
+      "model": "sonnet",
+      "effort": "high",
+      "writes": true,
+      "label": "Deep builder",
+      "use": "Coding that touches several files, has tricky logic, or must be right the first time.",
+      "examples": [
+        "wire auth across API and UI",
+        "a state machine with edge cases",
+        "refactor a module with tests"
+      ]
+    },
+    {
+      "id": "architect",
+      "agent": "hs-architect",
+      "model": "opus",
+      "effort": "high",
+      "writes": true,
+      "label": "Architect",
+      "use": "Decisions that are expensive to undo, security- or money-critical code, and bugs nobody can explain yet.",
+      "examples": [
+        "tenancy and permission model",
+        "payment webhooks",
+        "a bug that only happens in production"
+      ]
+    },
+    {
+      "id": "reviewer",
+      "agent": "hs-reviewer",
+      "model": "opus",
+      "effort": "high",
+      "writes": false,
+      "label": "Reviewer",
+      "use": "A fresh-context, read-only review of code someone else wrote.",
+      "examples": [
+        "security review",
+        "test-quality review"
+      ]
+    }
+  ],
+  "ladder": [
+    "fixer",
+    "builder",
+    "builder-deep",
+    "architect"
+  ],
+  "rules": {
+    "kinds": {
+      "lookup": 0,
+      "docs": 1,
+      "edit": 1,
+      "build": 2,
+      "refactor": 2,
+      "debug": 3,
+      "design": 4,
+      "review": 3
+    },
+    "plus": {
+      "files_4_or_more": 1,
+      "risk": 1,
+      "unknown": 1
+    },
+    "risks": [
+      "none",
+      "data",
+      "security",
+      "money"
+    ]
+  }
 }

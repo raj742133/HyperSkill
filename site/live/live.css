@@ -182,3 +182,11 @@ progress { flex: 1 1 160px; height: 8px; accent-color: var(--accent); }
 .pv-stage .sub { padding: 28px 16px; margin: 0; }
 .pv-form { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; } .pv-form input { font: inherit; color: var(--ink); background: var(--bg, transparent); border: 1px solid var(--rule); border-radius: 8px; padding: 6px 8px; flex: 1 1 200px; min-width: 0; } .pv-form input:first-child { flex: 0 1 140px; }
 a.btn { display: inline-flex; align-items: center; text-decoration: none; }
+
+.wk-tiers { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+.wk-tier { border: 1px solid var(--rule); border-radius: 10px; padding: 7px 10px; background: var(--panel); font-size: .85rem; max-width: 230px; } .wk-tier b { display: block; } .wk-tier span { color: var(--muted); font: 11px var(--mono); }
+.wk-list { list-style: none; margin: 8px 0; padding: 0; display: grid; gap: 8px; }
+.wk-list li { border: 1px solid var(--rule); border-radius: 10px; padding: 9px 12px; background: var(--panel); display: grid; gap: 4px; }
+.wk-list li[data-s="running"] { border-color: var(--ok, #2f7d4f); } .wk-list li[data-s="done"] { opacity: .75; } .wk-list li[data-s="blocked"], .wk-list li[data-s="failed"] { border-color: var(--warn); }
+.wk-top { display: flex; flex-wrap: wrap; gap: 8px; align-items: baseline; } .wk-id { font: 700 12px var(--mono); } .wk-chip { font: 11px var(--mono); border: 1px solid var(--rule); border-radius: 999px; padding: 1px 8px; }
+.wk-why { color: var(--muted); font-size: .85rem; } .wk-paths { font: 11px var(--mono); color: var(--muted); overflow-wrap: anywhere; }

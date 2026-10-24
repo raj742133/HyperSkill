@@ -133,9 +133,11 @@ def devtools_config():
     return json.dumps({"mcpServers": {"chrome-devtools": {"command": "npx", "args": args}}})
 
 
-def build_command(root, text, mode, budget, session, model=None, effort=None, chrome=False, preview_url=None):
+def build_command(root, text, mode, budget, session, model=None, effort=None, chrome=False, preview_url=None, helpers=True):
     tracker = os.path.join(PLUGIN_ROOT, "scripts", "hyperskill.py")
     tools = ["Read", "Edit", "Write", "Glob", "Grep", "Bash" if mode == "build" else "Bash(python3 %s:*)" % tracker]
+    if helpers:
+        tools.append("Agent")  # helpers inherit this run's limits: in edits mode they cannot run shell commands either
     if session:
         prompt = text
     else:
@@ -181,7 +183,7 @@ class Runner:
         return {"allowed": self.allowed, "available": bool(claude_bin()), "running": self.running(), "mode": self.mode if self.running() else None,
                 "session": bool(meta.get("session")), "last": self.last or meta.get("last"), "messages": history(self.root)}
 
-    def start(self, text, mode, budget=3.0, model=None, effort=None, chrome=False, preview_url=None, label=""):
+    def start(self, text, mode, budget=3.0, model=None, effort=None, chrome=False, preview_url=None, label="", helpers=True):
         if not self.allowed:
             raise PermissionError("running Claude from the dashboard is off: start it with `hyperskill.py live --allow-run`")
         if mode not in MODES:
@@ -197,9 +199,9 @@ class Runner:
             if self.running():
                 raise RuntimeError("a run is already in progress: stop it or wait")
             meta = _meta(self.root)
-            cmd = build_command(self.root, text, mode, budget, meta.get("session"), model, effort, bool(chrome), preview_url)
+            cmd = build_command(self.root, text, mode, budget, meta.get("session"), model, effort, bool(chrome), preview_url, bool(helpers))
             _append(self.root, "user", text)
-            _append(self.root, "system", "model: %s · effort: %s%s%s" % (model or "your default", effort or "your default", " · Chrome tools on" if chrome else "", " · " + label if label else ""))
+            _append(self.root, "system", "model: %s · effort: %s%s%s" % (model or "your default", effort or "your default", " · Chrome tools on" if chrome else "", " · " + label if label else "") + ("" if helpers else " · helpers off"))
             err = open(os.path.join(self.root, ".hyperskill", "run.err"), "wb")
             env = {k: v for k, v in os.environ.items() if k not in INHERITED_SESSION}
             env["HYPERSKILL_RUN"] = "1"
