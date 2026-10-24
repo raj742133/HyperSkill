@@ -299,9 +299,44 @@
     dirty = true; drawKit();
   }
 
+  const PRE = "/live/previews/";
+
+  function mediaEl(it, big) {
+    const m = it.media, wrap = el("div", "kit-media"); wrap.dataset.k = m.kind;
+    if (m.kind === "video") {
+      const v = document.createElement("video");
+      v.muted = true; v.loop = true; v.playsInline = true; v.preload = big ? "auto" : "none"; v.poster = PRE + m.poster; v.src = PRE + m.src; v.setAttribute("aria-label", it.name + " (looping preview)");
+      if (big) { v.controls = true; v.autoplay = true; v.addEventListener("loadeddata", () => { const p = v.play(); if (p && p.catch) p.catch(() => {}); }); }
+      else {
+        const go = () => { const p = v.play(); if (p && p.catch) p.catch(() => {}); }, stop = () => { v.pause(); };
+        wrap.addEventListener("pointerenter", go); wrap.addEventListener("pointerleave", stop); wrap.addEventListener("focusin", go); wrap.addEventListener("focusout", stop);
+        wrap.append(el("span", "play", "▶ hover to play"));
+      }
+      wrap.prepend(v);
+    } else {
+      const img = document.createElement("img"); img.src = PRE + m.src; img.alt = it.name + " preview"; img.loading = big ? "eager" : "lazy"; img.decoding = "async"; wrap.prepend(img);
+    }
+    return wrap;
+  }
+
+  function openBox(it, g) {
+    const dlg = $("kit-box"); const body = $("kit-box-body"); body.replaceChildren();
+    body.append(mediaEl(it, true), el("h3", "kit-title", it.name), el("p", "sub", it.desc));
+    const meta = el("p", "tags"); meta.append(el("span", "chip2 ph", "phase: " + it.phase)); for (const t of (it.tags || []).slice(0, 3)) meta.append(el("span", "chip2", short(t, 60))); body.append(meta);
+    const pickBtn = $("kit-box-pick"); pickBtn.textContent = pick.has(it.id) ? "Remove from my picks" : "Add to my picks"; pickBtn.disabled = !controlOn();
+    pickBtn.onclick = () => { togglePick(it, g); dlg.close(); };
+    if (dlg.showModal) dlg.showModal(); else dlg.setAttribute("open", "");
+  }
+
   function itemCard(it, g) {
-    const b = el("button", "kit-item"); b.type = "button"; b.setAttribute("aria-pressed", String(pick.has(it.id)));
+    const b = el("div", "kit-item"); b.tabIndex = 0; b.setAttribute("role", it.exclusive ? "radio" : "checkbox"); b.setAttribute("aria-checked", String(pick.has(it.id)));
     if (it.exclusive) b.dataset.x = "1";
+    if (it.media) {
+      const m = mediaEl(it, false);
+      const ex = el("button", "expand", "⤢"); ex.type = "button"; ex.title = "Enlarge"; ex.setAttribute("aria-label", "Enlarge " + it.name);
+      ex.addEventListener("click", (e) => { e.stopPropagation(); openBox(it, g); });
+      m.append(ex); b.append(m);
+    }
     b.append(el("span", "box"), el("b", "", it.name));
     if (it.swatch) { const sw = el("div", "sw"); for (const c of it.swatch) { const i = el("i"); if (/^#[0-9a-fA-F]{3,8}$/.test(c)) i.style.background = c; sw.append(i); } b.append(sw); }
     if (it.desc) b.append(el("span", "d", short(it.desc, 190)));
@@ -312,6 +347,7 @@
     if (it.link) { const a = el("a", "", "see it live"); a.href = it.link; a.target = "_blank"; a.rel = "noopener noreferrer"; a.addEventListener("click", (e) => e.stopPropagation()); tags.append(a); }
     b.append(tags);
     b.addEventListener("click", () => togglePick(it, g));
+    b.addEventListener("keydown", (e) => { if (e.key === " " || e.key === "Enter") { e.preventDefault(); togglePick(it, g); } });
     return b;
   }
 
@@ -394,6 +430,8 @@
     $("kit-rec").addEventListener("click", () => { const g = catalogData.groups.find((x) => x.id === activeGroup); for (const i of g.items) if (i.rec) pick.add(i.id); dirty = true; drawKit(); });
     $("kit-clear").addEventListener("click", () => { const g = catalogData.groups.find((x) => x.id === activeGroup); for (const i of g.items) pick.delete(i.id); dirty = true; drawKit(); });
     $("kit-discard").addEventListener("click", () => { dirty = false; syncPick(); kitSig = ""; drawKit(); });
+    $("kit-box-close").addEventListener("click", () => $("kit-box").close());
+    $("kit-box").addEventListener("close", () => $("kit-box-body").replaceChildren());
     $("kit-save").addEventListener("click", async () => { if (await api("catalog_apply", { ids: [...pick], tell_claude: true })) { dirty = false; kitSig = ""; } drawKit(); });
   }
 

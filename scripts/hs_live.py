@@ -42,8 +42,11 @@ STATIC = {  # the only files this server will ever send
     "/favicon.svg": (SITE_DIR, "favicon.svg", "image/svg+xml"),
     "/live/catalog.json": (os.path.normpath(os.path.join(_HERE, "..", "skills", "hyperskill")), "catalog.json", "application/json"),
 }
-CSP = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+CSP = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; media-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
 RECENT = 300  # events sent to a browser that has just connected
+PREVIEW_DIR = os.path.normpath(os.path.join(_HERE, "..", "site", "live", "previews"))
+PREVIEW_RE = re.compile(r"^/live/previews/([a-z0-9-]{1,40})/([a-z0-9][a-z0-9._-]{0,80}\.(mp4|webp|svg|png))$")
+PREVIEW_TYPES = {"mp4": "video/mp4", "webp": "image/webp", "svg": "image/svg+xml", "png": "image/png"}
 
 
 _NAMES = {"at": 0.0, "names": set(), "root": None}
@@ -234,7 +237,8 @@ def make_handler(root, port, token=None):
             self.send_response(status)
             self.send_header("Content-Type", ctype)
             self.send_header("Content-Length", str(len(body)))
-            self.send_header("Cache-Control", "no-store")
+            if "Cache-Control" not in (extra or {}):
+                self.send_header("Cache-Control", "no-store")
             self.send_header("Content-Security-Policy", CSP)
             self.send_header("X-Content-Type-Options", "nosniff")
             self.send_header("Referrer-Policy", "no-referrer")
@@ -263,6 +267,9 @@ def make_handler(root, port, token=None):
                     return self._send(200, body, ctype)
                 except OSError:
                     return self._send(404, b"not found", "text/plain")
+            m = PREVIEW_RE.match(path)
+            if m:
+                return self._preview(m)
             if path == "/live/state.json":
                 try:
                     return self._send(200, json.dumps(build_state(root, bool(token))).encode(), "application/json")
@@ -300,6 +307,26 @@ def make_handler(root, port, token=None):
                 return self._send(400, json.dumps({"ok": False, "output": str(exc)}).encode(), "application/json")
             except (ValueError, subprocess.TimeoutExpired, OSError):
                 return self._send(400, b'{"ok":false,"output":"could not do that"}', "application/json")
+
+        def _preview(self, m):
+            """The catalogue's pictures and clips: a fixed folder, fixed extensions, byte ranges for video."""
+            full = os.path.realpath(os.path.join(PREVIEW_DIR, m.group(1), m.group(2)))
+            if not full.startswith(os.path.realpath(PREVIEW_DIR) + os.sep) or not os.path.isfile(full):
+                return self._send(404, b"not found", "text/plain")
+            with open(full, "rb") as f:
+                body = f.read()
+            status, extra = 200, {"Accept-Ranges": "bytes"}
+            rng = re.match(r"^bytes=(\d*)-(\d*)$", self.headers.get("Range", ""))
+            if rng and (rng.group(1) or rng.group(2)):
+                size = len(body)
+                a = int(rng.group(1)) if rng.group(1) else max(0, size - int(rng.group(2)))
+                b = min(int(rng.group(2)), size - 1) if rng.group(1) and rng.group(2) else size - 1
+                if a > b or a >= size:
+                    return self._send(416, b"", "text/plain", {"Content-Range": "bytes */%d" % size})
+                status, body = 206, body[a:b + 1]
+                extra["Content-Range"] = "bytes %d-%d/%d" % (a, b, size)
+            extra["Cache-Control"] = "public, max-age=600"
+            return self._send(status, body, PREVIEW_TYPES[m.group(2).rsplit(".", 1)[1]], extra)
 
         def _events(self):
             last_id = self.headers.get("Last-Event-ID", "")

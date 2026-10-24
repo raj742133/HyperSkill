@@ -128,13 +128,13 @@ progress { flex: 1 1 160px; height: 8px; accent-color: var(--accent); }
 .kit-title { margin: 0; font-size: 1.15rem; }
 .kit-tools { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
 .kit-tools input { flex: 1 1 200px; min-width: 0; font: inherit; color: var(--ink); background: var(--bg, transparent); border: 1px solid var(--rule); border-radius: 8px; padding: 7px 10px; }
-.kit-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 8px; max-height: 620px; overflow: auto; padding: 2px; }
+.kit-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(262px, 1fr)); gap: 8px; max-height: 620px; overflow: auto; padding: 2px; }
 .kit-sub { grid-column: 1 / -1; margin: 10px 0 0; font: 700 11px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
-.kit-item { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 10px; text-align: left; font: inherit; color: var(--ink); background: transparent; border: 1px solid var(--rule); border-radius: 10px; padding: 10px; cursor: pointer; align-content: start; }
-.kit-item[aria-pressed="true"] { border-color: var(--ok); box-shadow: inset 0 0 0 1px var(--ok); }
+.kit-item { display: grid; outline-offset: 2px; grid-template-columns: auto minmax(0, 1fr); gap: 4px 10px; text-align: left; font: inherit; color: var(--ink); background: transparent; border: 1px solid var(--rule); border-radius: 10px; padding: 10px; cursor: pointer; align-content: start; }
+.kit-item[aria-checked="true"] { border-color: var(--ok); box-shadow: inset 0 0 0 1px var(--ok); }
 .kit-item .box { width: 16px; height: 16px; margin-top: 2px; border: 1.5px solid var(--muted); border-radius: 4px; display: inline-block; }
 .kit-item[data-x="1"] .box { border-radius: 50%; }
-.kit-item[aria-pressed="true"] .box { background: var(--ok); border-color: var(--ok); box-shadow: inset 0 0 0 3px var(--panel); }
+.kit-item[aria-checked="true"] .box { background: var(--ok); border-color: var(--ok); box-shadow: inset 0 0 0 3px var(--panel); }
 .kit-item b { font-size: .92rem; overflow-wrap: anywhere; } .kit-item .d { grid-column: 2; color: var(--muted); font-size: .82rem; overflow-wrap: anywhere; }
 .kit-item .tags { grid-column: 2; display: flex; flex-wrap: wrap; gap: 4px 6px; align-items: center; }
 .chip2 { font: 11px var(--mono); border: 1px solid var(--rule); border-radius: 8px; overflow-wrap: anywhere; padding: 0 7px; color: var(--muted); }
@@ -146,3 +146,12 @@ progress { flex: 1 1 160px; height: 8px; accent-color: var(--accent); }
 .xt-list { list-style: none; margin: 10px 0 0; padding: 0 6px 0 0; max-height: 560px; overflow: auto; } .xt-list li { padding: 9px 0; border-top: 1px solid var(--rule); } .xt-list li:first-child { border-top: 0; }
 .xt-head { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: baseline; } .xt-st { font: 700 11px var(--mono); text-transform: uppercase; letter-spacing: .06em; } .xt-st[data-s="done"] { color: var(--ok); } .xt-st[data-s="waived"] { color: var(--warn); } .xt-st[data-s="open"] { color: var(--muted); }
 @media (max-width: 900px) { .kit-body { grid-template-columns: 1fr; } .kit-nav { flex-direction: row; flex-wrap: wrap; max-height: none; } .kit-nav h4 { width: 100%; } }
+.kit-media { grid-column: 1 / -1; position: relative; border-radius: 8px; overflow: hidden; background: #ece5d8; border: 1px solid var(--rule); margin-bottom: 4px; }
+.kit-media img, .kit-media video { display: block; width: 100%; height: auto; }
+.kit-media .play { position: absolute; left: 6px; bottom: 6px; font: 700 10px var(--mono); background: rgba(20,17,15,.72); color: #fff; padding: 2px 7px; border-radius: 999px; pointer-events: none; }
+.kit-media:hover .play, .kit-media:focus-within .play { opacity: 0; }
+.kit-media .expand { position: absolute; right: 6px; top: 6px; width: 28px; height: 28px; border-radius: 8px; border: 1px solid var(--rule); background: rgba(255,253,248,.92); color: var(--ink); cursor: pointer; font-size: 15px; line-height: 1; }
+.kit-box { width: min(760px, 94vw); border: 1px solid var(--rule); border-radius: 14px; padding: 16px; background: var(--panel); color: var(--ink); }
+.kit-box::backdrop { background: rgba(20,17,15,.55); }
+.kit-box .kit-media { margin-bottom: 12px; } .kit-box .tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 0; }
+.kit-box .kit-bar { margin-top: 12px; }
