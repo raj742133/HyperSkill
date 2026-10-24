@@ -74,13 +74,13 @@ When a phase has more than a couple of separate pieces of work, split it instead
 | fixer | haiku, low | a small exact edit in one or two files |
 | builder | sonnet, medium | ordinary coding from a clear spec |
 | deep builder | sonnet, high | several files, tricky logic, must be right first time |
-| architect | opus, high | decisions that are costly to undo, security or money code, unexplained bugs |
-| reviewer | opus, high | fresh-context review, read-only |
+| architect | opus, medium | decisions that are costly to undo, security or money code, unexplained bugs |
+| reviewer | opus, medium | fresh-context review, read-only |
 
 4. **Verify, never trust.** A helper's report is a claim. Read its diff, run the tests or the gate command yourself, then `work done ID --result "<what you ran and saw>"`. If it is wrong, `work fail ID --why ...`: the task moves up one tier and is dispatched again; a failure at the top tier is blocked and goes to the user.
 5. **Overrides need a reason**: `--tier X --why "..."`. Cheaper is not always better: security, money and data work never goes below a deep builder, whatever the bias.
 
-`advance` refuses while helper tasks are open. `work stats` shows how often each tier was right first time on this project and suggests changes; `work tune --kind build --score 3` changes a starting score for this project only. The user can switch helpers off, set how many run at once and lean cheaper or stronger from the dashboard (`hyperskill.py work policy --helpers on|off --parallel N --bias economy|balanced|quality`); when helpers are off, do the tasks yourself one at a time. For a small phase, skip all of this: three or four edits do not need a plan.
+`advance` refuses while helper tasks are open. `work stats` shows how often each tier was right first time on this project and suggests changes; `work tune --kind build --score 3` changes a starting score for this project only, and `work tier architect --model sonnet --effort high` (or `work preset economy`) changes which model and effort a tier uses in this project; the plan then names the agent to dispatch, so always use the agent name `work plan` prints. The user can switch helpers off, set how many run at once and lean cheaper or stronger from the dashboard (`hyperskill.py work policy --helpers on|off --parallel N --bias economy|balanced|quality`); when helpers are off, do the tasks yourself one at a time. For a small phase, skip all of this: three or four edits do not need a plan.
 
 ## 4. External skills (slots)
 

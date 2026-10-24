@@ -506,9 +506,23 @@
     $("wk-count").textContent = w.tasks.length ? `· ${w.tasks.filter((t) => ["done", "dropped"].includes(t.status)).length} of ${w.tasks.length} finished` : "· no tasks yet";
     const tiers = $("wk-tiers"); tiers.replaceChildren(); box.querySelectorAll(".wk-advice").forEach((n) => n.remove());
     const stat = Object.fromEntries((w.stats || []).map((x) => [x.tier, x]));
-    for (const t of m.tiers || []) {
+    const models = (m.aliases || []).slice();
+    for (const t of w.tiers || []) {
       const d = el("div", "wk-tier"), st = stat[t.id];
-      d.append(el("b", "", t.label), el("span", "", `${t.model} · ${t.effort}${t.writes ? "" : " · read-only"}`), el("div", "", t.use));
+      d.append(el("b", "", t.label));
+      if (controlOn()) {
+        const ms = el("select"), es = el("select");
+        ms.setAttribute("aria-label", t.label + " model"); es.setAttribute("aria-label", t.label + " effort");
+        for (const x of models.includes(t.model) ? models : models.concat([t.model])) { const o = el("option", "", x); o.value = x; ms.append(o); }
+        for (const x of m.efforts || []) { const o = el("option", "", x); o.value = x; es.append(o); }
+        ms.value = t.model; es.value = t.effort;
+        const send = () => api("work_tier", { tier: t.id, model: ms.value, effort: es.value });
+        ms.addEventListener("change", send); es.addEventListener("change", send);
+        const row = el("div", "wk-sel"); row.append(ms, es); d.append(row);
+        if (t.custom) { const r = el("button", "btn", "Back to default (" + t.default_model + ", " + t.default_effort + ")"); r.type = "button"; r.addEventListener("click", () => api("work_tier", { tier: t.id, reset: true })); d.append(r); }
+      } else d.append(el("span", "", `${t.model} · ${t.effort}${t.writes ? "" : " · read-only"}`));
+      d.append(el("div", "", t.use));
+      if (t.custom && !controlOn()) d.append(el("div", "wk-why", `changed for this project (default ${t.default_model}, ${t.default_effort})`));
       if (st && (st.done || st.failed)) d.append(el("div", "wk-why", `${st.done} done, ${st.rate}% right first time${st.failed ? `, ${st.failed} pushed up` : ""}`));
       tiers.append(d);
     }
@@ -526,9 +540,14 @@
       list.append(li);
     }
     const par = $("wk-par"); par.replaceChildren(...[1, 2, 3, 4, 6, 8].map((n) => { const o = el("option", "", String(n)); o.value = n; return o; })); par.value = String(w.policy.parallel);
+    const pre = $("wk-preset"); pre.replaceChildren(el("option", "", w.preset ? "Preset: " + (w.presets[w.preset] || w.preset) : "Custom or default"));
+    pre.firstChild.value = "";
+    for (const [k, v] of Object.entries(w.presets || {})) { const o = el("option", "", v); o.value = k; pre.append(o); }
+    pre.value = "";
     $("wk-form").hidden = !controlOn();
   }
-  function wireWork() { $("wk-par").addEventListener("change", () => api("work_policy", { parallel: Number($("wk-par").value) })); }
+  function wireWork() {
+    $("wk-preset").addEventListener("change", () => { if ($("wk-preset").value) api("work_preset", { preset: $("wk-preset").value }); }); $("wk-par").addEventListener("change", () => api("work_policy", { parallel: Number($("wk-par").value) })); }
 
   /* ---------- live preview of what is being built ---------- */
   let pvSel = "", pvSrc = "";

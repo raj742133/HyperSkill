@@ -225,7 +225,7 @@ class DashboardTests(Base):
         tracker(self.p, "work", "add", "a", "--kind", "edit", "--paths", "a")
         tracker(self.p, "work", "add", "b", "--kind", "edit", "--paths", "a")
         w = self.call("GET", "/live/state.json")[1]["work"]
-        self.assertEqual([(t["id"], t["wave"], t["agent"]) for t in w["tasks"]], [("T1", 1, "hs-fixer"), ("T2", 2, "hs-fixer")])
+        self.assertEqual([(t["id"], t["wave"], t["agent"]) for t in w["tasks"]], [("T1", 1, "hyperskill:hs-fixer"), ("T2", 2, "hyperskill:hs-fixer")])
         self.assertEqual(self.call("POST", "/live/api/work_drop", {"id": "T2", "why": "x"})[0], 200)
         self.assertEqual(self.call("POST", "/live/api/work_drop", {"id": "../x"})[0], 400)
         self.assertEqual(self.call("POST", "/live/api/work_policy", {"parallel": 5})[0], 200)
@@ -239,6 +239,35 @@ class DashboardTests(Base):
             html = f.read()
         for ident in ("chat-helpers", "wk-list", "wk-tiers", "wk-par"):
             self.assertIn('id="%s"' % ident, html)
+
+    def test_the_board_offers_each_tier_with_its_model_and_the_user_can_change_and_reset_it(self):
+        w = self.call("GET", "/live/state.json")[1]["work"]
+        by = {t["id"]: t for t in w["tiers"]}
+        self.assertEqual((by["architect"]["model"], by["architect"]["effort"], by["architect"]["custom"]), ("opus", "medium", False))
+        self.assertEqual(self.call("POST", "/live/api/work_tier", {"tier": "architect", "model": "sonnet", "effort": "high"})[1]["ok"], True)
+        by = {t["id"]: t for t in self.call("GET", "/live/state.json")[1]["work"]["tiers"]}
+        self.assertEqual((by["architect"]["model"], by["architect"]["effort"], by["architect"]["custom"]), ("sonnet", "high", True))
+        self.assertEqual(by["architect"]["default_model"], "opus")
+        self.assertTrue(self.call("POST", "/live/api/work_tier", {"tier": "architect", "reset": True})[1]["ok"])
+        self.assertFalse({t["id"]: t for t in self.call("GET", "/live/state.json")[1]["work"]["tiers"]}["architect"]["custom"])
+
+    def test_bad_choices_from_the_page_are_refused_and_presets_apply(self):
+        self.assertFalse(self.call("POST", "/live/api/work_tier", {"tier": "architect", "model": "--evil"})[1]["ok"])
+        self.assertFalse(self.call("POST", "/live/api/work_tier", {"tier": "../x", "model": "sonnet"})[1]["ok"])
+        self.assertEqual(self.call("POST", "/live/api/work_preset", {"preset": "nope"})[0], 400)
+        self.assertTrue(self.call("POST", "/live/api/work_preset", {"preset": "economy"})[1]["ok"])
+        w = self.call("GET", "/live/state.json")[1]["work"]
+        self.assertEqual(w["preset"], "economy")
+        self.assertEqual({t["id"]: t["model"] for t in w["tiers"]}["reviewer"], "sonnet")
+
+    def test_the_page_has_the_per_tier_controls(self):
+        with open(os.path.join(ROOT, "site", "live", "live.js"), encoding="utf-8") as f:
+            js = f.read()
+        with open(os.path.join(ROOT, "site", "live", "index.html"), encoding="utf-8") as f:
+            html = f.read()
+        self.assertIn('id="wk-preset"', html)
+        self.assertIn('"work_tier"', js)
+        self.assertIn('"work_preset"', js)
 
 
 class TuneAndStatsTests(unittest.TestCase):
@@ -367,6 +396,106 @@ class TestsModeTests(unittest.TestCase):
             self.assertIn('<option value="tests">', f.read())
         import hs_run
         self.assertEqual(hs_run.MODES, ("edits", "tests", "build"))
+
+
+class TierChoiceTests(Base):
+    def agent_file(self, name):
+        return os.path.join(self.p, ".claude", "agents", name + ".md")
+
+    def test_architect_and_reviewer_default_to_opus_at_medium_effort(self):
+        tr = W.tiers()
+        self.assertEqual([(tr[i]["model"], tr[i]["effort"]) for i in ("architect", "reviewer")], [("opus", "medium")] * 2)
+
+    def test_choosing_a_cheaper_model_for_a_tier_is_written_where_claude_code_reads_it(self):
+        out = tracker(self.p, "work", "tier", "architect", "--model", "sonnet", "--effort", "high").stdout
+        self.assertIn("Architect now uses sonnet, effort high", out)
+        fm = frontmatter(self.agent_file("hs-architect"))
+        self.assertEqual((fm["name"], fm["model"], fm["effort"]), ("hs-architect", "sonnet", "high"))
+        with open(self.agent_file("hs-architect"), encoding="utf-8") as f:
+            body = f.read()
+        self.assertIn("hyperskill-tier", body)
+        self.assertIn("You take the decisions and code that are hardest to undo", body, "the instructions are kept, only model and effort change")
+        tracker(self.p, "work", "add", "decide the tenancy model", "--kind", "design")
+        plan = tracker(self.p, "work", "plan").stdout
+        self.assertIn("hs-architect ", plan)
+        self.assertNotIn("hyperskill:hs-architect", plan)
+        self.assertIn("Architect (sonnet, high)", plan)
+        with open(os.path.join(ROOT, "agents", "hs-architect.md"), encoding="utf-8") as f:
+            self.assertIn("model: opus", f.read(), "the plugin's own file is never touched")
+
+    def test_the_other_tiers_keep_the_plugin_agent_and_resetting_removes_the_project_file(self):
+        tracker(self.p, "work", "tier", "architect", "--model", "sonnet")
+        self.assertFalse(os.path.exists(self.agent_file("hs-builder")))
+        tracker(self.p, "work", "add", "x", "--kind", "build", "--paths", "a")
+        self.assertIn("hyperskill:hs-builder", tracker(self.p, "work", "plan").stdout)
+        tracker(self.p, "work", "tier", "architect", "--reset")
+        self.assertFalse(os.path.exists(self.agent_file("hs-architect")))
+
+    def test_only_the_model_or_only_the_effort_can_be_changed_and_the_rest_is_kept(self):
+        tracker(self.p, "work", "tier", "reviewer", "--effort", "high")
+        fm = frontmatter(self.agent_file("hs-reviewer"))
+        self.assertEqual((fm["model"], fm["effort"]), ("opus", "high"))
+        tracker(self.p, "work", "tier", "reviewer", "--model", "sonnet")
+        fm = frontmatter(self.agent_file("hs-reviewer"))
+        self.assertEqual((fm["model"], fm["effort"]), ("sonnet", "high"))
+        tracker(self.p, "work", "tier", "reviewer", "--model", "opus", "--effort", "medium")
+        self.assertFalse(os.path.exists(self.agent_file("hs-reviewer")), "choosing the defaults again leaves no override behind")
+
+    def test_a_full_model_id_works_and_anything_that_could_be_a_flag_is_refused(self):
+        self.assertEqual(tracker(self.p, "work", "tier", "builder", "--model", "claude-sonnet-5-5").returncode, 0)
+        for bad in ("--dangerously-skip-permissions", "gpt-4", "opus; rm -rf /", "../x"):
+            r = tracker(self.p, "work", "tier", "builder", "--model=" + bad, check=False)
+            self.assertNotEqual(r.returncode, 0, bad)
+        self.assertNotEqual(tracker(self.p, "work", "tier", "builder", "--effort", "ludicrous", check=False).returncode, 0)
+        for bad in ("nope", "../../etc/passwd", "hs-architect"):
+            self.assertNotEqual(tracker(self.p, "work", "tier", bad, "--model", "sonnet", check=False).returncode, 0, bad)
+
+    def test_an_agent_file_you_wrote_yourself_is_never_overwritten_or_deleted(self):
+        os.makedirs(os.path.dirname(self.agent_file("x")))
+        with open(self.agent_file("hs-architect"), "w") as f:
+            f.write("---\nname: hs-architect\ndescription: mine\n---\nmine\n")
+        r = tracker(self.p, "work", "tier", "architect", "--model", "sonnet", check=False)
+        self.assertNotEqual(r.returncode, 0)
+        self.assertIn("not written by HyperSkill", r.stderr + r.stdout)
+        tracker(self.p, "work", "tier", "architect", "--reset")
+        with open(self.agent_file("hs-architect"), encoding="utf-8") as f:
+            self.assertIn("mine", f.read())
+
+    def test_the_low_cost_preset_moves_the_expensive_tiers_to_sonnet_and_balanced_puts_it_all_back(self):
+        tracker(self.p, "work", "tier", "--preset", "economy")
+        tr = W.tiers({"work": {"seq": 0, "tasks": [], "policy": {}, "tiers": json.load(open(os.path.join(self.p, ".hyperskill", "state.json")))["work"]["tiers"]}})
+        self.assertEqual({tr[i]["model"] for i in ("builder", "builder-deep", "architect", "reviewer")}, {"sonnet"})
+        self.assertEqual((tr["scout"]["model"], tr["fixer"]["model"]), ("haiku", "haiku"))
+        self.assertTrue(os.path.exists(self.agent_file("hs-architect")))
+        tracker(self.p, "work", "tier", "--preset", "balanced")
+        self.assertFalse(os.path.isdir(self.agent_file("hs-architect")) or os.path.exists(self.agent_file("hs-architect")))
+        self.assertNotEqual(tracker(self.p, "work", "tier", "--preset", "free", check=False).returncode, 0)
+
+    def test_a_closed_pipe_cannot_lose_the_change(self):
+        import subprocess
+        from test_run import TRACKER
+        pr = subprocess.Popen([sys.executable, TRACKER, "--root", self.p, "work", "tier", "architect", "--model", "sonnet"], stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
+                              env=dict(os.environ, HOME=EMPTY_HOME))
+        pr.stdout.readline()
+        pr.stdout.close()
+        pr.wait()
+        self.assertEqual(frontmatter(self.agent_file("hs-architect"))["model"], "sonnet")
+        self.assertIn("changed for this project", tracker(self.p, "work", "tier").stdout, "the state agrees with the agent file")
+
+    def test_every_preset_uses_only_known_tiers_models_and_efforts(self):
+        for name, pr in W.models()["presets"].items():
+            for tid, o in pr["tiers"].items():
+                self.assertIn(tid, W.tiers(), name)
+                W.check_model(o["model"])
+                self.assertIn(o["effort"], W.EFFORTS)
+
+    def test_the_hook_still_starts_a_task_dispatched_to_a_project_agent(self):
+        import subprocess
+        tracker(self.p, "work", "tier", "architect", "--model", "sonnet")
+        tracker(self.p, "work", "add", "decide", "--kind", "design")
+        subprocess.run([sys.executable, os.path.join(SCRIPTS, "hs_hook.py"), "pre"], input=json.dumps({"cwd": self.p, "tool_name": "Agent",
+                       "tool_input": {"description": "T1: decide", "subagent_type": "hs-architect"}}), capture_output=True, text=True, env=dict(os.environ, HOME=EMPTY_HOME))
+        self.assertIn("running", tracker(self.p, "work", "list").stdout)
 
 
 if __name__ == "__main__":

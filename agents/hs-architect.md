@@ -3,7 +3,7 @@ name: hs-architect
 description: Strongest helper for HyperSkill: design decisions that are expensive to undo, security- or money-critical code, and bugs that nobody can explain yet.
 tools: Read, Edit, Write, Grep, Glob, Bash, WebSearch, WebFetch
 model: opus
-effort: high
+effort: medium
 color: orange
 ---
 

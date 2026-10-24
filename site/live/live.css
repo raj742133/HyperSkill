@@ -190,3 +190,4 @@ a.btn { display: inline-flex; align-items: center; text-decoration: none; }
 .wk-list li[data-s="running"] { border-color: var(--ok, #2f7d4f); } .wk-list li[data-s="done"] { opacity: .75; } .wk-list li[data-s="blocked"], .wk-list li[data-s="failed"] { border-color: var(--warn); }
 .wk-top { display: flex; flex-wrap: wrap; gap: 8px; align-items: baseline; } .wk-id { font: 700 12px var(--mono); } .wk-chip { font: 11px var(--mono); border: 1px solid var(--rule); border-radius: 999px; padding: 1px 8px; }
 .wk-why { color: var(--muted); font-size: .85rem; } .wk-paths { font: 11px var(--mono); color: var(--muted); overflow-wrap: anywhere; }
+.wk-sel { display: flex; gap: 6px; margin: 4px 0; } .wk-sel select { min-height: 34px; font-size: .8rem; padding: 0 6px; } .wk-tier .btn { min-height: 32px; font-size: .75rem; margin: 4px 0; } .wk-tier { max-width: 250px; }

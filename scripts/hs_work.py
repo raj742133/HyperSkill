@@ -19,6 +19,9 @@ OPEN = ("todo", "running", "failed", "blocked")
 MAX_TASKS = 60
 DEFAULT_POLICY = {"helpers": True, "parallel": 3, "bias": "balanced"}
 ID = re.compile(r"^T[0-9]{1,3}$")
+MODEL_ALIASES = ("fable", "opus", "sonnet", "haiku")
+EFFORTS = ("low", "medium", "high", "xhigh", "max")
+HEADER = "<!-- hyperskill-tier: written by `hyperskill.py work tier`; change it there, not here. -->"
 
 
 class WorkError(Exception):
@@ -30,8 +33,82 @@ def models():
         return json.load(f)
 
 
-def tiers():
-    return {t["id"]: t for t in models()["tiers"]}
+def tiers(st=None):
+    """Tier table. With a project's state, its own model and effort choices are laid over the shipped ones (`custom` marks those tiers)."""
+    out = {t["id"]: dict(t, custom=False) for t in models()["tiers"]}
+    for tid, o in ((work(st).get("tiers") or {}).items() if st is not None else []):
+        if tid in out and (o.get("model"), o.get("effort")) != (out[tid]["model"], out[tid]["effort"]):
+            out[tid].update(model=o["model"], effort=o["effort"], custom=True, default_model=out[tid]["model"], default_effort=out[tid]["effort"])
+    return out
+
+
+def check_model(value):
+    if value in MODEL_ALIASES or re.fullmatch(r"claude-[a-z0-9][a-z0-9.\-]{2,60}", str(value or "")):
+        return value
+    raise WorkError("model must be fable, opus, sonnet, haiku or a full model id such as claude-sonnet-5-5")
+
+
+def agent_name(st, tid):
+    """The agent to dispatch. A tier with a project choice is a project agent file (`hs-architect`); an untouched one is the plugin's (`hyperskill:hs-architect`)."""
+    t = tiers(st)[tid]
+    return t["agent"] if t["custom"] else "hyperskill:" + t["agent"]
+
+
+def set_tier(st, root, tid, model=None, effort=None, reset=False):
+    """Choose the model and effort for one tier in this project. Written as `.claude/agents/<agent>.md` so Claude Code really uses both."""
+    base = {t["id"]: t for t in models()["tiers"]}
+    if tid not in base:
+        raise WorkError("tier must be one of: " + ", ".join(base))
+    w = work(st)
+    w.setdefault("tiers", {})
+    if reset:
+        w["tiers"].pop(tid, None)
+    else:
+        model = check_model(model) if model else (w["tiers"].get(tid) or base[tid])["model"]
+        effort = effort or (w["tiers"].get(tid) or base[tid])["effort"]
+        if effort not in EFFORTS:
+            raise WorkError("effort must be one of: " + ", ".join(EFFORTS))
+        w["tiers"][tid] = {"model": model, "effort": effort}
+    sync_agents(st, root)
+    return tiers(st)[tid]
+
+
+def apply_preset(st, root, name):
+    presets = models()["presets"]
+    if name not in presets:
+        raise WorkError("preset must be one of: " + ", ".join(presets))
+    w = work(st)
+    w["tiers"] = {}
+    for tid, o in presets[name]["tiers"].items():
+        w["tiers"][tid] = {"model": check_model(o["model"]), "effort": o["effort"]}
+    w["preset"] = name
+    sync_agents(st, root)
+
+
+def sync_agents(st, root):
+    """Make `.claude/agents/` match the project's tier choices: a file for each changed tier, none for an untouched one."""
+    tr = tiers(st)
+    folder = os.path.join(root, ".claude", "agents")
+    for tid, t in tr.items():
+        path = os.path.join(folder, t["agent"] + ".md")
+        if t["custom"]:
+            with open(os.path.join(_HERE, "..", "agents", t["agent"] + ".md"), encoding="utf-8") as f:
+                text = f.read()
+            text = re.sub(r"(?m)^model: .*$", "model: " + t["model"], text, count=1)
+            text = re.sub(r"(?m)^effort: .*$", "effort: " + t["effort"], text, count=1)
+            text = text.replace("\n---\n", "\n---\n" + HEADER + "\n", 1)
+            if os.path.isfile(path):
+                with open(path, encoding="utf-8") as f:
+                    if HEADER not in f.read():
+                        raise WorkError("%s already exists and was not written by HyperSkill; move it first" % os.path.relpath(path, root))
+            os.makedirs(folder, exist_ok=True)
+            with open(path, "w", encoding="utf-8") as f:
+                f.write(text)
+        elif os.path.isfile(path):
+            with open(path, encoding="utf-8") as f:
+                mine = HEADER in f.read()
+            if mine:
+                os.remove(path)
 
 
 def work(st):
@@ -156,7 +233,7 @@ def _overlap(a, b):
 
 def plan(st, phase=None):
     """Waves of tasks that may run together: dependencies met, no two writers on the same paths, at most `parallel` at once."""
-    w, pol, tr = work(st), policy(st), tiers()
+    w, pol, tr = work(st), policy(st), tiers(st)
     tasks = [t for t in w["tasks"] if t["status"] in ("todo", "failed") and (phase is None or t["phase"] == phase)]
     done = {t["id"] for t in w["tasks"] if t["status"] in ("done", "dropped")}
     limit = pol["parallel"] if pol["helpers"] else 1
@@ -277,7 +354,7 @@ def tune(st, kind=None, score=None, plus=None, value=None, reset=False):
 
 def stats(st):
     """What actually happened, per tier: tasks finished, how many were right on the first try, how many were pushed up from a cheaper tier."""
-    tr, rows = tiers(), {}
+    tr, rows = tiers(st), {}
     for tid in tr:
         rows[tid] = {"tier": tid, "label": tr[tid]["label"], "done": 0, "first_try": 0, "failed": 0}
     for t in work(st)["tasks"]:
@@ -299,18 +376,18 @@ def stats(st):
     return list(rows.values()), advice
 
 
-def label(t):
-    tr = tiers()[t["tier"]]
+def label(t, table=None):
+    tr = (table or tiers())[t["tier"]]
     return "%s (%s, %s)" % (tr["label"], tr["model"], tr["effort"])
 
 
 def render_plan(st, phase=None):
     waves, left = plan(st, phase)
-    tr, lines = tiers(), []
+    tr, lines = tiers(st), []
     for i, wave in enumerate(waves, 1):
         lines.append("wave %d%s" % (i, "  (run these together, in one message)" if len(wave) > 1 else ""))
         for t in wave:
-            lines.append("  %-4s %-14s %-30s %s%s" % (t["id"], tr[t["tier"]]["agent"], label(t)[:30], t["title"], "  [%s]" % ",".join(t["paths"]) if t["paths"] else ""))
+            lines.append("  %-4s %-26s %-30s %s%s" % (t["id"], agent_name(st, t["tier"]), label(t, tr)[:30], t["title"], "  [%s]" % ",".join(t["paths"]) if t["paths"] else ""))
     for t in left:
         lines.append("  %-4s waiting on %s or a stuck dependency: %s" % (t["id"], ",".join(t["depends"]) or "?", t["title"]))
     if not lines:

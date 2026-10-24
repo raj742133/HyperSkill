@@ -128,7 +128,7 @@
       "id": "architect",
       "agent": "hs-architect",
       "model": "opus",
-      "effort": "high",
+      "effort": "medium",
       "writes": true,
       "label": "Architect",
       "use": "Decisions that are expensive to undo, security- or money-critical code, and bugs nobody can explain yet.",
@@ -142,7 +142,7 @@
       "id": "reviewer",
       "agent": "hs-reviewer",
       "model": "opus",
-      "effort": "high",
+      "effort": "medium",
       "writes": false,
       "label": "Reviewer",
       "use": "A fresh-context, read-only review of code someone else wrote.",
@@ -180,5 +180,53 @@
       "security",
       "money"
     ]
+  },
+  "presets": {
+    "balanced": {
+      "label": "Balanced (shipped defaults)",
+      "tiers": {}
+    },
+    "economy": {
+      "label": "Low cost",
+      "tiers": {
+        "architect": {
+          "model": "sonnet",
+          "effort": "high"
+        },
+        "reviewer": {
+          "model": "sonnet",
+          "effort": "medium"
+        },
+        "builder-deep": {
+          "model": "sonnet",
+          "effort": "medium"
+        },
+        "builder": {
+          "model": "sonnet",
+          "effort": "low"
+        }
+      }
+    },
+    "quality": {
+      "label": "Highest quality",
+      "tiers": {
+        "architect": {
+          "model": "opus",
+          "effort": "high"
+        },
+        "reviewer": {
+          "model": "opus",
+          "effort": "high"
+        },
+        "builder-deep": {
+          "model": "opus",
+          "effort": "medium"
+        },
+        "builder": {
+          "model": "sonnet",
+          "effort": "high"
+        }
+      }
+    }
   }
 }

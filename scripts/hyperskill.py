@@ -656,17 +656,19 @@ def cmd_work(args):
     st = load_state(args.root)
     a = args.action or "list"
     ph = st["current"]
+    lines = []
+    say = lambda text: lines.append(str(text))  # printed after the state is saved, so a closed pipe cannot lose the change
     try:
         if a == "add":
             if not ph:
                 die("the pipeline is complete.")
             t = workmod.add(st, ph, args.target, args.kind, args.paths, args.risk, args.unknown, args.depends, args.tier, args.why or "")
-            activity.append(args.root, "note", "Task %s for %s: %s" % (t["id"], workmod.label(t), t["title"]), task=t["id"])
-            print("%s -> %s: %s\n  because: %s" % (t["id"], workmod.label(t), t["title"], "; ".join(t["reasons"])))
+            activity.append(args.root, "note", "Task %s for %s: %s" % (t["id"], workmod.label(t, workmod.tiers(st)), t["title"]), task=t["id"])
+            say("%s -> %s: %s\n  because: %s" % (t["id"], workmod.label(t, workmod.tiers(st)), t["title"], "; ".join(t["reasons"])))
         elif a == "plan":
-            print(workmod.render_plan(st, ph))
+            say(workmod.render_plan(st, ph))
             pol = workmod.policy(st)
-            print("(up to %d at once; bias: %s; helpers %s)" % (pol["parallel"], pol["bias"], "on" if pol["helpers"] else "off: do the tasks yourself, one at a time"))
+            say("(up to %d at once; bias: %s; helpers %s)" % (pol["parallel"], pol["bias"], "on" if pol["helpers"] else "off: do the tasks yourself, one at a time"))
         elif a in ("start", "done", "fail", "drop"):
             tid = args.target or die("give the task id, e.g. T1")
             if a == "start":
@@ -678,28 +680,39 @@ def cmd_work(args):
             else:
                 t = workmod.drop(st, tid, args.why)
             activity.append(args.root, "note", "Task %s %s" % (t["id"], t["status"] if a != "fail" else "failed -> " + (t["tier"] if t["status"] == "todo" else "needs a person")), task=t["id"])
-            print("%s is %s%s" % (t["id"], t["status"], " (now %s)" % workmod.label(t) if a == "fail" and t["status"] == "todo" else ""))
+            say("%s is %s%s" % (t["id"], t["status"], " (now %s)" % workmod.label(t, workmod.tiers(st)) if a == "fail" and t["status"] == "todo" else ""))
+        elif a == "tier":
+            if args.preset:
+                workmod.apply_preset(st, args.root, args.preset)
+                say("preset %s applied" % args.preset)
+            elif args.target:
+                t = workmod.set_tier(st, args.root, args.target, args.model, args.effort, args.reset)
+                say("%s now uses %s, effort %s%s" % (t["label"], t["model"], t["effort"], " (this project's choice)" if t["custom"] else " (the shipped default)"))
+            for t in workmod.tiers(st).values():
+                say("  %-13s %-8s %-7s %s%s" % (t["label"], t["model"], t["effort"], workmod.agent_name(st, t["id"]), "  <- changed for this project" if t["custom"] else ""))
         elif a == "tune":
             r = workmod.tune(st, args.kind if args.score is not None else None, args.score, args.plus, args.value, args.reset)
-            print("scores: " + ", ".join("%s %d" % (k, v) for k, v in r["kinds"].items()) + " | add-ons: " + ", ".join("%s +%d" % (k, v) for k, v in r["plus"].items()))
+            say("scores: " + ", ".join("%s %d" % (k, v) for k, v in r["kinds"].items()) + " | add-ons: " + ", ".join("%s +%d" % (k, v) for k, v in r["plus"].items()))
         elif a == "stats":
             rows, advice = workmod.stats(st)
             for r in rows:
-                print("%-14s done %-3d right first time %-5s failed here %d" % (r["label"], r["done"], "-" if r["rate"] is None else "%d%%" % r["rate"], r["failed"]))
+                say("%-14s done %-3d right first time %-5s failed here %d" % (r["label"], r["done"], "-" if r["rate"] is None else "%d%%" % r["rate"], r["failed"]))
             for line in advice:
-                print("note: " + line)
+                say("note: " + line)
         elif a == "policy":
             pol = workmod.set_policy(st, {"on": True, "off": False}.get(args.helpers), args.parallel, args.bias)
-            print("helpers %s, up to %d at once, bias %s" % ("on" if pol["helpers"] else "off", pol["parallel"], pol["bias"]))
+            say("helpers %s, up to %d at once, bias %s" % ("on" if pol["helpers"] else "off", pol["parallel"], pol["bias"]))
         else:
-            tr = workmod.tiers()
+            tr = workmod.tiers(st)
             for t in workmod.work(st)["tasks"]:
-                print("%-4s %-8s %-30s %s%s" % (t["id"], t["status"], workmod.label(t)[:30], t["title"], "  -> " + t["result"] if t["result"] else ""))
+                say("%-4s %-8s %-30s %s%s" % (t["id"], t["status"], workmod.label(t, workmod.tiers(st))[:30], t["title"], "  -> " + t["result"] if t["result"] else ""))
             if not workmod.work(st)["tasks"]:
-                print("(no tasks: `work add \"title\" --kind build --paths src/a.js`; tiers: %s)" % ", ".join(tr))
+                say("(no tasks: `work add \"title\" --kind build --paths src/a.js`; tiers: %s)" % ", ".join(tr))
         save_state(args.root, st)
     except workmod.WorkError as exc:
         die(str(exc))
+    if lines:
+        print("\n".join(lines))
 
 
 def cmd_place(args):
@@ -1100,7 +1113,7 @@ def build_parser():
     p.set_defaults(fn=cmd_inputs)
 
     p = sub.add_parser("work", help="split a phase's work into tasks for helper agents: who does what, at which model and effort, what runs together")
-    p.add_argument("action", nargs="?", choices=("add", "plan", "start", "done", "fail", "drop", "list", "policy", "tune", "stats"))
+    p.add_argument("action", nargs="?", choices=("add", "plan", "start", "done", "fail", "drop", "list", "policy", "tune", "stats", "tier"))
     p.add_argument("target", nargs="?", help="a title (add) or a task id")
     p.add_argument("--kind", choices=workmod.KINDS, default="build")
     p.add_argument("--paths", default="", help="comma-separated project paths this task may change")
@@ -1110,6 +1123,9 @@ def build_parser():
     p.add_argument("--tier", help="override the suggested tier (needs --why)")
     p.add_argument("--why", default="")
     p.add_argument("--result", default="")
+    p.add_argument("--model", help="tier: fable, opus, sonnet, haiku or a full model id")
+    p.add_argument("--effort", choices=("low", "medium", "high", "xhigh", "max"), help="tier: effort level")
+    p.add_argument("--preset", help="tier: balanced, economy (low cost) or quality")
     p.add_argument("--score", type=int, help="tune: the kind's starting score, 0 to 6 (uses --kind)")
     p.add_argument("--plus", help="tune: an add-on to change (files_4_or_more, risk, unknown)")
     p.add_argument("--value", type=int)

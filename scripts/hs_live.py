@@ -123,6 +123,7 @@ def build_state(root, controls=False, runner=None, port=None):
         out.append({"id": p["id"], "title": p["title"], "skill": p["skill"], "status": rec["status"],
                     "done": sum(1 for i in counted if i["state"] != "open"), "total": len(counted), "items": items})
     rows, slots = integrations_state(root, st)
+    tier_tab = workmod.tiers(st)
     wave_of = {t["id"]: i for i, w in enumerate(workmod.plan(st, st["current"])[0], 1) for t in w}
     return {
         "mode": "live", "name": st["name"], "current": st["current"], "tenancy": st["tenancy"],
@@ -136,7 +137,8 @@ def build_state(root, controls=False, runner=None, port=None):
         "placements": cat_places(root, st),
         "inputs": inputs.listing(root),
         "models": models_state(st),
-        "work": {"tasks": [dict(t, label=workmod.label(t), agent=workmod.tiers()[t["tier"]]["agent"], wave=wave_of.get(t["id"])) for t in workmod.work(st)["tasks"]],
+        "work": {"tasks": [dict(t, label=workmod.label(t, tier_tab), agent=workmod.agent_name(st, t["tier"]), wave=wave_of.get(t["id"])) for t in workmod.work(st)["tasks"]],
+                 "tiers": list(tier_tab.values()), "presets": {k: v["label"] for k, v in workmod.models()["presets"].items()}, "preset": workmod.work(st).get("preset"),
                  "policy": workmod.policy(st), "stats": workmod.stats(st)[0], "advice": workmod.stats(st)[1], "tuned": workmod.rules(st) != workmod.models()["rules"], "open": len(workmod.open_tasks(st, st["current"])) if st["current"] else 0},
         "preview": {"targets": preview.targets(st), "found": preview.detect(port) if controls else []},
         "run": runner.state() if runner else {"allowed": False, "available": False, "running": False, "mode": None, "session": False, "last": None, "messages": []},
@@ -272,6 +274,21 @@ def perform(root, action, body, runner=None):
         if body.get("bias") in workmod.BIAS:
             argv += ["--bias", body["bias"]]
         return run_tracker(root, *argv)
+    if action == "work_tier":
+        tid = text_field(body, "tier", 20)
+        if body.get("reset") is True:
+            return run_tracker(root, "work", "tier", tid, "--reset")
+        argv = ["work", "tier", tid]
+        if isinstance(body.get("model"), str) and body["model"]:
+            argv += ["--model", body["model"]]
+        if body.get("effort") in hs_run.EFFORTS:
+            argv += ["--effort", body["effort"]]
+        return run_tracker(root, *argv)
+    if action == "work_preset":
+        name = text_field(body, "preset", 20)
+        if name not in workmod.models()["presets"]:
+            raise Refused("unknown preset")
+        return run_tracker(root, "work", "tier", "--preset", name)
     if action == "work_drop":
         tid = text_field(body, "id", 8)
         if not workmod.ID.match(tid):
