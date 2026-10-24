@@ -25,6 +25,8 @@
     <a href="#pipeline">Pipeline</a>
     <a href="#dashboard">Dashboard</a>
     <a href="#packs">Skill packs</a>
+    <a href="#styles">Styles</a>
+    <a href="#tour">Screens</a>
     <a href="#watch">Recording</a>
     <a href="#bench">Bench</a>
     <a href="#limits">Limits</a>
@@ -141,6 +143,7 @@
       <li><strong>Security audit</strong> <span>Cloudflare&rsquo;s audit workflow</span></li>
       <li><strong>Superpowers</strong>, <strong>Ponytail</strong>, <strong>SlopMonster</strong> <span>plans, TDD and review; smallest change; de-slopped copy</span></li>
       <li><strong>HyperFrames</strong>, <strong>Watch</strong>, <strong>Better Icons</strong> <span>video, video analysis, icons</span></li>
+      <li><strong>hs-watch</strong>, <strong>hs-convert</strong>, <strong>hs-logo</strong> <span>our own: read a video, convert a file, design and export a logo and icon set (bundled)</span></li>
       <li><strong>Hallmark</strong>, <strong>Humanizer</strong>, <strong>Diagram Design</strong> <span>anti-slop design rules and a linter; de-AI-ing prose; architecture and flow diagrams</span></li>
     </ul>
     <p class="fine">Skill text was read at README level when vetted, not audited line by line, so enabling a pack runs third-party instructions. Some need tools that are not bundled (ffmpeg, <code>npx hyperframes</code>, the <code>ocr</code> program). Licences and commits are in <code>packs/*/NOTICE.md</code>.</p>
@@ -164,6 +167,38 @@
       <li><video muted loop playsinline preload="none" poster="styles/bento-grid.webp" src="styles/bento-grid.mp4" aria-label="Bento Grid: a habit tracker designed in this style, hovering, switching and adding a habit"></video><strong>Bento Grid</strong> <span>tiles of different weight</span></li>
       <li><video muted loop playsinline preload="none" poster="styles/spatial-ui.webp" src="styles/spatial-ui.mp4" aria-label="Spatial UI: a habit tracker designed in this style, hovering, switching and adding a habit"></video><strong>Spatial UI</strong> <span>depth and large targets</span></li>
     </ul>
+  </section>
+
+  <section class="tour" id="tour" aria-labelledby="tour-h">
+    <div class="sec-head">
+      <p class="eyebrow">Everything, shown</p>
+      <h2 id="tour-h">The features, as they look when they run.</h2>
+      <p>Real screenshots from a demo project, taken in a real browser from the running dashboard and tools. Nothing here is a mock-up; where a picture is a recording or a terminal, it says so.</p>
+    </div>
+    <h3 class="tour-h">The dashboard</h3>
+    <div class="shots">
+      <figure class="shot"><img src="shots/dash-overview.webp" width="1100" height="868" loading="lazy" alt="The dashboard's first screen: the project name and tenancy, what Claude is doing right now, and the nine phases with the current one marked"><figcaption><strong>Right now and the nine phases.</strong> What is happening, in plain words, and where the project stands. Pause, instruct or advance from here.</figcaption></figure>
+      <figure class="shot"><img src="shots/dash-tampered.webp" width="1100" height="618" loading="lazy" alt="The dashboard after state.json was edited by hand: a banner says the state was changed outside HyperSkill and offers two buttons, keep my change or go back to the last good copy"><figcaption><strong>A tampered state is refused, not trusted.</strong> The state file is signed. Edit it outside HyperSkill and nothing is recorded or passed until a person chooses to keep the change or restore the last good copy.</figcaption></figure>
+      <figure class="shot tall"><img src="shots/dash-skillplan-new.webp" width="1100" height="1659" loading="lazy" alt="The skill plan for the Product phase: each line names a slot such as design-direction, logo-design or file-convert, whether it is core, situational or optional, which skill answers it, and buttons to mark it used or skip it"><figcaption><strong>The skill plan, per phase.</strong> Which skill each step uses, when and why. New slots <code>logo-design</code> and <code>file-convert</code> are answered by the bundled skills; anything that needs your OK says so.</figcaption></figure>
+    </div>
+    <h3 class="tour-h">Pick what to use</h3>
+    <div class="shots">
+      <figure class="shot"><img src="shots/picker-styles.webp" width="1100" height="930" loading="lazy" alt="The Popular visual styles group in the picker: ten cards, each with a recorded clip of a habit tracker built in that style, such as Skeuomorphism, Neumorphism and Glassmorphism, and one selected"><figcaption><strong>Ten styles, each one designed end to end.</strong> The same habit tracker in each style, so you see what a pick means. Hover a card to play it.</figcaption></figure>
+      <figure class="shot"><img src="shots/picker-lightbox.webp" width="760" height="788" loading="lazy" alt="The enlarged view of the Neumorphism card: the clip, buttons Try the live demo and Open in a new tab, the style's description and an Add to my picks button"><figcaption><strong>Enlarge a card.</strong> The large clip, what the style is for and its warning, and a button to try it.</figcaption></figure>
+      <figure class="shot"><img src="shots/picker-livedemo.webp" width="760" height="800" loading="lazy" alt="The live demo of the Glassmorphism style running inside the picker, with a habit just added and a toast saying Habit added"><figcaption><strong>Try it live, in a sandbox.</strong> A working page you can click: switch a habit, type a new one, add it. It runs in a sandbox with no network.</figcaption></figure>
+      <figure class="shot"><img src="shots/picker-sitewright.webp" width="1100" height="900" loading="lazy" alt="The picker's hero backgrounds group from Sitewright: cards with looping previews, each with a checkbox"><figcaption><strong>Sitewright's building blocks, with previews.</strong> Hero and sign-in backgrounds, headlines, buttons, cards and more, each playing on hover.</figcaption></figure>
+      <figure class="shot"><img src="shots/picker-figures.webp" width="1100" height="915" loading="lazy" alt="The picker's interactive line figures group: isometric drawings such as terrain, riffle and exploded, each with a see-it-live link"><figcaption><strong>Interactive figures.</strong> Small isometric drawings that answer the pointer, placed where they mean something.</figcaption></figure>
+      <figure class="shot"><img src="shots/picker-tells.webp" width="1100" height="915" loading="lazy" alt="The picker's group of vibe-coded design tells to avoid, each card showing an avoid-versus-instead picture"><figcaption><strong>Design tells to avoid.</strong> What makes a page look machine-made, with the better alternative beside it.</figcaption></figure>
+      <figure class="shot"><img src="shots/picker-selfhost.webp" width="1100" height="915" loading="lazy" alt="The picker's self-hosted building blocks group: GlitchTip, Gotify, Windmill, Vikunja and celld, each with its licence caveat and what done means"><figcaption><strong>Self-hosted building blocks.</strong> Services you can run yourself, as tracked checks, with the licence caveat written next to each.</figcaption></figure>
+    </div>
+    <h3 class="tour-h">Three skills written for this project</h3>
+    <div class="shots">
+      <figure class="shot"><img src="shots/watch-sheet.webp" width="1100" height="1243" loading="lazy" alt="A contact sheet of 24 frames from a recorded demo clip, one per detected moment, in a grid"><figcaption><strong>hs-watch: the contact sheet.</strong> A video becomes one picture of every moment, plus frames at each cut, the opening seconds, captions and a report with blanks Claude has to fill.</figcaption></figure>
+      <figure class="shot"><img src="shots/convert-terminal.webp" width="1100" height="1013" loading="lazy" alt="Terminal output of hs-convert: the tools it found, the plan for a conversion, a successful conversion, a refusal to overwrite and a refusal of an impossible route"><figcaption><strong>hs-convert: real output.</strong> It shows the command before running, never overwrites, and says plainly when there is no route or a tool is missing.</figcaption></figure>
+      <figure class="shot"><img src="shots/logo-sheet.webp" width="1100" height="1345" loading="lazy" alt="The hs-logo test sheet for a blue rounded square with the letter N: the size ladder from 256 down to 16 pixels, one colour, reversed, greyscale, on several backgrounds, blurred, mirrored, upside down, and in a browser tab, app icon and round avatar"><figcaption><strong>hs-logo: the test sheet.</strong> Where a mark breaks: small, in one colour, reversed, blurred. The black version of this one is a solid block, which is the point of the test.</figcaption></figure>
+      <figure class="shot"><img src="shots/logo-terminal.webp" width="1100" height="502" loading="lazy" alt="Terminal output of hs-logo: an audit of a bad SVG listing errors for a script, an external reference and an embedded raster, and warnings, then a clean audit and the kit it exported"><figcaption><strong>hs-logo: audit and kit.</strong> Errors and warnings in plain words, then the icon set and manifest.</figcaption></figure>
+      <figure class="shot wide"><img src="shots/logo-kit.webp" width="1100" height="189" loading="lazy" alt="The exported icons at their true proportions: favicon 16, 32 and 48 pixels, the 192 pixel icon, the Apple touch icon and the maskable icon"><figcaption><strong>hs-logo: the icon set.</strong> 16, 32 and 48 px favicons (also packed into favicon.ico), 192 and 512 px icons, the Apple touch icon, a maskable icon, the manifest and the head snippet.</figcaption></figure>
+    </div>
   </section>
 
   <section class="watch" id="watch" aria-labelledby="watch-h">

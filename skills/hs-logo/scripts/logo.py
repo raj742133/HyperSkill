@@ -324,12 +324,12 @@ h2{font-size:13px;letter-spacing:.06em;text-transform:uppercase;margin:0 0 12px;
 <h1>Logo test sheet</h1><p class="s">%(name)s. Look at each block for what disappears, merges or turns into something else.</p>
 <section><h2>Size ladder (real pixels)</h2><div class="row">%(ladder)s</div></section>
 <section><h2>One colour, reversed, grey</h2><div class="row">
-<div class="cell one"><div class="w"><img src="%(src)s" width="96" height="96">
+<div class="cell one"><div class="w"><img src="%(src)s" width="96" height="96"></div>black: does the shape survive?</div>
 <div class="cell rev"><div class="k"><img src="%(src)s" width="96" height="96"></div>white on black</div>
 <div class="cell gray"><div class="w"><img src="%(src)s" width="96" height="96"></div>greyscale</div></div></section>
 <section><h2>On backgrounds</h2><div class="row">
 <div class="cell"><div class="w"><img src="%(src)s" width="96" height="96"></div>white</div>
-<div class="cell"><div class="k"><img src="%(src)s" width="96" height="96">
+<div class="cell"><div class="k"><img src="%(src)s" width="96" height="96"></div>black</div>
 <div class="cell"><div class="b"><img src="%(src)s" width="96" height="96"></div>brand colour</div>
 <div class="cell"><div class="g"><img src="%(src)s" width="96" height="96"></div>mid grey</div>
 <div class="cell"><div class="y"><img src="%(src)s" width="96" height="96"></div>yellow</div></div></section>
