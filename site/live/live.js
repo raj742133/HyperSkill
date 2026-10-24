@@ -12,6 +12,7 @@
   let mode = "connecting";
   let replay = null;
   let timer = null;
+  let catalogData = null, pick = new Set(), dirty = false, activeGroup = null, kitSig = "", kitLimit = 80, editingExtra = null;
   let editingSkill = null; // { slot, kind: "use" | "skip", value }
   let editing = null; // { id, kind: "pass" | "waive", value } while a check's inline form is open
   const token = document.querySelector('meta[name="hs-token"]')?.content || "";
@@ -80,7 +81,7 @@
   let queued = false;
   const schedule = () => { if (!queued) { queued = true; requestAnimationFrame(() => { queued = false; drawAll(); }); } };
 
-  function drawAll() { drawFeed(); drawNow(); drawRail(); drawPanels(); drawControls(); }
+  function drawAll() { drawFeed(); drawNow(); drawRail(); drawPanels(); drawControls(); drawKit(); drawExtras(); }
 
   function drawFeed() {
     const list = $("feed");
@@ -281,6 +282,121 @@
     }
   }
 
+  /* ---------- the catalogue: pick what to use ---------- */
+  const CLUSTERS = [["Checks and scope", ["tells", "concepts", "fixes", "addons"]], ["Sitewright", ["sw-"]], ["Design systems (UI UX Pro Max)", ["uu-"]], ["Skills and figures", ["impeccable", "skills", "figures"]]];
+  const clusterOf = (id) => CLUSTERS.findIndex(([, ids]) => ids.some((p) => id === p || (p.endsWith("-") && id.startsWith(p))));
+
+  async function loadCatalog() {
+    try { const r = await fetch("/live/catalog.json", { cache: "no-store" }); if (r.ok) { catalogData = await r.json(); activeGroup = catalogData.groups[0].id; syncPick(); schedule(); } } catch (err) { /* the section just stays hidden */ }
+  }
+  function syncPick() { if (!dirty) pick = new Set((state.catalog && state.catalog.selected) || []); }
+  const savedSet = () => new Set((state.catalog && state.catalog.selected) || []);
+
+  function togglePick(it, g) {
+    if (!controlOn()) return;
+    if (pick.has(it.id)) pick.delete(it.id);
+    else { if (it.exclusive) for (const o of g.items) if (o.exclusive === it.exclusive) pick.delete(o.id); pick.add(it.id); }
+    dirty = true; drawKit();
+  }
+
+  function itemCard(it, g) {
+    const b = el("button", "kit-item"); b.type = "button"; b.setAttribute("aria-pressed", String(pick.has(it.id)));
+    if (it.exclusive) b.dataset.x = "1";
+    b.append(el("span", "box"), el("b", "", it.name));
+    if (it.swatch) { const sw = el("div", "sw"); for (const c of it.swatch) { const i = el("i"); if (/^#[0-9a-fA-F]{3,8}$/.test(c)) i.style.background = c; sw.append(i); } b.append(sw); }
+    if (it.desc) b.append(el("span", "d", short(it.desc, 190)));
+    const tags = el("span", "tags");
+    tags.append(el("span", "chip2 ph", it.phase));
+    for (const t of (it.tags || []).slice(0, 2)) tags.append(el("span", "chip2", short(t, 40)));
+    if (it.mode === "track") tags.append(el("span", "chip2", "becomes a check"));
+    if (it.link) { const a = el("a", "", "see it live"); a.href = it.link; a.target = "_blank"; a.rel = "noopener noreferrer"; a.addEventListener("click", (e) => e.stopPropagation()); tags.append(a); }
+    b.append(tags);
+    b.addEventListener("click", () => togglePick(it, g));
+    return b;
+  }
+
+  function drawKit() {
+    const box = $("kit");
+    box.hidden = !(catalogData && mode === "live");
+    if (box.hidden) return;
+    syncPick();
+    const on = controlOn(), saved = savedSet();
+    const g = catalogData.groups.find((x) => x.id === activeGroup) || catalogData.groups[0];
+    const q = $("kit-search").value.trim().toLowerCase();
+    const sig = [g.id, q, kitLimit, [...pick].sort().join("|"), [...saved].sort().join("|"), on].join("#");
+    const changes = [...pick].filter((i) => !saved.has(i)).length + [...saved].filter((i) => !pick.has(i)).length;
+    $("kit-count").textContent = `· ${pick.size} picked`;
+    $("kit-status").textContent = changes ? `${changes} unsaved change${changes === 1 ? "" : "s"}` : (on ? "Nothing unsaved" : "Read-only: start the dashboard with controls to pick");
+    $("kit-save").disabled = !on || !changes; $("kit-discard").disabled = !changes;
+    if (sig === kitSig) return;
+    kitSig = sig;
+    const nav = $("kit-nav"); nav.replaceChildren();
+    CLUSTERS.forEach(([title], ci) => {
+      const gs = catalogData.groups.filter((x) => clusterOf(x.id) === ci); if (!gs.length) return;
+      nav.append(el("h4", "", title));
+      for (const x of gs) {
+        const b = el("button"); b.type = "button"; if (x.id === g.id) b.setAttribute("aria-current", "true");
+        const n = x.items.filter((i) => pick.has(i.id)).length;
+        b.append(el("span", "", x.title.replace(/^(Sitewright|UI UX Pro Max|Impeccable|Hyperfigure): /, "")), el("span", "n" + (n ? " on" : ""), n ? `${n}/${x.items.length}` : String(x.items.length)));
+        b.addEventListener("click", () => { activeGroup = x.id; kitLimit = 80; $("kit-search").value = ""; kitSig = ""; drawKit(); });
+        nav.append(b);
+      }
+    });
+    $("kit-title").textContent = g.title; $("kit-blurb").textContent = g.blurb;
+    $("kit-rec").hidden = !g.items.some((i) => i.rec) || g.exclusive; $("kit-clear").disabled = !on;
+    const rows = g.items.filter((i) => !q || (i.name + " " + i.desc + " " + (i.sub || "") + " " + (i.tags || []).join(" ")).toLowerCase().includes(q));
+    const list = $("kit-list"); list.replaceChildren();
+    let last = null, shown = 0;
+    for (const it of rows) {
+      if (shown >= kitLimit) break;
+      if (it.sub && it.sub !== last) { list.append(el("p", "kit-sub", it.sub)); last = it.sub; }
+      list.append(itemCard(it, g)); shown++;
+    }
+    if (!rows.length) list.append(el("p", "sub", "Nothing matches."));
+    const more = $("kit-more"); more.hidden = rows.length <= shown;
+    more.textContent = rows.length > shown ? `Showing ${shown} of ${rows.length}. Search to narrow, or ` : "";
+    if (rows.length > shown) { const b = el("button", "chip", "show more"); b.type = "button"; b.addEventListener("click", () => { kitLimit += 120; kitSig = ""; drawKit(); }); more.append(b); }
+  }
+
+  function drawExtras() {
+    const ex = state.extras || [];
+    $("xt").hidden = !(ex.length && mode === "live");
+    if ($("xt").hidden) return;
+    const open = ex.filter((e) => e.state === "open").length;
+    $("xt-count").textContent = `· ${open} open of ${ex.length}`;
+    const list = $("xt-list"); list.replaceChildren();
+    const order = state.phases.map((p) => p.id);
+    for (const e of [...ex].sort((a, b) => order.indexOf(a.phase) - order.indexOf(b.phase) || (a.state === "open" ? -1 : 1))) {
+      const li = el("li"); const head = el("div", "xt-head");
+      const st = el("span", "xt-st", e.state); st.dataset.s = e.state;
+      head.append(st, el("b", "", e.name), el("span", "chip2 ph", e.phase), el("span", "sub", e.group));
+      li.append(head, el("p", "sp-why", e.text));
+      if (e.state !== "open") li.append(el("p", "sp-dec", e.evidence || e.reason || ""));
+      if (e.state === "open" && controlOn()) {
+        const btns = el("div", "sp-btns");
+        for (const kind of ["done", "waive"]) { const b = el("button", "", kind === "done" ? "Mark done…" : "Waive…"); b.type = "button"; b.addEventListener("click", () => { editingExtra = { id: e.id, kind, value: "" }; drawExtras(); const f = document.getElementById("xt-input"); if (f) f.focus(); }); btns.append(b); }
+        li.append(btns);
+        if (editingExtra && editingExtra.id === e.id) {
+          const form = el("form", "item-form"); const input = el("input"); input.id = "xt-input"; input.maxLength = 500; input.required = true; input.value = editingExtra.value;
+          input.placeholder = editingExtra.kind === "done" ? "Evidence: what you ran or saw" : "Reason for waiving"; input.setAttribute("aria-label", input.placeholder);
+          input.addEventListener("input", () => { editingExtra.value = input.value; });
+          const go = el("button", "btn", "Save"); go.type = "submit"; form.append(input, go);
+          form.addEventListener("submit", async (ev) => { ev.preventDefault(); const ok = await api(editingExtra.kind === "done" ? "extra_done" : "extra_waive", editingExtra.kind === "done" ? { id: e.id, evidence: input.value } : { id: e.id, reason: input.value }); if (ok) editingExtra = null; drawExtras(); });
+          li.append(form);
+        }
+      }
+      list.append(li);
+    }
+  }
+
+  function wireKit() {
+    $("kit-search").addEventListener("input", () => { kitLimit = 80; kitSig = ""; drawKit(); });
+    $("kit-rec").addEventListener("click", () => { const g = catalogData.groups.find((x) => x.id === activeGroup); for (const i of g.items) if (i.rec) pick.add(i.id); dirty = true; drawKit(); });
+    $("kit-clear").addEventListener("click", () => { const g = catalogData.groups.find((x) => x.id === activeGroup); for (const i of g.items) pick.delete(i.id); dirty = true; drawKit(); });
+    $("kit-discard").addEventListener("click", () => { dirty = false; syncPick(); kitSig = ""; drawKit(); });
+    $("kit-save").addEventListener("click", async () => { if (await api("catalog_apply", { ids: [...pick], tell_claude: true })) { dirty = false; kitSig = ""; } drawKit(); });
+  }
+
   function wireControls() {
     $("c-pause").addEventListener("click", () => api(state.control && state.control.paused ? "resume" : "pause"));
     $("c-advance").addEventListener("click", () => { if (window.confirm("Move to the next phase? The tracker refuses it while checks are open.")) api("advance"); });
@@ -316,7 +432,7 @@
   function startLive() {
     setMode("live");
     $("foot").textContent = controlOn() ? "Controls act on this project only, through the same tracker commands a person would type. Nothing leaves this computer." : "Read-only view of this project's .hyperskill/activity.jsonl. It never leaves this computer.";
-    wireControls();
+    wireControls(); wireKit(); loadCatalog();
     const es = new EventSource("/live/events");
     es.onopen = () => setMode("live");
     es.onerror = () => setMode("offline", "Reconnecting");

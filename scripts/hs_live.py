@@ -25,6 +25,7 @@ import webbrowser
 _HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, _HERE)
 import hs_activity as activity  # noqa: E402
+import hs_catalog as cat  # noqa: E402
 import hs_control as control  # noqa: E402
 import hs_skills as skills  # noqa: E402
 import hyperskill as core  # noqa: E402
@@ -39,6 +40,7 @@ STATIC = {  # the only files this server will ever send
     "/live/live.css": (LIVE_DIR, "live.css", "text/css; charset=utf-8"),
     "/live/live.js": (LIVE_DIR, "live.js", "text/javascript; charset=utf-8"),
     "/favicon.svg": (SITE_DIR, "favicon.svg", "image/svg+xml"),
+    "/live/catalog.json": (os.path.normpath(os.path.join(_HERE, "..", "skills", "hyperskill")), "catalog.json", "application/json"),
 }
 CSP = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
 RECENT = 300  # events sent to a browser that has just connected
@@ -104,6 +106,8 @@ def build_state(root, controls=False):
         "unavailable": st["unavailable"], "commercial": st["commercial"], "phases": out,
         "decisions": [{"n": d["n"], "title": d["title"], "choice": activity.redact(d["choice"], 200)} for d in st["decisions"]],
         "integrations": rows, "slots": slots,
+        "catalog": {"selected": cat.selected(st)},
+        "extras": [dict(e, id=i) for i, e in st.get("extras", {}).items()],
         "skillplan": skills.plan(core, root, st, st["current"], installed_names(root)) if st["current"] else [],
         "control": {"enabled": controls, "paused": control.is_paused(root), "pending": len(control.pending(root)), "inbox": control.recent(root)},
     }
@@ -184,6 +188,22 @@ def perform(root, action, body):
         if action == "skill_use" and isinstance(prov, str) and ID.fullmatch(prov) and prov in reg["providers"]:
             argv += ["--provider", prov]
         return run_tracker(root, *argv)
+    if action == "catalog_apply":
+        ids = body.get("ids")
+        if not isinstance(ids, list) or len(ids) > 1000 or not all(isinstance(i, str) and re.fullmatch(r"[a-z0-9][a-z0-9_/-]{0,120}", i) for i in ids):
+            raise Refused("ids must be a list of catalogue ids")
+        res = run_tracker(root, "catalog", "set", *ids)
+        if res["ok"] and body.get("tell_claude") is True:
+            control.push(root, "The user changed what to use in the dashboard (%d items picked). Run `hyperskill.py catalog brief` and follow it, "
+                               "and close the selected checks with `hyperskill.py extras`." % len(ids))
+        return res
+    if action in ("extra_done", "extra_waive"):
+        eid = text_field(body, "id", 130)
+        if not re.fullmatch(r"[a-z0-9][a-z0-9_/-]{0,120}", eid) or eid not in core.load_state(root).get("extras", {}):
+            raise Refused("unknown selected check")
+        if action == "extra_done":
+            return run_tracker(root, "extras", "done", eid, "--evidence", text_field(body, "evidence"))
+        return run_tracker(root, "extras", "waive", eid, "--reason", text_field(body, "reason"))
     if action in ("enable", "disable"):
         pid = text_field(body, "id", 64)
         if not ID.fullmatch(pid) or pid not in reg["providers"]:

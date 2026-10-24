@@ -21,6 +21,9 @@ Usage:
   hyperskill.py log TEXT
   hyperskill.py event TEXT [--kind building|testing|reviewing|waiting|done]
                                                     tell the live view what is happening right now
+  hyperskill.py catalog [list|select|unselect|brief|sitewright] [IDS] [--group G --all|--recommended]
+                                                    pick what to use (Sitewright parts, styles, checks, add-ons); the picks reach the build
+  hyperskill.py extras [list|done ID --evidence T|waive ID --reason T]   the checks that came from your picks
   hyperskill.py skills [list] [--phase P] [--json]  what each phase should use, when and why (the skill plan)
   hyperskill.py skills pull ID [--why T] [--user-approved]   install a bundled skill for this phase (opt-in ones need the user's yes)
   hyperskill.py skills use|skip SLOT --why TEXT     record the decision for the phase;  skills release [PHASE]
@@ -52,6 +55,7 @@ sys.path.insert(0, _HERE)
 import hs_activity as activity  # noqa: E402  (shared with the plugin hook and the live dashboard)
 import hs_control as control  # noqa: E402
 import hs_skills as skills  # noqa: E402
+import hs_catalog as cat  # noqa: E402
 GATES_PATH = os.path.join(_HERE, "..", "skills", "hyperskill", "gates.json")
 INTEGRATIONS_PATH = os.path.join(_HERE, "..", "skills", "hyperskill", "integrations.json")
 
@@ -352,6 +356,12 @@ def cmd_advance(args):
         activity.append(args.root, "refused", "Cannot leave %s: %d check%s still open" % (cur["id"], len(open_ids), "" if len(open_ids) == 1 else "s"),
                         phase=cur["id"], open=",".join(open_ids))
         die("gate not clear for '%s'. Open items: %s" % (cur["id"], ", ".join(open_ids)))
+    open_x = cat.open_extras(st, cur["id"])
+    if open_x:
+        activity.append(args.root, "refused", "Cannot leave %s: %d selected check%s still open" % (cur["id"], len(open_x), "" if len(open_x) == 1 else "s"),
+                        phase=cur["id"], open=",".join(i for i, _ in open_x))
+        die("selected checks still open in '%s': %s. Close each with `extras done ID --evidence ...` or `extras waive ID --reason ...` "
+            "(the user picked them in the catalogue)." % (cur["id"], ", ".join(i for i, _ in open_x)))
     undecided = skills.undecided_core(sys.modules[__name__], args.root, st, cur["id"])
     if undecided:
         print("note: skills not decided in %s: %s (hyperskill.py skills %s)" % (cur["id"], ", ".join(undecided), cur["id"]))
@@ -375,6 +385,9 @@ def cmd_advance(args):
         if gone:
             print("released at the end of %s: %s" % (cur["id"], ", ".join(gone)))
         print(skills.render(ids[idx], skills.plan(me, args.root, st, ids[idx]), short=True))
+        picked = cat.brief(me, args.root, st, ids[idx])
+        if picked:
+            print(picked)
     save_state(args.root, st)
 
 
@@ -493,6 +506,83 @@ def cmd_skills(args):
         gone = skills.release(me, args.root, st, phase)
         save_state(args.root, st)
         print("released: %s" % (", ".join(gone) or "(nothing was pulled for this phase)"))
+
+
+def cmd_catalog(args):
+    me = sys.modules[__name__]
+    st = load_state(args.root)
+    data, items = cat.catalog()
+    action = args.action or "list"
+    chosen = set(cat.selected(st))
+    if action == "list":
+        if args.group:
+            g = next((x for x in data["groups"] if x["id"] == args.group), None)
+            if not g:
+                die("unknown group. Valid: %s" % ", ".join(x["id"] for x in data["groups"]))
+            if args.json:
+                print(json.dumps([dict(i, selected=i["id"] in chosen) for i in g["items"]], indent=1))
+                return
+            for i in g["items"]:
+                print("[%s] %-44s %-10s %s" % ("x" if i["id"] in chosen else " ", i["id"], i["phase"], i["name"]))
+            return
+        print("%-14s %5s %4s  %s" % ("group", "items", "picked", "title"))
+        for g in data["groups"]:
+            n = sum(1 for i in g["items"] if i["id"] in chosen)
+            print("%-14s %5d %6d  %s" % (g["id"], len(g["items"]), n, g["title"]))
+        return
+    if action == "set":
+        added, removed = cat.apply(me, args.root, st, set(args.ids))
+        save_state(args.root, st)
+        print("%d picked (%d added, %d removed)" % (len(args.ids), added, removed))
+        return
+    if action in ("select", "unselect"):
+        ids = set(args.ids)
+        if args.group:
+            g = next((x for x in data["groups"] if x["id"] == args.group), None)
+            if not g:
+                die("unknown group.")
+            pool = [i["id"] for i in g["items"] if (i.get("rec") if args.recommended else True)]
+            if args.recommended and action == "select" or args.all:
+                ids |= set(pool)
+        new = (chosen | ids) if action == "select" else (chosen - ids)
+        if action == "select":  # picking an alternative replaces the one picked before in the same exclusive set
+            for i in ids:
+                ex = items.get(i, {}).get("exclusive")
+                if ex:
+                    new -= {o for o in chosen if o != i and items.get(o, {}).get("exclusive") == ex}
+        added, removed = cat.apply(me, args.root, st, new)
+        save_state(args.root, st)
+        print("%d picked (%d added, %d removed)" % (len(new), added, removed))
+        return
+    if action == "brief":
+        phase = args.phase or st["current"]
+        print(cat.brief(me, args.root, st, phase) or "(nothing picked for this phase)")
+        return
+    if action == "sitewright":
+        print(json.dumps(cat.sitewright_config(st), indent=2, ensure_ascii=False))
+
+
+def cmd_extras(args):
+    me = sys.modules[__name__]
+    st = load_state(args.root)
+    action = args.action or "list"
+    if action == "list":
+        phase = args.phase
+        rows = [(i, e) for i, e in st.get("extras", {}).items() if not phase or e["phase"] == phase]
+        if args.json:
+            print(json.dumps([dict(e, id=i) for i, e in rows], indent=1))
+            return
+        for i, e in rows:
+            tag = {"done": "[x]", "waived": "[~]"}.get(e["state"], "[ ]")
+            print("%s %-9s %-34s %s" % (tag, e["phase"], i, e["text"][:90]))
+        if not rows:
+            print("(no selected checks)")
+        return
+    if not args.target:
+        die("give the check id.")
+    cat.finish(me, args.root, st, args.target, "done" if action == "done" else "waived", args.evidence if action == "done" else args.reason)
+    save_state(args.root, st)
+    print("%s %s" % (args.target, "done" if action == "done" else "waived"))
 
 
 def cmd_pause(args):
@@ -772,6 +862,25 @@ def build_parser():
     p.add_argument("text")
     p.add_argument("--kind", choices=KINDS, default="building")
     p.set_defaults(fn=cmd_event)
+
+    p = sub.add_parser("catalog", help="what you can pick from (Sitewright parts, styles, checks, add-ons ...) and what you picked")
+    p.add_argument("action", nargs="?", choices=["list", "select", "unselect", "set", "brief", "sitewright"])
+    p.add_argument("ids", nargs="*", help="select|unselect: item ids such as concepts/rate-limiting")
+    p.add_argument("--group")
+    p.add_argument("--all", action="store_true", help="with --group: every item of the group")
+    p.add_argument("--recommended", action="store_true", help="with --group: the recommended items of the group")
+    p.add_argument("--phase")
+    p.add_argument("--json", action="store_true")
+    p.set_defaults(fn=cmd_catalog)
+
+    p = sub.add_parser("extras", help="the checks that came from your selection")
+    p.add_argument("action", nargs="?", choices=["list", "done", "waive"])
+    p.add_argument("target", nargs="?")
+    p.add_argument("--phase")
+    p.add_argument("--evidence")
+    p.add_argument("--reason")
+    p.add_argument("--json", action="store_true")
+    p.set_defaults(fn=cmd_extras)
 
     p = sub.add_parser("skills", help="which skill each phase should use, when and why; pull one, record the decision")
     p.add_argument("action", nargs="?", choices=["list", "pull", "use", "skip", "release"])

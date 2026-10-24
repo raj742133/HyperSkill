@@ -68,6 +68,38 @@
     <ol id="sp-list" class="sp-list"></ol>
   </section>
 
+  <section id="xt" class="integ" aria-labelledby="xt-h" hidden>
+    <h2 id="xt-h" class="eyebrow">Checks from your picks <span id="xt-count" class="count"></span></h2>
+    <p class="sub">Each thing you picked below that needs doing is a check. Claude closes it with evidence, or you waive it with a reason; a phase cannot end while one of its checks is open.</p>
+    <ul id="xt-list" class="xt-list"></ul>
+  </section>
+
+  <section id="kit" class="kit" aria-labelledby="kit-h" hidden>
+    <h2 id="kit-h" class="eyebrow">Pick what to use <span id="kit-count" class="count"></span></h2>
+    <p class="sub">Everything the bundled skills and checklists offer, in one place. Tick what this project should use; Claude builds with exactly that and treats the checks as work to finish.</p>
+    <div class="kit-body">
+      <nav id="kit-nav" class="kit-nav" aria-label="Catalogue groups"></nav>
+      <div class="kit-main">
+        <div class="kit-head">
+          <h3 id="kit-title" class="kit-title"></h3>
+          <p id="kit-blurb" class="sub"></p>
+          <div class="kit-tools">
+            <input id="kit-search" type="search" placeholder="Search this group" aria-label="Search this group">
+            <button type="button" id="kit-rec" class="btn" hidden>Select recommended</button>
+            <button type="button" id="kit-clear" class="btn">Clear group</button>
+          </div>
+        </div>
+        <div id="kit-list" class="kit-list"></div>
+        <p id="kit-more" class="sub" hidden></p>
+      </div>
+    </div>
+    <div class="kit-bar" id="kit-bar">
+      <span id="kit-status" role="status" aria-live="polite"></span>
+      <button type="button" id="kit-discard" class="btn" disabled>Discard changes</button>
+      <button type="button" id="kit-save" class="btn go" disabled>Save and tell Claude</button>
+    </div>
+  </section>
+
   <section id="integ" class="integ" aria-labelledby="i-h" hidden>
     <h2 id="i-h" class="eyebrow">Skills and integrations <span id="i-count" class="count"></span></h2>
     <p id="i-slots" class="sub"></p>

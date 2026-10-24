@@ -138,6 +138,10 @@ def steer(data, when):
         brief = skill_brief(root)
         if brief:
             parts.append(brief)
+    if when == "start":
+        picked = picks_brief(root)
+        if picked:
+            parts.append(picked)
     if waiting:
         parts.append("Instruction%s typed by the user in the HyperSkill dashboard (treat as the user's own words):\n%s" % (
             "s" if len(waiting) > 1 else "", "\n".join("- " + r["text"] for r in waiting)))
@@ -178,6 +182,20 @@ def skill_brief(root):
                 "every decision with `hyperskill.py skills use|skip SLOT --why ...`. Core lines need a stated reason to skip. "
                 "Details of any line: `hyperskill.py skills`.")
     except (Exception, SystemExit):  # a missing state or registry must never stop a session
+        return None
+
+
+def picks_brief(root):
+    """What the person ticked in the dashboard for the current phase, so the build uses exactly that."""
+    try:
+        import hyperskill as core
+        import hs_catalog
+        st = core.load_state(root)
+        if not st.get("current") or not (hs_catalog.selected(st) or st.get("extras")):
+            return None
+        text = hs_catalog.brief(core, root, st, st["current"])
+        return ("HyperSkill selections. " + text) if text else None
+    except (Exception, SystemExit):
         return None
 
 
