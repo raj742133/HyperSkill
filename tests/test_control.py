@@ -77,7 +77,7 @@ class EnableInstallsTests(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.p = self.tmp.name
-        tracker(self.p, "init", "--name", "demo")
+        tracker(self.p, "init", "--name", "demo", "--no-karpathy")
 
     def tearDown(self):
         self.tmp.cleanup()
@@ -215,9 +215,9 @@ class AutoStartTests(unittest.TestCase):
 
     def test_it_can_be_turned_off_per_project_or_per_shell(self):
         tracker(self.p, "config", "--autolive", "off")
-        self.assertEqual(self.start(), (0, None))
+        self.assertNotIn("running at", json.dumps(self.start()[1]))
         tracker(self.p, "config", "--autolive", "on")
-        self.assertEqual(self.start({"HYPERSKILL_NO_LIVE": "1"}), (0, None))
+        self.assertNotIn("running at", json.dumps(self.start({"HYPERSKILL_NO_LIVE": "1"})[1]))
         self.assertFalse(os.path.exists(os.path.join(self.p, ".hyperskill", "live.json")))
 
     def test_it_does_nothing_outside_a_project(self):
@@ -231,6 +231,38 @@ class AutoStartTests(unittest.TestCase):
             json.dump({"pid": 999999, "port": 4777}, f)
         self.assertIsNone(hs_live.read_live(self.p))
         self.assertFalse(os.path.exists(os.path.join(self.p, ".hyperskill", "live.json")))
+
+
+class CodingRulesTests(unittest.TestCase):
+    def start(self, root):
+        r = subprocess.run([sys.executable, HOOK, "start"], input=json.dumps({"cwd": root}), capture_output=True, text=True,
+                           env=dict(os.environ, HYPERSKILL_NO_LIVE="1"))
+        return json.loads(r.stdout)["hookSpecificOutput"]["additionalContext"] if r.stdout.strip() else ""
+
+    def test_init_switches_the_karpathy_rules_on_and_every_session_start_reads_them(self):
+        with tempfile.TemporaryDirectory() as p:
+            out = tracker(p, "init", "--name", "demo").stdout
+            self.assertIn("coding rules on", out)
+            self.assertTrue(os.path.isfile(os.path.join(p, ".claude", "skills", "karpathy-guidelines", "SKILL.md")))
+            ctx = self.start(p)
+            for rule in ("Think Before Coding", "Simplicity First", "Surgical Changes", "Goal-Driven Execution"):
+                self.assertIn(rule, ctx)
+            self.assertNotIn("name: karpathy-guidelines", ctx, "the skill's front matter is not part of the reminder")
+
+    def test_it_can_be_declined_at_init_or_switched_off_later(self):
+        with tempfile.TemporaryDirectory() as p:
+            tracker(p, "init", "--name", "demo", "--no-karpathy")
+            self.assertEqual(self.start(p), "")
+            self.assertFalse(os.path.exists(os.path.join(p, ".claude", "skills", "karpathy-guidelines")))
+        with tempfile.TemporaryDirectory() as p:
+            tracker(p, "init", "--name", "demo")
+            tracker(p, "integrations", "disable", "karpathy-skills")
+            self.assertEqual(self.start(p), "")
+            self.assertFalse(os.path.exists(os.path.join(p, ".claude", "skills", "karpathy-guidelines")))
+
+    def test_the_reviewer_agent_checks_diff_discipline(self):
+        with open(os.path.join(ROOT, "agents", "hs-reviewer.md"), encoding="utf-8") as f:
+            self.assertIn("Diff discipline", f.read())
 
 
 class ControlApiTests(unittest.TestCase):

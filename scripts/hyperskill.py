@@ -6,7 +6,7 @@ resume. A phase may only be advanced once every gate item is either passed
 (with evidence) or waived (with a reason). Standard library only.
 
 Usage:
-  hyperskill.py init [--name NAME] [--force] [--noncommercial] [--tenancy organization|user|none] [--unavailable LIST]
+  hyperskill.py init [--name NAME] [--force] [--no-karpathy] [--noncommercial] [--tenancy organization|user|none] [--unavailable LIST]
   hyperskill.py config [--tenancy T] [--unavailable LIST|none]   change tenancy / what this environment lacks
   hyperskill.py status [--json]
   hyperskill.py gate PHASE                          show gate items and their state
@@ -181,12 +181,17 @@ def cmd_init(args):
         "log": [],
     }
     st["phases"][phases[0]["id"]]["status"] = "active"
+    if not args.no_karpathy:  # the coding rules are tiny (one 3 KB skill) and are meant to be always on, so they are the one default
+        st["integrations"]["enabled"].append(DEFAULT_ON)
+        install_pack(args.root, st, DEFAULT_ON)
     save_state(args.root, st)
     activity.append(args.root, "init", "Started %s: %s, tenancy %s" % (st["name"], "commercial" if st["commercial"] else "non-commercial", st["tenancy"]),
                     phase=st["current"], unavailable=",".join(st["unavailable"]) or None)
     print("initialised %s (%s, tenancy: %s%s); current phase: %s"
           % (st["name"], "commercial" if st["commercial"] else "non-commercial", st["tenancy"],
              ", unavailable: " + ",".join(st["unavailable"]) if st["unavailable"] else "", st["current"]))
+    if not args.no_karpathy:
+        print("coding rules on: Karpathy guidelines installed and read at every session start (turn off: integrations disable %s)" % DEFAULT_ON)
 
 
 def cmd_config(args):
@@ -464,6 +469,7 @@ def load_integrations():
         return json.load(f)
 
 
+DEFAULT_ON = "karpathy-skills"
 PACKS_DIR = os.path.normpath(os.path.join(_HERE, "..", "packs"))
 
 
@@ -665,6 +671,7 @@ def build_parser():
     p = sub.add_parser("init")
     p.add_argument("--name")
     p.add_argument("--force", action="store_true")
+    p.add_argument("--no-karpathy", dest="no_karpathy", action="store_true", help="do not switch on the bundled Karpathy coding guidelines")
     p.add_argument("--noncommercial", action="store_true", help="project is not commercial (unlocks noncommercial-licence tools)")
     p.add_argument("--tenancy", choices=TENANCIES, help="who owns data: organization (default), user, or none")
     p.add_argument("--unavailable", help="comma list of what this environment lacks: host,provider,device,human")

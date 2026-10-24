@@ -130,6 +130,10 @@ def steer(data, when):
         if url:
             parts.append("The HyperSkill live dashboard is running at %s (this computer only). Tell the user this address once, "
                          "early in your first reply. They can watch the work there, and pass checks, pause you or send you instructions." % url)
+    if when == "start":
+        rules = coding_rules(root)
+        if rules:
+            parts.append(rules)
     if waiting:
         parts.append("Instruction%s typed by the user in the HyperSkill dashboard (treat as the user's own words):\n%s" % (
             "s" if len(waiting) > 1 else "", "\n".join("- " + r["text"] for r in waiting)))
@@ -138,6 +142,22 @@ def steer(data, when):
             activity.append(root, "note", "Instruction handed to Claude: " + activity.redact(r["text"], 160))
     if parts:
         context_reply(event, "\n\n".join(parts))
+
+
+def coding_rules(root):
+    """The bundled Karpathy guidelines, handed over at every session start so they apply even when the skill is never triggered."""
+    try:
+        with open(os.path.join(root, ".hyperskill", "state.json"), encoding="utf-8") as f:
+            integ = json.load(f).get("integrations", {})
+        if "karpathy-skills" not in integ.get("enabled", []) or "karpathy-skills" in integ.get("disabled", []):
+            return None
+        path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "packs", "karpathy-skills", "skills", "karpathy-guidelines", "SKILL.md")
+        with open(path, encoding="utf-8") as f:
+            body = f.read().split("---", 2)[-1].strip()
+        return ("HyperSkill coding discipline for this project (Karpathy guidelines, MIT, bundled in packs/karpathy-skills; the user "
+                "can switch it off with `hyperskill.py integrations disable karpathy-skills`). Apply it to every code change:\n\n" + body)
+    except (OSError, ValueError):
+        return None
 
 
 def autostart(root):

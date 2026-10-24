@@ -5,7 +5,7 @@ window.HS = {
   "gateItems": 72,
   "slots": 32,
   "providers": 32,
-  "tests": 140
+  "tests": 143
  },
  "policyCounts": {
   "recommended": 11,
@@ -910,7 +910,7 @@ window.HS = {
  "demo": [
   {
    "cmd": "hyperskill init --name studentdash",
-   "out": "initialised studentdash (commercial, tenancy: organization); current phase: research",
+   "out": "initialised studentdash (commercial, tenancy: organization); current phase: research\ncoding rules on: Karpathy guidelines installed and read at every session start (turn off: integrations disable karpathy-skills)",
    "ok": true
   },
   {

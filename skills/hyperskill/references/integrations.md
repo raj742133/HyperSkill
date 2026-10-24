@@ -26,7 +26,7 @@ HyperSkill is the **conductor**. External skills are **players**: they improve *
 | research | deep-research | deep-research skill | Multi-source sweep behind `docs/research.md` |
 | research | product-interrogation | gstack `/office-hours` (opt-in) | Pressure-test the idea before the interview |
 | research | video-analysis | `/watch` (opt-in) | Understand competitor/demo videos |
-| plan | coding-discipline | karpathy-skills | Add its four rules to `CLAUDE.md` |
+| plan | coding-discipline | karpathy-skills | On by default (`init`); the hook reads its four rules at every session start, so also copy them into `CLAUDE.md` for other tools |
 | plan | plan-review | gstack `/plan-*-review` (opt-in) | Extra reviewers on the design |
 | plan | ui-library-choice | emil `pick-ui-library` | Evidence for the component-library decision |
 | foundation | coding-discipline, code-review | karpathy, built-in `code-review` | Small surgical diffs; review each PR-sized change |

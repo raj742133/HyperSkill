@@ -54,6 +54,7 @@ It exists because coding agents are good at saying "done". They are less good at
 Phases ask for capabilities (a design direction, a security audit, video, browser verification) called **slots**. `skills/hyperskill/integrations.json` maps **32 slots** to **37 reviewed providers** (built-in Claude features, built-in HyperSkill kits and third-party skills and tools), each with licence, risks and a policy: 15 recommended, 13 opt-in, 6 reference-only, 2 unreviewed, 1 blocked on commercial projects. `hyperskill.py integrations` resolves each slot against what is actually installed. The rules:
 
 - **Twelve of them are bundled** in [`packs/`](packs) (unmodified copies with their licences and a pinned commit: Impeccable, taste-skill, Emil Kowalski's skills, Karpathy guidelines, UI UX Pro Max, Cloudflare security-audit, SlopMonster, HyperFrames, Superpowers, Ponytail, /watch, better-icons). They load nothing until you switch them on: `hyperskill.py integrations enable <id>` (or `enable --all` for the recommended ones, or the button in the dashboard) copies the skills into the project's `.claude/skills`, and `disable` removes exactly those. Tools whose licence forbids redistribution (Hypit, Onetake, MiroFish) or that are not skills (gstack, CLIs, hosted services) are not bundled and stay external.
+- **One is on by default: the Karpathy coding rules.** `hyperskill.py init` installs them (3 KB), the session hook hands them to Claude at every session start so they apply even when the skill never triggers, and the independent reviewer checks diffs against them (every changed line traces to the task, no speculative code). Decline with `init --no-karpathy` or `integrations disable karpathy-skills`.
 - Nothing is installed without asking (`bash scripts/install-skills.sh --dry-run` prints the exact commands for the external ones).
 - Opt-in tools stay off until you run `integrations enable <id>`.
 - Noncommercial-licence tools are blocked on commercial projects, and the resolver says why.
@@ -156,7 +157,7 @@ A focus timer shaped like a glass of water ([live](https://hyperskill-hazel.verc
 Verified:
 
 - The plugin installs from GitHub into a clean config, and `/hyperskill` ran headless from an install of the same plugin (two separate tests, not one end-to-end run).
-- The tracker and the integration resolver are covered by 140 tests; `claude plugin validate .` passes.
+- The tracker and the integration resolver are covered by 143 tests; `claude plugin validate .` passes.
 - Two full runs on real code, described above, with the failures they exposed.
 
 Not verified, so do not rely on it yet:
@@ -184,7 +185,7 @@ site/                  the static launch site (Vercel; vercel.json); site/live i
 examples/duesoon/      full nine-phase run
 examples/chaser/       research, plan and build of the second run
 docs/                  sources, integration review, README images
-tests/                 140 tests for the tracker, resolver, activity log, hook, live server, structure and site
+tests/                 143 tests for the tracker, resolver, activity log, hook, live server, structure and site
 ```
 
 ## Develop
