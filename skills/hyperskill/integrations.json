@@ -237,23 +237,31 @@
       "risks": []
     },
     "open-code-review": {
-      "name": "Open Code Review (ocr)",
+      "name": "Open Code Review (Alibaba): bundled skills, needs the ocr CLI",
       "repo": "alibaba/open-code-review",
-      "kind": "cli",
+      "kind": "skill+cli",
       "license": "Apache-2.0",
       "policy": "opt-in",
       "install": [
-        "npm install -g @alibaba-group/open-code-review"
+        "hyperskill.py integrations enable open-code-review   (bundled skills, no download)",
+        "the ocr CLI itself, outside HyperSkill: npm install -g @alibaba-group/open-code-review   (its postinstall downloads the release binary for your system)"
       ],
       "detect": {
+        "skills": [
+          "open-code-review",
+          "open-code-review-delegate"
+        ],
         "binaries": [
           "ocr"
         ]
       },
-      "provides": "CLI that reviews git diffs with an LLM agent and emits line-level comments. 'Delegation mode' lets the calling agent do the LLM work.",
+      "provides": "A rules-based flaw hunt on git diffs: bugs, security holes, performance and quality problems, as line-level comments. Two bundled skills: `open-code-review` (the CLI calls an LLM you configure) and `open-code-review-delegate` (the CLI only picks the files and resolves the language rules, and Claude does the reviewing: no extra key, nothing sent to a third party). Verified here: the CLI installs from npm, and `ocr delegate preview` and `ocr delegate rule` run with no LLM. The project's own benchmark claims (higher precision, about a ninth of the tokens) are its own and not checked here.",
       "risks": [
-        "normal mode needs an LLM provider key and sends changed file contents to that provider - prefer delegation mode for private code"
-      ]
+        "standard mode (`ocr review`) sends changed file contents to the LLM provider you configure with `ocr config provider`: for private code use the delegate skill, which needs no key and sends nothing out",
+        "the CLI is a separate binary that npm's postinstall downloads from GitHub releases (checksum pattern in its package.json): install it deliberately, outside HyperSkill",
+        "its findings are input to the review, not a verdict: triage them like any reviewer's, fix real ones with a regression test, and the gates still decide"
+      ],
+      "requires_binary": "ocr"
     },
     "karpathy-skills": {
       "name": "Karpathy-inspired coding guidelines",
@@ -738,8 +746,8 @@
     },
     "code-review": {
       "providers": [
-        "claude-code-review",
         "open-code-review",
+        "claude-code-review",
         "gstack"
       ],
       "fallback": "hs-reviewer agent"

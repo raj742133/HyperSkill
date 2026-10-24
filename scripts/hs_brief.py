@@ -90,12 +90,17 @@ def finish_req(core, root, st, rid, evidence):
     core.activity.append(root, "note", "Requirement %s covered" % rid)
 
 
-def summary(st, limit=1800):
+def summary(st, limit=1800, root=None):
     """What the hook hands Claude: the brief, the precedence rule, what is still open and what the user already decided."""
     b = st.get("brief")
-    if not b:
+    files = ""
+    if root:
+        import hs_inputs
+        files = hs_inputs.summary(root)
+    if not b and not files:
         return ""
-    lines = ["The user's brief (version %d; full text in .hyperskill/brief.md):" % b["version"], b["text"][:limit] + (" ..." if len(b["text"]) > limit else ""), PRECEDENCE]
+    lines = (["The user's brief (version %d; full text in .hyperskill/brief.md):" % b["version"], b["text"][:limit] + (" ..." if len(b["text"]) > limit else "")]
+             if b else ["The user has not written a brief, but attached files."]) + ([files] if files else []) + [PRECEDENCE]
     reqs = st.get("requirements", {})
     fnd = st.get("findings", {})
     if not reqs and not fnd:

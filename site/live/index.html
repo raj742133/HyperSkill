@@ -62,6 +62,55 @@
     <progress id="r-bar" max="100" value="0" aria-label="Replay position"></progress>
   </div>
 
+  <section id="chat" class="integ" aria-labelledby="chat-h" hidden>
+    <h2 id="chat-h" class="eyebrow">Chat with Claude <span id="chat-state" class="count"></span></h2>
+    <p id="chat-note" class="sub"></p>
+    <p id="chat-suggest" class="sub chat-suggest"></p>
+    <ol id="chat-log" class="chat-log" aria-live="polite"></ol>
+    <form id="chat-form" class="chat-form">
+      <textarea id="chat-text" rows="3" maxlength="4000" placeholder="Tell Claude what to do, or answer it. For example: start the project from my brief."></textarea>
+      <div class="chat-row">
+        <label class="sub">What it may do
+          <select id="chat-mode"><option value="edits">Edit files and use the tracker (safer)</option><option value="build">Also run shell commands here (npm, git, tests)</option></select>
+        </label>
+        <label class="sub">Model
+          <select id="chat-model"><option value="suggested">Suggested for this phase</option><option value="">Claude Code default</option></select>
+        </label>
+        <label class="sub">Effort
+          <select id="chat-effort"><option value="suggested">Suggested for this phase</option><option value="">Claude Code default</option></select>
+        </label>
+        <label class="sub chat-chrome"><input type="checkbox" id="chat-chrome"> Test in Chrome (DevTools)</label>
+        <label class="sub">Spend limit
+          <select id="chat-budget"><option value="1">$1</option><option value="3" selected>$3</option><option value="10">$10</option></select>
+        </label>
+        <span class="chat-spacer"></span>
+        <button type="button" id="chat-new" class="btn">New conversation</button>
+        <button type="button" id="chat-stop" class="btn warn" hidden>Stop</button>
+        <button type="submit" id="chat-send" class="btn go">Send</button>
+      </div>
+    </form>
+  </section>
+
+  <section id="pv" class="integ" aria-labelledby="pv-h" hidden>
+    <h2 id="pv-h" class="eyebrow">Live preview <span id="pv-state" class="count"></span></h2>
+    <p class="sub">What is being built, as it stands. Web apps show from their local dev server; static pages and markdown show straight from the project folder. Previews run inside a sandboxed frame.</p>
+    <div id="pv-tabs" class="pv-tabs" role="tablist" aria-label="Previews"></div>
+    <div class="pv-bar">
+      <span id="pv-addr" class="pv-addr"></span>
+      <span class="chat-spacer"></span>
+      <label class="sub">Width <select id="pv-width"><option value="100%">Full</option><option value="768px">Tablet 768</option><option value="390px">Phone 390</option></select></label>
+      <button type="button" id="pv-reload" class="btn">Reload</button>
+      <a id="pv-open" class="btn" target="_blank" rel="noopener noreferrer">Open in a tab</a>
+      <button type="button" id="pv-debug" class="btn go">Check and debug in Chrome</button>
+    </div>
+    <div class="pv-stage"><iframe id="pv-frame" title="Live preview" referrerpolicy="no-referrer"></iframe><p id="pv-empty" class="sub">Nothing to show yet. Start your dev server (it is picked up on its own) or add a link or a file below.</p></div>
+    <form id="pv-form" class="pv-form">
+      <input id="pv-name" maxlength="40" placeholder="Name" aria-label="Preview name" required>
+      <input id="pv-where" maxlength="300" placeholder="localhost:3000, or a project file such as index.html" aria-label="Link or project file" required>
+      <button class="btn" type="submit">Add preview</button>
+    </form>
+  </section>
+
   <section id="idea" class="integ" aria-labelledby="idea-h" hidden>
     <h2 id="idea-h" class="eyebrow">Your idea <span id="idea-ver" class="count"></span></h2>
     <p class="sub">Paste everything you know: what it is, who it is for, must-haves, look and feel. Your words decide <b>what</b> gets built; HyperSkill decides <b>how</b> (phases, checks, evidence). It will not rewrite your idea behind your back: gaps, conflicts and improvements come back as questions below, and you answer them.</p>
@@ -70,6 +119,11 @@
       <textarea id="idea-text" rows="9" maxlength="20000" placeholder="Example: A site for my coffee roastery. Landing page, staff login with authenticator codes, and a dashboard of customer orders. Brown and amber, calm, no stock photos."></textarea>
       <div class="kit-bar"><span id="idea-status" role="status" aria-live="polite"></span><button type="submit" class="btn go" id="idea-save">Save and have Claude read it</button></div>
     </form>
+    <div id="attach" class="attach">
+      <label for="attach-file" class="sub">Or attach files: requirements, specs, notes, designs (markdown, text, Word, PDF, CSV, JSON, HTML, images; up to 15 MB each). They stay in this project's <code>.hyperskill/inputs</code> folder and Claude reads them.</label>
+      <input type="file" id="attach-file" multiple accept=".md,.markdown,.txt,.pdf,.docx,.csv,.json,.yaml,.yml,.toml,.html,.htm,.png,.jpg,.jpeg,.webp,.gif">
+      <ul id="attach-list" class="xt-list"></ul>
+    </div>
     <div id="idea-found" hidden>
       <h3 class="kit-title">What Claude found <span id="idea-open" class="count"></span></h3>
       <ul id="idea-list" class="xt-list"></ul>

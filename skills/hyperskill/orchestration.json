@@ -64,7 +64,7 @@
         "slot": "code-review",
         "need": "core",
         "when": "after each PR-sized change",
-        "why": "an independent read catches missing tenant scoping and validation"
+        "why": "an independent read catches missing tenant scoping and validation; with Open Code Review switched on and its `ocr` CLI installed, use its delegate skill as a second, rules-based flaw hunt (Claude reviews, no extra key) and record its findings in docs/reviews/"
       },
       {
         "slot": "implementation-discipline",
@@ -152,7 +152,7 @@
         "slot": "code-review",
         "need": "core",
         "when": "on every change set going to main",
-        "why": "the independent review the ship gates rely on"
+        "why": "the independent review the ship gates rely on; with Open Code Review switched on and its `ocr` CLI installed, use its delegate skill as a second, rules-based flaw hunt (Claude reviews, no extra key) and record its findings in docs/reviews/"
       },
       {
         "slot": "qa-browser",
@@ -190,7 +190,7 @@
         "slot": "code-review",
         "need": "core",
         "when": "on the diff of every security fix",
-        "why": "fixes are code too and need review"
+        "why": "fixes are code too and need review; with Open Code Review switched on and its `ocr` CLI installed, use its delegate skill as a second, rules-based flaw hunt (Claude reviews, no extra key) and record its findings in docs/reviews/"
       }
     ],
     "operate": [

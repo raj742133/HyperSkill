@@ -28,6 +28,9 @@ import hs_activity as activity  # noqa: E402
 import hs_brief as brief  # noqa: E402
 import hs_catalog as cat  # noqa: E402
 import hs_control as control  # noqa: E402
+import hs_inputs as inputs  # noqa: E402
+import hs_preview as preview  # noqa: E402
+import hs_run  # noqa: E402
 import hs_skills as skills  # noqa: E402
 import hyperskill as core  # noqa: E402
 
@@ -43,7 +46,7 @@ STATIC = {  # the only files this server will ever send
     "/favicon.svg": (SITE_DIR, "favicon.svg", "image/svg+xml"),
     "/live/catalog.json": (os.path.normpath(os.path.join(_HERE, "..", "skills", "hyperskill")), "catalog.json", "application/json"),
 }
-CSP = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; media-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+CSP = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; media-src 'self'; frame-src 'self' http://127.0.0.1:* http://localhost:* https://127.0.0.1:* https://localhost:*; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
 RECENT = 300  # events sent to a browser that has just connected
 PREVIEW_DIR = os.path.normpath(os.path.join(_HERE, "..", "site", "live", "previews"))
 PREVIEW_RE = re.compile(r"^/live/previews/([a-z0-9-]{1,40})/([a-z0-9][a-z0-9._-]{0,80}\.(mp4|webp|svg|png))$")
@@ -83,6 +86,13 @@ def integrations_state(root, st):
     return rows, slots
 
 
+def models_state(st):
+    with open(os.path.join(_HERE, "..", "skills", "hyperskill", "models.json"), encoding="utf-8") as f:
+        m = json.load(f)
+    return {"phases": m["phases"], "tasks": m["tasks"], "current": m["phases"].get(st["current"]) if st["current"] else None,
+            "aliases": list(hs_run.MODEL_ALIASES), "efforts": list(hs_run.EFFORTS)}
+
+
 def cat_places(root, st):
     try:
         return brief.check(core, root, st)
@@ -90,7 +100,7 @@ def cat_places(root, st):
         return []
 
 
-def build_state(root, controls=False):
+def build_state(root, controls=False, runner=None, port=None):
     """Everything the page needs to draw the phase rail, the open checks and the decisions."""
     phases = core.load_gates()
     st = core.load_state(root)
@@ -122,6 +132,10 @@ def build_state(root, controls=False):
                   "findings": [dict(f, id=i) for i, f in st.get("findings", {}).items()],
                   "requirements": [dict(r, id=i) for i, r in st.get("requirements", {}).items()]},
         "placements": cat_places(root, st),
+        "inputs": inputs.listing(root),
+        "models": models_state(st),
+        "preview": {"targets": preview.targets(st), "found": preview.detect(port) if controls else []},
+        "run": runner.state() if runner else {"allowed": False, "available": False, "running": False, "mode": None, "session": False, "last": None, "messages": []},
         "extras": [dict(e, id=i) for i, e in st.get("extras", {}).items()],
         "skillplan": skills.plan(core, root, st, st["current"], installed_names(root)) if st["current"] else [],
         "control": {"enabled": controls, "paused": control.is_paused(root), "pending": len(control.pending(root)), "inbox": control.recent(root)},
@@ -150,7 +164,7 @@ def run_tracker(root, *argv):
     return {"ok": r.returncode == 0, "output": activity.redact(out[-900:], 900)}
 
 
-def perform(root, action, body):
+def perform(root, action, body, runner=None):
     """One dashboard control. Ids are checked against the real phase and provider lists before anything runs."""
     phases = core.load_gates()
     reg = core.load_integrations()
@@ -203,6 +217,49 @@ def perform(root, action, body):
         if action == "skill_use" and isinstance(prov, str) and ID.fullmatch(prov) and prov in reg["providers"]:
             argv += ["--provider", prov]
         return run_tracker(root, *argv)
+    if action in ("run_start", "run_stop", "run_new"):
+        if not runner:
+            raise Refused("running Claude from the dashboard is not available here")
+        try:
+            if action == "run_start":
+                st = core.load_state(root)
+                sug = models_state(st)["current"] or {}
+                model, effort, label = body.get("model"), body.get("effort"), ""
+                if model == "suggested" or effort == "suggested":
+                    label = "suggested for phase %s" % st["current"]
+                    model = sug.get("model") if model == "suggested" else model
+                    effort = sug.get("effort") if effort == "suggested" else effort
+                url = None
+                if body.get("preview_url"):
+                    try:
+                        url = preview.check_url(body.get("preview_url"))
+                    except preview.PreviewError as exc:
+                        raise Refused(str(exc))
+                runner.start(body.get("text"), body.get("mode"), body.get("budget", 3.0) if isinstance(body.get("budget", 3.0), (int, float)) else 3.0,
+                             model, effort, body.get("chrome") is True, url, label)
+                return {"ok": True, "output": "Claude is working. Its replies appear in the chat as they arrive."}
+            if action == "run_stop":
+                return {"ok": True, "output": "stopped" if runner.stop() else "nothing was running"}
+            runner.new_chat()
+            return {"ok": True, "output": "started a new conversation"}
+        except PermissionError as exc:
+            raise Refused(str(exc))
+        except (ValueError, RuntimeError, FileNotFoundError) as exc:
+            raise Refused(str(exc))
+    if action == "preview_add":
+        try:
+            t = preview.add(core, root, core.load_state(root), text_field(body, "name", 40), body.get("url"), body.get("path"))
+        except preview.PreviewError as exc:
+            raise Refused(str(exc))
+        return run_tracker(root, "preview", "add", t["name"], *(["--url", t["url"]] if t["kind"] == "web" else ["--path", t["path"]]))
+    if action == "preview_remove":
+        return run_tracker(root, "preview", "remove", text_field(body, "name", 40))
+    if action == "input_remove":
+        try:
+            inputs.remove(root, text_field(body, "name", 120))
+        except inputs.InputError as exc:
+            raise Refused(str(exc))
+        return {"ok": True, "output": "removed"}
     if action == "brief_save":
         text = text_field(body, "text", brief.MAX_BRIEF)
         res = run_tracker(root, "brief", "set", "--text", text)
@@ -248,7 +305,7 @@ def perform(root, action, body):
     raise Refused("unknown action")
 
 
-def make_handler(root, port, token=None):
+def make_handler(root, port, token=None, runner=None):
     allowed_hosts = {"127.0.0.1:%d" % port, "localhost:%d" % port, "[::1]:%d" % port}
     lock = threading.Lock()
 
@@ -270,7 +327,8 @@ def make_handler(root, port, token=None):
             self.send_header("Content-Length", str(len(body)))
             if "Cache-Control" not in (extra or {}):
                 self.send_header("Cache-Control", "no-store")
-            self.send_header("Content-Security-Policy", CSP)
+            if "Content-Security-Policy" not in (extra or {}):
+                self.send_header("Content-Security-Policy", CSP)
             self.send_header("X-Content-Type-Options", "nosniff")
             self.send_header("Referrer-Policy", "no-referrer")
             if self.command == "POST" and status >= 400:
@@ -301,9 +359,11 @@ def make_handler(root, port, token=None):
             m = PREVIEW_RE.match(path)
             if m:
                 return self._preview(m)
+            if path.startswith("/live/site/"):
+                return self._site(path[len("/live/site/"):])
             if path == "/live/state.json":
                 try:
-                    return self._send(200, json.dumps(build_state(root, bool(token))).encode(), "application/json")
+                    return self._send(200, json.dumps(build_state(root, bool(token), runner, port)).encode(), "application/json")
                 except (OSError, ValueError, KeyError, SystemExit):
                     return self._send(500, b'{"error":"state unavailable"}', "application/json")
             if path == "/live/events":
@@ -319,6 +379,8 @@ def make_handler(root, port, token=None):
                 return self._send(403, b'{"error":"forbidden origin"}', "application/json")
             if not hmac.compare_digest(self.headers.get("X-HS-Token", ""), token):
                 return self._send(403, b'{"error":"missing or wrong token"}', "application/json")
+            if self.path.split("?")[0] == "/live/upload":
+                return self._upload()
             if not self.headers.get("Content-Type", "").startswith("application/json"):
                 return self._send(415, b'{"error":"send JSON"}', "application/json")
             m = re.fullmatch(r"/live/api/([a-z_]{1,24})", self.path.split("?")[0])
@@ -332,12 +394,45 @@ def make_handler(root, port, token=None):
                 if not isinstance(body, dict):
                     raise ValueError
                 with lock:
-                    result = perform(root, m.group(1), body)
+                    result = perform(root, m.group(1), body, runner)
                 return self._send(200, json.dumps(result).encode(), "application/json")
             except Refused as exc:
                 return self._send(400, json.dumps({"ok": False, "output": str(exc)}).encode(), "application/json")
             except (ValueError, subprocess.TimeoutExpired, OSError):
                 return self._send(400, b'{"ok":false,"output":"could not do that"}', "application/json")
+
+        def _upload(self):
+            """One attached file as raw bytes: the name in ?name=, the key already checked by do_POST."""
+            from urllib.parse import parse_qs, urlparse
+            try:
+                n = int(self.headers.get("Content-Length", "0"))
+                if n <= 0 or n > inputs.MAX_FILE:
+                    return self._send(413, b'{"ok":false,"output":"empty or larger than 15 MB"}', "application/json")
+                if not self.headers.get("Content-Type", "").startswith("application/octet-stream"):
+                    return self._send(415, b'{"ok":false,"output":"send the file as application/octet-stream"}', "application/json")
+                name = (parse_qs(urlparse(self.path).query).get("name") or [""])[0]
+                data = self.rfile.read(n)
+                with lock:
+                    final = inputs.add(root, name, data)
+                    control.push(root, "The user attached a project input file: .hyperskill/inputs/%s. Read it (PDFs and images with your Read tool) and add what it says to the brief findings and requirements." % final)
+                return self._send(200, json.dumps({"ok": True, "output": "attached " + final, "name": final}).encode(), "application/json")
+            except inputs.InputError as exc:
+                return self._send(400, json.dumps({"ok": False, "output": str(exc)}).encode(), "application/json")
+            except (ValueError, OSError):
+                return self._send(400, b'{"ok":false,"output":"could not attach that"}', "application/json")
+
+        def _site(self, rel):
+            """A file of the project being built, for the preview frame. Sandboxed so it can never reach the dashboard's key."""
+            from urllib.parse import unquote
+            try:
+                _, full, ctype = preview.safe_rel(root, unquote(rel))
+                with open(full, "rb") as f:
+                    body = f.read(8 * 1024 * 1024)
+            except (preview.PreviewError, OSError):
+                return self._send(404, b"not found", "text/plain")
+            csp = ("sandbox allow-scripts allow-forms; default-src 'self' data: blob:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; "
+                   "img-src 'self' data: blob:; font-src 'self' data:; connect-src 'none'; frame-ancestors 'self'")
+            return self._send(200, body, ctype, {"Content-Security-Policy": csp})
 
         def _preview(self, m):
             """The catalogue's pictures and clips: a fixed folder, fixed extensions, byte ranges for video."""
@@ -428,14 +523,16 @@ class Server(http.server.ThreadingHTTPServer):
     last_seen = 0.0
 
 
-def make_server(root, port=4777, tries=10, controls=False):
+def make_server(root, port=4777, tries=10, controls=False, allow_run=False):
     """Bind 127.0.0.1 only, on the first free port from `port`. Controls are off unless asked for."""
     last = None
     token = secrets.token_urlsafe(24) if controls else None
+    runner = hs_run.Runner(root, bool(allow_run and controls)) if controls else None
     for p in range(port, port + tries):
         try:
-            srv = Server(("127.0.0.1", p), make_handler(root, p, token))
+            srv = Server(("127.0.0.1", p), make_handler(root, p, token, runner))
             srv.token = token
+            srv.runner = runner
             return srv, p
         except OSError as exc:
             last = exc
@@ -495,12 +592,14 @@ def stop(root):
     return True
 
 
-def serve(root, port=4777, open_browser=True, control=True, idle_hours=0):
+def serve(root, port=4777, open_browser=True, control=True, idle_hours=0, allow_run=False):
     core.load_state(root)  # fail early with the usual message when this is not a HyperSkill project
     if read_live(root):
         print("HyperSkill live view is already running: %s" % read_live(root)["url"])
+        if allow_run:
+            print("It was started without --allow-run. Stop it first (hyperskill.py live --stop), then start it again with --allow-run.")
         return
-    server, p = make_server(root, port, controls=control)
+    server, p = make_server(root, port, controls=control, allow_run=allow_run)
     url = "http://127.0.0.1:%d/" % p
     os.makedirs(os.path.dirname(live_file(root)), exist_ok=True)
     with open(live_file(root), "w", encoding="utf-8") as f:
@@ -508,6 +607,8 @@ def serve(root, port=4777, open_browser=True, control=True, idle_hours=0):
     print("HyperSkill live view: %s" % url, flush=True)
     print("Controls on (pass checks, advance, enable skills, pause, instruct Claude), this computer only. Press Ctrl+C to stop."
           if control else "Read-only, this computer only. Press Ctrl+C to stop.", flush=True)
+    if control and allow_run:
+        print("RUN MODE ON: the chat box can start Claude on this project (your Claude login and usage; shell commands only if you choose that per message).", flush=True)
     if open_browser:
         threading.Thread(target=lambda: webbrowser.open(url), daemon=True).start()
     server.last_seen = time.time()
@@ -525,6 +626,8 @@ def serve(root, port=4777, open_browser=True, control=True, idle_hours=0):
     except KeyboardInterrupt:
         print("stopped")
     finally:
+        if getattr(server, "runner", None):
+            server.runner.stop()
         server.server_close()
         try:
             os.remove(live_file(root))

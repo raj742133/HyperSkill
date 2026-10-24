@@ -82,7 +82,7 @@
   let queued = false;
   const schedule = () => { if (!queued) { queued = true; requestAnimationFrame(() => { queued = false; drawAll(); }); } };
 
-  function drawAll() { drawFeed(); drawNow(); drawRail(); drawPanels(); drawControls(); drawKit(); drawExtras(); drawIdea(); }
+  function drawAll() { drawFeed(); drawNow(); drawRail(); drawPanels(); drawControls(); drawKit(); drawExtras(); drawIdea(); drawChat(); drawPreview(); drawAttach(); }
 
   function drawFeed() {
     const list = $("feed");
@@ -438,6 +438,150 @@
     }
   }
 
+  /* ---------- chat: talk to Claude, or run it, from here ---------- */
+  let chatSig = "";
+  function drawChat() {
+    const box = $("chat"), r = state.run;
+    box.hidden = !(mode === "live" && r && controlOn());
+    if (box.hidden) return;
+    const can = r.allowed && r.available;
+    $("chat-state").textContent = r.running ? "· Claude is working" : (can ? "· ready" : "· messages are queued");
+    $("chat-note").textContent = can
+      ? "Each message starts or continues a headless Claude run in this project, using your own Claude login and usage. You choose per message whether it may run shell commands."
+      : (r.allowed ? "The `claude` command was not found on this computer, so messages are queued for an open Claude session instead."
+        : "Messages here are queued for the Claude session you have open, and it reads them at its next step. To let this box start Claude itself, stop the dashboard and start it with: hyperskill.py live --allow-run");
+    drawModels(r, can);
+    $("chat-mode").disabled = $("chat-budget").disabled = !can; $("chat-new").hidden = !can || !r.session; $("chat-send").disabled = r.running;
+    $("chat-stop").hidden = !r.running;
+    const sig = JSON.stringify([r.messages.length, r.messages.length ? r.messages[r.messages.length - 1].ts : "", r.running, r.last]);
+    if (sig === chatSig) return;
+    chatSig = sig;
+    const log = $("chat-log"), atEnd = log.scrollTop + log.clientHeight >= log.scrollHeight - 30;
+    log.replaceChildren();
+    for (const m of r.messages) { const li = el("li", "", m.text); li.dataset.r = m.role; log.append(li); }
+    if (r.running) { const li = el("li", "", "Claude is working..."); li.dataset.r = "system"; log.append(li); }
+    else if (r.last && r.last.cost != null) { const li = el("li", "", `Finished: ${r.last.turns || "?"} steps, ${r.last.seconds || 0} s, about $${Number(r.last.cost).toFixed(2)}`); li.dataset.r = "system"; log.append(li); }
+    if (atEnd || r.running) log.scrollTop = log.scrollHeight;
+  }
+  function drawModels(r, can) {
+    const m = state.models || {}, sel = { model: $("chat-model"), effort: $("chat-effort") };
+    for (const [k, list] of [["model", m.aliases || []], ["effort", m.efforts || []]]) {
+      const s = sel[k], sig = list.join();
+      if (s.dataset.sig !== sig) {
+        const keep = s.value;
+        s.replaceChildren(...[["suggested", "Suggested for this phase"], ["", "Claude Code default"], ...list.map((x) => [x, x])].map(([v, t]) => { const o = el("option", "", t); o.value = v; return o; }));
+        s.value = keep || "suggested"; s.dataset.sig = sig;
+      }
+      s.disabled = !can;
+    }
+    $("chat-chrome").disabled = !can;
+    const c = m.current;
+    $("chat-suggest").textContent = c ? `For the ${state.current} phase we suggest ${c.model}, effort ${c.effort}. ${c.why} Pick another above any time; this is a suggestion, not a rule.` : "";
+  }
+  function runBody(text, extra) {
+    return Object.assign({ text, mode: $("chat-mode").value, budget: Number($("chat-budget").value), model: $("chat-model").value || null, effort: $("chat-effort").value || null, chrome: $("chat-chrome").checked }, extra || {});
+  }
+  function wireChat() {
+    $("chat-form").addEventListener("submit", async (ev) => {
+      ev.preventDefault();
+      const t = $("chat-text").value, r = state.run || {};
+      if (!t.trim()) return;
+      const ok = r.allowed && r.available
+        ? await api("run_start", runBody(t))
+        : await api("say", { text: t });
+      if (ok) $("chat-text").value = "";
+    });
+    $("chat-stop").addEventListener("click", () => api("run_stop"));
+    $("chat-new").addEventListener("click", () => api("run_new"));
+  }
+
+  /* ---------- live preview of what is being built ---------- */
+  let pvSel = "", pvSrc = "";
+  function pvTargets() {
+    const p = state.preview || { targets: [], found: [] }, rows = [];
+    for (const t of p.targets) rows.push({ name: t.name, kind: t.kind, where: t.kind === "web" ? t.url : t.path, saved: true });
+    for (const f of p.found) if (!rows.some((x) => x.where === f.url)) rows.push({ name: `${f.title || "dev server"} :${f.port}`, kind: "web", where: f.url, saved: false });
+    return rows;
+  }
+  function drawPreview() {
+    const box = $("pv"), rows = pvTargets();
+    box.hidden = !(mode === "live" && state.preview);
+    if (box.hidden) return;
+    if (!rows.some((x) => x.name === pvSel)) pvSel = rows.length ? rows[0].name : "";
+    const cur = rows.find((x) => x.name === pvSel);
+    $("pv-state").textContent = rows.length ? `· ${rows.length} to look at` : "· nothing yet";
+    const sig = JSON.stringify([rows, pvSel, controlOn()]);
+    const tabs = $("pv-tabs");
+    if (tabs.dataset.sig !== sig) {
+      tabs.dataset.sig = sig; tabs.replaceChildren();
+      for (const r of rows) {
+        const b = el("button", "", (r.kind === "web" ? "App · " : "File · ") + r.name); b.type = "button"; b.setAttribute("role", "tab"); b.setAttribute("aria-selected", String(r.name === pvSel));
+        b.addEventListener("click", () => { pvSel = r.name; drawPreview(); });
+        tabs.append(b);
+        if (r.saved && controlOn() && r.name === pvSel) { const x = el("button", "", "Remove"); x.type = "button"; x.addEventListener("click", () => api("preview_remove", { name: r.name })); tabs.append(x); }
+        if (!r.saved && controlOn() && r.name === pvSel) { const x = el("button", "", "Keep this one"); x.type = "button"; x.addEventListener("click", () => api("preview_add", { name: r.name.replace(/ :\d+$/, "").slice(0, 40) || "app", url: r.where })); tabs.append(x); }
+      }
+    }
+    const frame = $("pv-frame");
+    $("pv-empty").hidden = Boolean(cur); frame.hidden = !cur;
+    $("pv-addr").textContent = cur ? cur.where : "";
+    $("pv-debug").disabled = !(cur && cur.kind === "web" && controlOn() && state.run && state.run.allowed && state.run.available && !state.run.running);
+    $("pv-debug").title = !cur ? "" : cur.kind !== "web" ? "Chrome tests need a running app address, not a file." : "";
+    const open = $("pv-open");
+    if (cur) open.href = cur.kind === "web" ? cur.where : "/live/site/" + cur.where.split("/").map(encodeURIComponent).join("/"); else open.removeAttribute("href");
+    if (cur) {
+      const src = open.getAttribute("href");
+      if (src !== pvSrc) {
+        pvSrc = src;
+        frame.setAttribute("sandbox", cur.kind === "web" ? "allow-scripts allow-forms allow-same-origin allow-popups" : "allow-scripts allow-forms");
+        frame.src = src;
+      }
+    } else pvSrc = "";
+    frame.style.width = $("pv-width").value;
+    $("pv-form").hidden = !controlOn();
+  }
+  function wirePreview() {
+    $("pv-width").addEventListener("change", drawPreview);
+    $("pv-reload").addEventListener("click", () => { pvSrc = ""; const f = $("pv-frame"); const s = f.src; f.src = "about:blank"; setTimeout(() => { f.src = s; pvSrc = $("pv-open").getAttribute("href"); }, 30); });
+    $("pv-form").addEventListener("submit", async (ev) => {
+      ev.preventDefault();
+      let where = $("pv-where").value.trim(); const name = $("pv-name").value.trim();
+      if (/^(localhost|127\.0\.0\.1):\d+/i.test(where)) where = "http://" + where;
+      const ok = await api("preview_add", /^https?:/i.test(where) ? { name, url: where } : { name, path: where });
+      if (ok) { pvSel = name; $("pv-name").value = $("pv-where").value = ""; drawPreview(); }
+    });
+    $("pv-debug").addEventListener("click", () => {
+      const cur = pvTargets().find((x) => x.name === pvSel);
+      if (!cur || cur.kind !== "web") return;
+      $("chat-chrome").checked = true;
+      api("run_start", runBody("Open the running app in Chrome, click through its main screens and forms, check the console and failed network requests, and fix what is broken. Re-test after each fix and report what you checked.", { chrome: true, preview_url: cur.where }));
+      $("chat").scrollIntoView({ block: "start" });
+    });
+  }
+
+  /* ---------- attached files ---------- */
+  function drawAttach() {
+    const list = $("attach-list"), rows = state.inputs || [], sig = JSON.stringify(rows) + controlOn();
+    if (list.dataset.sig === sig) return;
+    list.dataset.sig = sig; list.replaceChildren();
+    $("attach-file").disabled = !controlOn();
+    for (const f of rows) {
+      const li = el("li"), head = el("div", "xt-head");
+      head.append(el("b", "", f.name), el("span", "sub", `${Math.max(1, Math.round(f.size / 1024))} KB · ${f.text ? "text extracted" : "original only (Claude reads it directly)"}`));
+      if (controlOn()) { const b = el("button", "chip", "Remove"); b.type = "button"; b.addEventListener("click", () => api("input_remove", { name: f.name })); head.append(b); }
+      li.append(head); list.append(li);
+    }
+  }
+  async function upload(file) {
+    try {
+      const r = await fetch(`/live/upload?name=${encodeURIComponent(file.name)}`, { method: "POST", headers: { "Content-Type": "application/octet-stream", "X-HS-Token": token }, body: await file.arrayBuffer() });
+      const j = await r.json(); say(j.output || (r.ok ? "attached" : "refused"), !(r.ok && j.ok));
+    } catch (err) { say("Could not upload " + file.name, true); }
+  }
+  function wireAttach() {
+    $("attach-file").addEventListener("change", async (ev) => { for (const f of ev.target.files) await upload(f); ev.target.value = ""; await refreshState(); });
+  }
+
   /* ---------- the idea: paste a brief, see what Claude found, answer ---------- */
   function drawIdea() {
     const on = controlOn(), box = $("idea");
@@ -534,7 +678,7 @@
   function startLive() {
     setMode("live");
     $("foot").textContent = controlOn() ? "Controls act on this project only, through the same tracker commands a person would type. Nothing leaves this computer." : "Read-only view of this project's .hyperskill/activity.jsonl. It never leaves this computer.";
-    wireControls(); wireKit(); wireIdea(); loadCatalog();
+    wireControls(); wireKit(); wireIdea(); wireChat(); wirePreview(); wireAttach(); loadCatalog();
     const es = new EventSource("/live/events");
     es.onopen = () => setMode("live");
     es.onerror = () => setMode("offline", "Reconnecting");
