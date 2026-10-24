@@ -45,6 +45,7 @@ Usage:
 Use --root DIR to point at the project (default: current directory).
 """
 import argparse
+import contextlib
 import datetime
 import glob
 import json
@@ -53,6 +54,11 @@ import re
 import shutil
 import subprocess
 import sys
+
+try:
+    import fcntl
+except ImportError:  # Windows: no lock, same behaviour as before
+    fcntl = None
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, _HERE)
@@ -101,6 +107,21 @@ def save_state(root, st):
         json.dump(st, f, indent=2)
         f.write("\n")
     os.replace(tmp, path)
+
+
+@contextlib.contextmanager
+def state_lock(root):
+    """One tracker command at a time per project: several helpers and the hooks may call it in the same second, and each reads then rewrites the state."""
+    path = os.path.join(root, ".hyperskill")
+    if not os.path.isdir(path) or fcntl is None:
+        yield
+        return
+    with open(os.path.join(path, "state.lock"), "w") as f:
+        fcntl.flock(f, fcntl.LOCK_EX)
+        try:
+            yield
+        finally:
+            fcntl.flock(f, fcntl.LOCK_UN)
 
 
 def die(msg, code=1):
@@ -658,6 +679,15 @@ def cmd_work(args):
                 t = workmod.drop(st, tid, args.why)
             activity.append(args.root, "note", "Task %s %s" % (t["id"], t["status"] if a != "fail" else "failed -> " + (t["tier"] if t["status"] == "todo" else "needs a person")), task=t["id"])
             print("%s is %s%s" % (t["id"], t["status"], " (now %s)" % workmod.label(t) if a == "fail" and t["status"] == "todo" else ""))
+        elif a == "tune":
+            r = workmod.tune(st, args.kind if args.score is not None else None, args.score, args.plus, args.value, args.reset)
+            print("scores: " + ", ".join("%s %d" % (k, v) for k, v in r["kinds"].items()) + " | add-ons: " + ", ".join("%s +%d" % (k, v) for k, v in r["plus"].items()))
+        elif a == "stats":
+            rows, advice = workmod.stats(st)
+            for r in rows:
+                print("%-14s done %-3d right first time %-5s failed here %d" % (r["label"], r["done"], "-" if r["rate"] is None else "%d%%" % r["rate"], r["failed"]))
+            for line in advice:
+                print("note: " + line)
         elif a == "policy":
             pol = workmod.set_policy(st, {"on": True, "off": False}.get(args.helpers), args.parallel, args.bias)
             print("helpers %s, up to %d at once, bias %s" % ("on" if pol["helpers"] else "off", pol["parallel"], pol["bias"]))
@@ -1070,7 +1100,7 @@ def build_parser():
     p.set_defaults(fn=cmd_inputs)
 
     p = sub.add_parser("work", help="split a phase's work into tasks for helper agents: who does what, at which model and effort, what runs together")
-    p.add_argument("action", nargs="?", choices=("add", "plan", "start", "done", "fail", "drop", "list", "policy"))
+    p.add_argument("action", nargs="?", choices=("add", "plan", "start", "done", "fail", "drop", "list", "policy", "tune", "stats"))
     p.add_argument("target", nargs="?", help="a title (add) or a task id")
     p.add_argument("--kind", choices=workmod.KINDS, default="build")
     p.add_argument("--paths", default="", help="comma-separated project paths this task may change")
@@ -1080,6 +1110,10 @@ def build_parser():
     p.add_argument("--tier", help="override the suggested tier (needs --why)")
     p.add_argument("--why", default="")
     p.add_argument("--result", default="")
+    p.add_argument("--score", type=int, help="tune: the kind's starting score, 0 to 6 (uses --kind)")
+    p.add_argument("--plus", help="tune: an add-on to change (files_4_or_more, risk, unknown)")
+    p.add_argument("--value", type=int)
+    p.add_argument("--reset", action="store_true", help="tune: back to the shipped scores")
     p.add_argument("--helpers", choices=("on", "off"))
     p.add_argument("--parallel", type=int)
     p.add_argument("--bias", choices=workmod.BIAS)
@@ -1158,7 +1192,10 @@ def build_parser():
 
 def main(argv=None):
     args = build_parser().parse_args(argv)
-    args.fn(args)
+    if args.fn is cmd_live:  # the dashboard runs for hours and calls the tracker itself: it must not hold the lock
+        return args.fn(args)
+    with state_lock(args.root):
+        args.fn(args)
 
 
 if __name__ == "__main__":

@@ -71,7 +71,7 @@
       <textarea id="chat-text" rows="3" maxlength="4000" placeholder="Tell Claude what to do, or answer it. For example: start the project from my brief."></textarea>
       <div class="chat-row">
         <label class="sub">What it may do
-          <select id="chat-mode"><option value="edits">Edit files and use the tracker (safer)</option><option value="build">Also run shell commands here (npm, git, tests)</option></select>
+          <select id="chat-mode"><option value="edits">Edit files and use the tracker (safer)</option><option value="tests">Edit files and run tests, lint and type checks</option><option value="build">Also run any shell command here (npm, git, installs)</option></select>
         </label>
         <label class="sub">Model
           <select id="chat-model"><option value="suggested">Suggested for this phase</option><option value="">Claude Code default</option></select>
@@ -80,7 +80,7 @@
           <select id="chat-effort"><option value="suggested">Suggested for this phase</option><option value="">Claude Code default</option></select>
         </label>
         <label class="sub">Helper agents
-          <select id="chat-helpers"><option value="auto">Auto: split by difficulty</option><option value="economy">Cheaper where safe</option><option value="quality">Stronger</option><option value="off">Off: one Claude does it all</option></select>
+          <select id="chat-helpers"><option value="auto">Auto: split by difficulty</option><option value="split">Always split this into helpers</option><option value="economy">Cheaper where safe</option><option value="quality">Stronger</option><option value="off">Off: one Claude does it all</option></select>
         </label>
         <label class="sub chat-chrome"><input type="checkbox" id="chat-chrome"> Test in Chrome (DevTools)</label>
         <label class="sub">Spend limit

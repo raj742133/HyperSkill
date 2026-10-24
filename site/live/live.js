@@ -504,8 +504,15 @@
     if (box.dataset.sig === sig) return;
     box.dataset.sig = sig;
     $("wk-count").textContent = w.tasks.length ? `· ${w.tasks.filter((t) => ["done", "dropped"].includes(t.status)).length} of ${w.tasks.length} finished` : "· no tasks yet";
-    const tiers = $("wk-tiers"); tiers.replaceChildren();
-    for (const t of m.tiers || []) { const d = el("div", "wk-tier"); d.append(el("b", "", t.label), el("span", "", `${t.model} · ${t.effort}${t.writes ? "" : " · read-only"}`), el("div", "", t.use)); tiers.append(d); }
+    const tiers = $("wk-tiers"); tiers.replaceChildren(); box.querySelectorAll(".wk-advice").forEach((n) => n.remove());
+    const stat = Object.fromEntries((w.stats || []).map((x) => [x.tier, x]));
+    for (const t of m.tiers || []) {
+      const d = el("div", "wk-tier"), st = stat[t.id];
+      d.append(el("b", "", t.label), el("span", "", `${t.model} · ${t.effort}${t.writes ? "" : " · read-only"}`), el("div", "", t.use));
+      if (st && (st.done || st.failed)) d.append(el("div", "wk-why", `${st.done} done, ${st.rate}% right first time${st.failed ? `, ${st.failed} pushed up` : ""}`));
+      tiers.append(d);
+    }
+    for (const a of w.advice || []) { const n = el("p", "sub", "Note: " + a); tiers.after(n); n.className = "sub wk-advice"; }
     const list = $("wk-list"); list.replaceChildren();
     if (!w.tasks.length) list.append(el("li", "", "Nothing split yet. Claude does this itself when a phase has several separate pieces of work."));
     for (const t of w.tasks) {

@@ -66,7 +66,7 @@ When a phase has more than a couple of separate pieces of work, split it instead
 
 1. **Break the work into tasks.** `hyperskill.py work add "<title>" --kind lookup|docs|edit|build|refactor|debug|design|review --paths src/a,src/b [--risk data|security|money] [--unknown] [--depends T1]`. It prints the tier and why. Give every task the paths it may change; an editing task with no paths is assumed to touch everything and runs alone.
 2. **Look at the plan.** `hyperskill.py work plan` lists waves: tasks in one wave have their dependencies met and own different files, so they can run at the same time.
-3. **Dispatch a wave in one message**, one Agent call per task, with the agent the plan names (`hyperskill:hs-scout`, `hs-fixer`, `hs-builder`, `hs-builder-deep`, `hs-architect`; reviews go to `hs-reviewer`). Before the Agent calls, mark the whole wave running in one command (`work start T1 && work start T2 && work start T3`; never from parallel calls, they would overwrite each other's state), then send the Agent calls together. Give each helper its task, the paths it owns, and the relevant decision files, nothing else. Helpers do not run the tracker.
+3. **Dispatch a wave in one message**, one Agent call per task, with the agent the plan names and a description that begins with the task id (`T3: build the pricing section`; the hook then marks the task running by itself) (`hyperskill:hs-scout`, `hs-fixer`, `hs-builder`, `hs-builder-deep`, `hs-architect`; reviews go to `hs-reviewer`). The tracker takes a lock, so parallel calls are safe; you do not need to run `work start` yourself when the description begins with the task id. Give each helper its task, the paths it owns, and the relevant decision files, nothing else. Helpers do not run the tracker.
 
 | Tier | Model, effort | For |
 | --- | --- | --- |
@@ -80,7 +80,7 @@ When a phase has more than a couple of separate pieces of work, split it instead
 4. **Verify, never trust.** A helper's report is a claim. Read its diff, run the tests or the gate command yourself, then `work done ID --result "<what you ran and saw>"`. If it is wrong, `work fail ID --why ...`: the task moves up one tier and is dispatched again; a failure at the top tier is blocked and goes to the user.
 5. **Overrides need a reason**: `--tier X --why "..."`. Cheaper is not always better: security, money and data work never goes below a deep builder, whatever the bias.
 
-`advance` refuses while helper tasks are open. The user can switch helpers off, set how many run at once and lean cheaper or stronger from the dashboard (`hyperskill.py work policy --helpers on|off --parallel N --bias economy|balanced|quality`); when helpers are off, do the tasks yourself one at a time. For a small phase, skip all of this: three or four edits do not need a plan.
+`advance` refuses while helper tasks are open. `work stats` shows how often each tier was right first time on this project and suggests changes; `work tune --kind build --score 3` changes a starting score for this project only. The user can switch helpers off, set how many run at once and lean cheaper or stronger from the dashboard (`hyperskill.py work policy --helpers on|off --parallel N --bias economy|balanced|quality`); when helpers are off, do the tasks yourself one at a time. For a small phase, skip all of this: three or four edits do not need a plan.
 
 ## 4. External skills (slots)
 

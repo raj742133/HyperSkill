@@ -44,20 +44,30 @@ def policy(st):
     return dict(DEFAULT_POLICY, **work(st)["policy"])
 
 
-def classify(kind, files=1, risk="none", unknown=False, bias="balanced"):
+def rules(st=None):
+    """The scoring table: the shipped defaults with this project's own tuning laid over them."""
+    r = json.loads(json.dumps(models()["rules"]))
+    tuned = (work(st).get("rules") if st is not None else None) or {}
+    r["kinds"].update(tuned.get("kinds", {}))
+    r["plus"].update(tuned.get("plus", {}))
+    return r
+
+
+def classify(kind, files=1, risk="none", unknown=False, bias="balanced", table=None):
     """(tier id, score, reasons). Pure function: the same input always gives the same answer."""
     m = models()
-    if kind not in m["rules"]["kinds"]:
+    table = table or m["rules"]
+    if kind not in table["kinds"]:
         raise WorkError("kind must be one of: " + ", ".join(KINDS))
     if risk not in RISKS:
         raise WorkError("risk must be one of: " + ", ".join(RISKS))
     if kind == "review":
-        return "reviewer", m["rules"]["kinds"][kind], ["a review always goes to a fresh, read-only reviewer"]
+        return "reviewer", table["kinds"][kind], ["a review always goes to a fresh, read-only reviewer"]
     if kind == "lookup":
         return "scout", 0, ["reading and summarising only, so a read-only scout is enough"]
-    score = m["rules"]["kinds"][kind]
+    score = table["kinds"][kind]
     why = ["%s work starts at %d" % (kind, score)]
-    plus = m["rules"]["plus"]
+    plus = table["plus"]
     if files >= 4:
         score += plus["files_4_or_more"]
         why.append("touches %d files" % files)
@@ -114,7 +124,7 @@ def add(st, phase, title, kind, paths="", risk="none", unknown=False, depends=""
         if not ID.match(d):
             raise WorkError("depends must be task ids such as T1,T2")
         find(st, d)
-    auto, score, reasons = classify(kind, max(1, len(pl)), risk, unknown, policy(st)["bias"])
+    auto, score, reasons = classify(kind, max(1, len(pl)), risk, unknown, policy(st)["bias"], rules(st))
     chosen = auto
     if tier:
         if tier not in tiers():
@@ -243,6 +253,50 @@ def set_policy(st, helpers=None, parallel=None, bias=None):
             raise WorkError("bias must be one of: " + ", ".join(BIAS))
         p["bias"] = bias
     return policy(st)
+
+
+def tune(st, kind=None, score=None, plus=None, value=None, reset=False):
+    """Change this project's scoring: a kind's starting score (0 to 6) or one of the add-ons (0 to 3). Defaults stay in models.json."""
+    w = work(st)
+    if reset:
+        w.pop("rules", None)
+        return rules(st)
+    t = w.setdefault("rules", {"kinds": {}, "plus": {}})
+    if kind is not None:
+        if kind not in KINDS or kind in ("lookup", "review"):
+            raise WorkError("tune one of: " + ", ".join(k for k in KINDS if k not in ("lookup", "review")))
+        if score is None or not 0 <= score <= 6:
+            raise WorkError("--score must be 0 to 6")
+        t["kinds"][kind] = score
+    if plus is not None:
+        if plus not in models()["rules"]["plus"] or value is None or not 0 <= value <= 3:
+            raise WorkError("--plus must be one of %s with --value 0 to 3" % ", ".join(models()["rules"]["plus"]))
+        t["plus"][plus] = value
+    return rules(st)
+
+
+def stats(st):
+    """What actually happened, per tier: tasks finished, how many were right on the first try, how many were pushed up from a cheaper tier."""
+    tr, rows = tiers(), {}
+    for tid in tr:
+        rows[tid] = {"tier": tid, "label": tr[tid]["label"], "done": 0, "first_try": 0, "failed": 0}
+    for t in work(st)["tasks"]:
+        if t["status"] == "done":
+            rows[t["tier"]]["done"] += 1
+            rows[t["tier"]]["first_try"] += 1 if t["attempts"] == 1 else 0
+        for r in t["reasons"]:
+            m = re.match(r"failed on (\S+) ", r)
+            if m and m.group(1) in rows:
+                rows[m.group(1)]["failed"] += 1
+    advice = []
+    for r in rows.values():
+        n = r["done"] + r["failed"]
+        r["rate"] = round(100 * r["first_try"] / n) if n else None
+        if n >= 4 and r["rate"] < 60 and r["tier"] in ("fixer", "builder", "builder-deep"):
+            advice.append("%s got only %d%% of its tasks right first time over %d: raise the starting score of the work it keeps getting (`work tune --kind build --score 3`)" % (r["label"], r["rate"], n))
+        if n >= 6 and r["rate"] >= 95 and r["tier"] in ("builder-deep", "architect"):
+            advice.append("%s was right first time %d%% of %d tasks: some of its work may be fine one tier cheaper (`work tune`)" % (r["label"], r["rate"], n))
+    return list(rows.values()), advice
 
 
 def label(t):

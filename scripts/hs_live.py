@@ -137,7 +137,7 @@ def build_state(root, controls=False, runner=None, port=None):
         "inputs": inputs.listing(root),
         "models": models_state(st),
         "work": {"tasks": [dict(t, label=workmod.label(t), agent=workmod.tiers()[t["tier"]]["agent"], wave=wave_of.get(t["id"])) for t in workmod.work(st)["tasks"]],
-                 "policy": workmod.policy(st), "open": len(workmod.open_tasks(st, st["current"])) if st["current"] else 0},
+                 "policy": workmod.policy(st), "stats": workmod.stats(st)[0], "advice": workmod.stats(st)[1], "tuned": workmod.rules(st) != workmod.models()["rules"], "open": len(workmod.open_tasks(st, st["current"])) if st["current"] else 0},
         "preview": {"targets": preview.targets(st), "found": preview.detect(port) if controls else []},
         "run": runner.state() if runner else {"allowed": False, "available": False, "running": False, "mode": None, "session": False, "last": None, "messages": []},
         "extras": [dict(e, id=i) for i, e in st.get("extras", {}).items()],
@@ -240,14 +240,14 @@ def perform(root, action, body, runner=None):
                     except preview.PreviewError as exc:
                         raise Refused(str(exc))
                 helpers = body.get("helpers", "auto")
-                if helpers not in ("auto", "economy", "quality", "off"):
-                    raise Refused("helpers must be auto, economy, quality or off")
+                if helpers not in ("auto", "split", "economy", "quality", "off"):
+                    raise Refused("helpers must be auto, split, economy, quality or off")
                 pol = workmod.policy(st)
-                new = {"auto": (True, "balanced"), "economy": (True, "economy"), "quality": (True, "quality"), "off": (False, pol["bias"])}[helpers]
+                new = {"auto": (True, "balanced"), "split": (True, "balanced"), "economy": (True, "economy"), "quality": (True, "quality"), "off": (False, pol["bias"])}[helpers]
                 if (pol["helpers"], pol["bias"]) != new:
                     run_tracker(root, "work", "policy", "--helpers", "on" if new[0] else "off", "--bias", new[1])
                 runner.start(body.get("text"), body.get("mode"), body.get("budget", 3.0) if isinstance(body.get("budget", 3.0), (int, float)) else 3.0,
-                             model, effort, body.get("chrome") is True, url, label, new[0])
+                             model, effort, body.get("chrome") is True, url, label, new[0], helpers == "split")
                 return {"ok": True, "output": "Claude is working. Its replies appear in the chat as they arrive."}
             if action == "run_stop":
                 return {"ok": True, "output": "stopped" if runner.stop() else "nothing was running"}

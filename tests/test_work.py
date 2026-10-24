@@ -208,6 +208,14 @@ class DashboardTests(Base):
         self.assertNotIn("Agent", a)
         self.assertFalse(self.call("GET", "/live/state.json")[1]["work"]["policy"]["helpers"])
 
+    def test_always_split_tells_claude_to_use_helpers_even_for_a_narrow_request(self):
+        a = self.run_and_args({"helpers": "split"})
+        prompt = a[a.index("-p") + 1]
+        self.assertIn("asked for helper agents", prompt)
+        self.assertIn("Agent", a)
+        self.call("POST", "/live/api/run_new", {})
+        self.assertNotIn("asked for helper agents", self.run_and_args({"helpers": "auto"})[a.index("-p") + 1])
+
     def test_the_choice_of_cheaper_or_stronger_is_stored_and_a_bad_one_is_refused(self):
         self.run_and_args({"helpers": "economy"})
         self.assertEqual(self.call("GET", "/live/state.json")[1]["work"]["policy"]["bias"], "economy")
@@ -231,6 +239,134 @@ class DashboardTests(Base):
             html = f.read()
         for ident in ("chat-helpers", "wk-list", "wk-tiers", "wk-par"):
             self.assertIn('id="%s"' % ident, html)
+
+
+class TuneAndStatsTests(unittest.TestCase):
+    def test_tuning_changes_one_project_and_reset_restores_the_defaults(self):
+        st = {}
+        self.assertEqual(W.add(st, "p", "x", "build", "a")["tier"], "builder")
+        W.tune(st, "build", 3)
+        self.assertEqual(W.add(st, "p", "y", "build", "b")["tier"], "builder-deep")
+        W.tune(st, plus="unknown", value=0)
+        self.assertEqual(W.add(st, "p", "z", "debug", "c", unknown=True)["score"], 3)
+        W.tune(st, reset=True)
+        self.assertEqual(W.rules(st), W.models()["rules"])
+        with self.assertRaises(W.WorkError):
+            W.tune(st, "lookup", 2)
+        with self.assertRaises(W.WorkError):
+            W.tune(st, "build", 9)
+        with self.assertRaises(W.WorkError):
+            W.tune(st, plus="vibes", value=1)
+
+    def test_stats_count_first_time_successes_and_failures_and_advise_only_with_enough_data(self):
+        st = {}
+        for i in range(5):
+            t = W.add(st, "p", "t%d" % i, "build", "f%d" % i)
+            W.start(st, t["id"])
+            if i < 3:
+                W.fail(st, t["id"], "red")
+                W.start(st, t["id"])
+            W.finish(st, t["id"], "tests pass: %d" % i)
+        rows, advice = W.stats(st)
+        by = {r["tier"]: r for r in rows}
+        self.assertEqual((by["builder"]["failed"], by["builder"]["done"], by["builder"]["first_try"]), (3, 2, 2))
+        self.assertEqual((by["builder-deep"]["done"], by["builder-deep"]["first_try"]), (3, 0))
+        self.assertEqual(len(advice), 1)
+        self.assertIn("Builder got only 40%", advice[0])
+        for i in range(4):
+            t = W.add(st, "p", "more%d" % i, "build", "g%d" % i)
+            W.start(st, t["id"])
+            W.fail(st, t["id"], "red")
+        self.assertIn("Builder got only 22%", W.stats(st)[1][0])
+        self.assertEqual(W.stats({"work": {"seq": 0, "tasks": [], "policy": {}}})[1], [])
+        self.assertEqual(W.stats({})[1], [], "no data, no advice")
+
+
+class LockAndHookTests(Base):
+    def test_many_tracker_calls_at_once_all_land_and_ids_stay_unique(self):
+        import subprocess
+        from test_run import TRACKER
+        procs = [subprocess.Popen([sys.executable, TRACKER, "--root", self.p, "work", "add", "t%d" % i, "--kind", "lookup"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                                  env=dict(os.environ, HOME=EMPTY_HOME)) for i in range(12)]
+        for pr in procs:
+            self.assertEqual(pr.wait(), 0)
+        with open(os.path.join(self.p, ".hyperskill", "state.json"), encoding="utf-8") as f:
+            ids = [t["id"] for t in json.load(f)["work"]["tasks"]]
+        self.assertEqual(sorted(ids, key=lambda x: int(x[1:])), ["T%d" % i for i in range(1, 13)])
+
+    def hook(self, when, payload):
+        import subprocess
+        r = subprocess.run([sys.executable, os.path.join(SCRIPTS, "hs_hook.py"), when], input=json.dumps(dict(payload, cwd=self.p)), capture_output=True, text=True,
+                           env=dict(os.environ, HOME=EMPTY_HOME, HYPERSKILL_NO_AUTOSTART="1"))
+        self.assertEqual(r.returncode, 0, r.stderr)
+        return r.stdout
+
+    def status(self, tid):
+        with open(os.path.join(self.p, ".hyperskill", "state.json"), encoding="utf-8") as f:
+            st = json.load(f)
+        return next(t for t in st["work"]["tasks"] if t["id"] == tid)["status"]
+
+    def test_a_helper_dispatched_with_a_task_id_marks_the_task_running_when_it_starts(self):
+        tracker(self.p, "work", "add", "x", "--kind", "edit", "--paths", "a")
+        tracker(self.p, "work", "add", "y", "--kind", "edit", "--paths", "b")
+        self.hook("pre", {"tool_name": "Agent", "tool_input": {"description": "T1: change the label", "subagent_type": "hyperskill:hs-fixer"}})
+        self.assertEqual((self.status("T1"), self.status("T2")), ("running", "todo"))
+        self.hook("pre", {"tool_name": "Agent", "tool_input": {"description": "T2: other", "subagent_type": "general-purpose"}})
+        self.assertEqual(self.status("T2"), "todo", "only HyperSkill helpers start tasks")
+        self.hook("pre", {"tool_name": "Agent", "tool_input": {"description": "no id here", "subagent_type": "hs-fixer"}})
+
+    def test_when_a_helper_returns_the_conductor_is_told_to_verify_before_recording(self):
+        out = json.loads(self.hook("post", {"tool_name": "Agent", "tool_input": {"description": "T4: x", "subagent_type": "hs-builder"}, "tool_response": "done"}))
+        text = out["hookSpecificOutput"]["additionalContext"]
+        self.assertIn("T4", text)
+        self.assertIn("work done T4", text)
+        self.assertIn("claim", text)
+
+    def test_a_long_run_of_edits_with_no_tasks_gets_one_reminder_and_never_a_second(self):
+        outs = []
+        for i in range(12):
+            outs.append(self.hook("post", {"tool_name": "Write", "tool_input": {"file_path": os.path.join(self.p, "f%d.js" % i), "content": "x"}, "tool_response": "ok"}))
+        nudges = [o for o in outs if "no helper tasks" in o]
+        self.assertEqual(len(nudges), 1)
+        self.assertEqual(outs.index(nudges[0]), 7)
+
+    def test_the_reminder_is_off_when_helpers_are_off_or_tasks_exist(self):
+        tracker(self.p, "work", "policy", "--helpers", "off")
+        outs = [self.hook("post", {"tool_name": "Edit", "tool_input": {"file_path": os.path.join(self.p, "a.js")}, "tool_response": "ok"}) for _ in range(10)]
+        self.assertFalse(any("helper tasks" in o for o in outs))
+
+    def test_a_new_session_is_handed_the_open_tasks_and_the_next_wave(self):
+        tracker(self.p, "work", "add", "build it", "--kind", "build", "--paths", "src")
+        out = json.loads(self.hook("start", {}))["hookSpecificOutput"]["additionalContext"]
+        self.assertIn("helper tasks open", out)
+        self.assertIn("T1", out)
+        self.assertIn("wave 1", out)
+
+
+class TestsModeTests(unittest.TestCase):
+    def cmd(self, mode):
+        import hs_run
+        return hs_run.build_command("/tmp/x", "hi", mode, 1.0, None)
+
+    def tools(self, mode):
+        a = self.cmd(mode)
+        return a[a.index("--allowedTools") + 1:]
+
+    def test_tests_mode_adds_the_usual_test_commands_and_nothing_else_in_the_shell(self):
+        edits, tests, build = self.tools("edits"), self.tools("tests"), self.tools("build")
+        self.assertNotIn("Bash(npm test:*)", edits)
+        self.assertIn("Bash(npm test:*)", tests)
+        self.assertIn("Bash(python3 -m pytest:*)", tests)
+        self.assertNotIn("Bash", tests)
+        self.assertNotIn("Bash(curl:*)", tests)
+        self.assertIn("Bash", build)
+        self.assertTrue(any(t.startswith("Bash(python3 ") and "hyperskill.py" in t for t in tests))
+
+    def test_tests_mode_is_offered_in_the_page_and_the_server_accepts_it(self):
+        with open(os.path.join(ROOT, "site", "live", "index.html"), encoding="utf-8") as f:
+            self.assertIn('<option value="tests">', f.read())
+        import hs_run
+        self.assertEqual(hs_run.MODES, ("edits", "tests", "build"))
 
 
 if __name__ == "__main__":
