@@ -25,7 +25,7 @@ FAKE = '''#!/usr/bin/env python3
 import json, os, sys, time
 args = sys.argv[1:]
 with open(os.environ["FAKE_LOG"], "a") as f:
-    f.write(json.dumps({"args": args, "cwd": os.getcwd(), "run": os.environ.get("HYPERSKILL_RUN")}) + "\\n")
+    f.write(json.dumps({"args": args, "cwd": os.getcwd(), "run": os.environ.get("HYPERSKILL_RUN"), "env": sorted(os.environ)}) + "\\n")
 prompt = args[args.index("-p") + 1]
 sid = args[args.index("--resume") + 1] if "--resume" in args else "sess-1"
 print(json.dumps({"type": "system", "session_id": sid}), flush=True)
@@ -99,7 +99,7 @@ class RunnerTests(Base):
         self.assertEqual(second["args"][second["args"].index("-p") + 1], "second message")
         self.assertEqual(first["cwd"], os.path.realpath(self.p))
         self.assertEqual(first["run"], "1")
-        roles = [m["role"] for m in hs_run.history(self.p)]
+        roles = [m["role"] for m in hs_run.history(self.p) if m["role"] != "system"]
         self.assertEqual(roles, ["user", "claude", "user", "claude"])
         self.assertEqual(r.last["cost"], 0.01)
         r.new_chat()
@@ -203,7 +203,7 @@ class ServerTests(Base):
                 break
             time.sleep(0.1)
         self.assertTrue(state["run"]["session"])
-        self.assertEqual([m["role"] for m in state["run"]["messages"]], ["user", "claude"])
+        self.assertEqual([m["role"] for m in state["run"]["messages"] if m["role"] != "system"], ["user", "claude"])
         self.assertEqual(state["run"]["last"]["cost"], 0.01)
         self.assertEqual(self.call(server, port, "POST", "/live/api/run_start", {"text": "", "mode": "edits"})[0], 400)
         self.assertEqual(self.call(server, port, "POST", "/live/api/run_start", {"text": "x", "mode": "bypass"})[0], 400)

@@ -114,6 +114,9 @@ Until now the dashboard watched and steered a Claude session you had open. With 
 - **Attach files.** In the "Your idea" box, attach requirement documents, specs or notes (markdown, text, Word, PDF, CSV, JSON, YAML, HTML and images, up to 15 MB each). They are saved privately under `.hyperskill/inputs/` (never served back, never run), the text of Word, HTML and text files is extracted next to them (PDF too when `pdftotext` is installed), and Claude reads them, PDFs and images through its own Read tool. They appear in the brief that Claude is handed, and Claude turns them into requirements and questions for you.
 - **Chat with Claude.** Each message runs a headless `claude -p` in your project folder with this plugin loaded for that run, and later messages resume the same conversation, so it behaves like a chat. Replies appear in the box as they arrive, and the work shows in the activity feed as usual.
 - **You choose what it may do, per message.** *Edit files and use the tracker* (the default) lets it edit files and run only HyperSkill's tracker; every other shell command is denied. *Also run shell commands here* adds any shell command in the project (npm, git, tests), with the rights of your user account. There is no mode that skips permission checks. Each message has a spend limit ($1, $3 or $10), there is one run at a time, a 30 minute limit and a Stop button.
+- **Pick the model and effort, like in Claude chat.** The chat box has a *Model* menu (Claude Code's `fable`, `opus`, `sonnet`, `haiku` names, which follow the newest model of that name) and an *Effort* menu (`low` to `max`). The default is **Suggested for this phase**: [`models.json`](skills/hyperskill/models.json) says what each of the nine phases tends to want and why (research, plan and harden lean on Opus at high effort; build, ship and launch on Sonnet at medium) and the box shows that line for the phase you are in. These are my reading of the work, not benchmarks, and you can edit the file. Cost is shown after every run and the spend limit stays as a safety net, but it is not what drives the suggestion. Which models you can use depends on your account (on mine, Fable needs usage credits and says so in the chat).
+- **See what is being built, live.** A *Live preview* panel shows the app as it stands. A running dev server (Vite, Next, Astro, Storybook, plain `http.server`, and so on) is picked up on its own from the usual local ports; you can also add a local address or a project file (`index.html`, a `.md`, an image). Web apps show in a sandboxed frame with phone, tablet and full-width views; project files are served from a read-only, secret-blocking route inside a sandbox that cannot reach the dashboard's key. Only addresses on your own computer with a port are accepted.
+- **Test and debug in Chrome.** Tick *Test in Chrome (DevTools)*, or press *Check and debug in Chrome* on a preview, and that run gets the [Chrome DevTools MCP](https://github.com/ChromeDevTools/chrome-devtools-mcp) (pinned version, headless, its own throw-away profile, usage statistics off, no `file:` pages) so Claude can open the app, click through it, read console errors, failed network requests and screenshots, fix what it finds and re-test.
 - **It is never on by accident.** The dashboard that starts automatically cannot run Claude. You turn it on by starting it yourself with `--allow-run` (stop the automatic one first with `hyperskill.py live --stop`). Without it the same box queues your message for the Claude session you have open. It uses your own Claude Code login and counts against your own usage, and the page is local and key-protected like the other controls.
 - **Verified for real.** I ran it end to end against a real Claude Code: a message from the browser started a run, Claude read an attached requirements file and wrote ten requirements and twelve questions into the brief with the tracker, in 33 seconds for about $0.14, and a second message resumed the same conversation. In edits-only mode a shell command outside the tracker was refused. The shell-commands mode and long runs have been tested only with a stand-in `claude` program, not yet in a real long run.
 
@@ -207,7 +210,7 @@ A focus timer shaped like a glass of water ([live](https://hyperskill-hazel.verc
 Verified:
 
 - The plugin installs from GitHub into a clean config, and `/hyperskill` ran headless from an install of the same plugin (two separate tests, not one end-to-end run).
-- The tracker and the integration resolver are covered by 214 tests; `claude plugin validate .` passes.
+- The tracker and the integration resolver are covered by 230 tests; `claude plugin validate .` passes.
 - Two full runs on real code, described above, with the failures they exposed.
 
 Not verified, so do not rely on it yet:
@@ -240,7 +243,7 @@ site/                  the static launch site (Vercel; vercel.json); site/live i
 examples/duesoon/      full nine-phase run
 examples/chaser/       research, plan and build of the second run
 docs/                  sources, integration review, README images
-tests/                 214 tests for the tracker, resolver, hook, dashboard server and its controls, skill plan, catalogue, brief, previews, structure and site
+tests/                 230 tests for the tracker, resolver, hook, dashboard server and its controls, skill plan, catalogue, brief, previews, structure and site
 ```
 
 ## Develop

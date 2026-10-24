@@ -1,0 +1,19 @@
+{
+  "_about": "Suggested Claude model and effort per phase. These are suggestions from reading what each phase asks for, not benchmarks: edit them freely. Models are Claude Code's aliases (they follow the newest model of that name); which ones you can use depends on your account. Effort is Claude Code's --effort level: low, medium, high, xhigh, max. Higher effort is slower and uses more of your usage.",
+  "phases": {
+    "research": {"model": "opus", "effort": "high", "why": "Judging sources and making a go, pivot or stop call is reasoning-heavy and cheap to get wrong now, expensive later."},
+    "plan": {"model": "opus", "effort": "high", "why": "Architecture, tenancy and security choices here are the hardest to undo once code exists."},
+    "foundation": {"model": "opus", "effort": "medium", "why": "Auth, tenant scoping and migrations must be right; with a clear plan, medium effort is usually enough."},
+    "product": {"model": "sonnet", "effort": "medium", "why": "UI work is many small build-and-look steps where speed helps; the browser check catches mistakes."},
+    "ship": {"model": "sonnet", "effort": "medium", "why": "CI, environments and rollbacks are routine once decided; the gates verify the result."},
+    "harden": {"model": "opus", "effort": "high", "why": "A security review that misses something is worse than a slow one; use the strongest setting you have."},
+    "operate": {"model": "sonnet", "effort": "medium", "why": "Logging, health checks and alerts are well-trodden patterns."},
+    "launch": {"model": "sonnet", "effort": "medium", "why": "Copy, legal pages and video briefs benefit from iteration more than from deep reasoning."},
+    "scale": {"model": "sonnet", "effort": "high", "why": "Finding a real bottleneck from measurements takes careful reasoning, but the build steps are small."}
+  },
+  "tasks": [
+    {"task": "A small copy or style tweak", "model": "haiku", "effort": "low", "why": "Fast and cheap; nothing to reason about."},
+    {"task": "A bug you cannot explain", "model": "opus", "effort": "high", "why": "Diagnosis rewards depth."},
+    {"task": "Reading a long document or PDF", "model": "sonnet", "effort": "medium", "why": "Comprehension is rarely the bottleneck."}
+  ]
+}

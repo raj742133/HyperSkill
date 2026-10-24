@@ -21,6 +21,7 @@ Usage:
   hyperskill.py log TEXT
   hyperskill.py event TEXT [--kind building|testing|reviewing|waiting|done]
                                                     tell the live view what is happening right now
+  hyperskill.py preview [list|add NAME --url U|--path P|remove NAME|detect]   what is being built, shown live in the dashboard
   hyperskill.py brief [show|set --file F|finding add ...|req add ...|resolve ID --state S]   the pasted idea, gaps and conflicts, your answers
   hyperskill.py place [list|add ITEM --where W --why T|check --close]   where each picked component or figure is used, and proof it is
   hyperskill.py catalog [list|select|unselect|brief|sitewright] [IDS] [--group G --all|--recommended]
@@ -60,6 +61,7 @@ import hs_control as control  # noqa: E402
 import hs_skills as skills  # noqa: E402
 import hs_catalog as cat  # noqa: E402
 import hs_brief as brief  # noqa: E402
+import hs_preview  # noqa: E402
 GATES_PATH = os.path.join(_HERE, "..", "skills", "hyperskill", "gates.json")
 INTEGRATIONS_PATH = os.path.join(_HERE, "..", "skills", "hyperskill", "integrations.json")
 
@@ -595,6 +597,33 @@ def cmd_inputs(args):
         die(str(exc))
 
 
+def cmd_preview(args):
+    st = load_state(args.root)
+    a = args.action or "list"
+    try:
+        if a == "add":
+            t = hs_preview.add(sys.modules[__name__], args.root, st, args.target, args.url, args.path)
+            save_state(args.root, st)
+            print("preview %s -> %s" % (t["name"], t.get("url") or t.get("path")))
+        elif a == "remove":
+            hs_preview.remove(sys.modules[__name__], st, args.target or "")
+            save_state(args.root, st)
+            print("removed")
+        elif a == "detect":
+            rows = hs_preview.detect()
+            for r in rows:
+                print("%-28s %s" % (r["url"], r["title"] or "(no title)"))
+            if not rows:
+                print("(no dev server found on the usual ports)")
+        else:
+            for t in hs_preview.targets(st):
+                print("%-20s %s" % (t["name"], t.get("url") or t.get("path")))
+            if not hs_preview.targets(st):
+                print("(none yet: `preview add NAME --url http://localhost:3000` or `--path index.html`)")
+    except hs_preview.PreviewError as exc:
+        die(str(exc))
+
+
 def cmd_place(args):
     st = load_state(args.root)
     me = sys.modules[__name__]
@@ -991,6 +1020,13 @@ def build_parser():
     p.add_argument("action", nargs="?", choices=["list", "add", "remove"])
     p.add_argument("target", nargs="?")
     p.set_defaults(fn=cmd_inputs)
+
+    p = sub.add_parser("preview", help="what is being built, shown live in the dashboard")
+    p.add_argument("action", nargs="?", choices=["list", "add", "remove", "detect"])
+    p.add_argument("target", nargs="?", help="add|remove: the preview's name")
+    p.add_argument("--url", help="a dev server on this computer, e.g. http://localhost:3000")
+    p.add_argument("--path", help="a built page or SKILL.md inside the project")
+    p.set_defaults(fn=cmd_preview)
 
     p = sub.add_parser("place", help="where each picked Sitewright component or figure is used")
     p.add_argument("action", nargs="?", choices=["list", "add", "check"])

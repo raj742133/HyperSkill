@@ -29,6 +29,7 @@ import hs_brief as brief  # noqa: E402
 import hs_catalog as cat  # noqa: E402
 import hs_control as control  # noqa: E402
 import hs_inputs as inputs  # noqa: E402
+import hs_preview as preview  # noqa: E402
 import hs_run  # noqa: E402
 import hs_skills as skills  # noqa: E402
 import hyperskill as core  # noqa: E402
@@ -45,7 +46,7 @@ STATIC = {  # the only files this server will ever send
     "/favicon.svg": (SITE_DIR, "favicon.svg", "image/svg+xml"),
     "/live/catalog.json": (os.path.normpath(os.path.join(_HERE, "..", "skills", "hyperskill")), "catalog.json", "application/json"),
 }
-CSP = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; media-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+CSP = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; media-src 'self'; frame-src 'self' http://127.0.0.1:* http://localhost:* https://127.0.0.1:* https://localhost:*; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
 RECENT = 300  # events sent to a browser that has just connected
 PREVIEW_DIR = os.path.normpath(os.path.join(_HERE, "..", "site", "live", "previews"))
 PREVIEW_RE = re.compile(r"^/live/previews/([a-z0-9-]{1,40})/([a-z0-9][a-z0-9._-]{0,80}\.(mp4|webp|svg|png))$")
@@ -85,6 +86,13 @@ def integrations_state(root, st):
     return rows, slots
 
 
+def models_state(st):
+    with open(os.path.join(_HERE, "..", "skills", "hyperskill", "models.json"), encoding="utf-8") as f:
+        m = json.load(f)
+    return {"phases": m["phases"], "tasks": m["tasks"], "current": m["phases"].get(st["current"]) if st["current"] else None,
+            "aliases": list(hs_run.MODEL_ALIASES), "efforts": list(hs_run.EFFORTS)}
+
+
 def cat_places(root, st):
     try:
         return brief.check(core, root, st)
@@ -92,7 +100,7 @@ def cat_places(root, st):
         return []
 
 
-def build_state(root, controls=False, runner=None):
+def build_state(root, controls=False, runner=None, port=None):
     """Everything the page needs to draw the phase rail, the open checks and the decisions."""
     phases = core.load_gates()
     st = core.load_state(root)
@@ -125,6 +133,8 @@ def build_state(root, controls=False, runner=None):
                   "requirements": [dict(r, id=i) for i, r in st.get("requirements", {}).items()]},
         "placements": cat_places(root, st),
         "inputs": inputs.listing(root),
+        "models": models_state(st),
+        "preview": {"targets": preview.targets(st), "found": preview.detect(port) if controls else []},
         "run": runner.state() if runner else {"allowed": False, "available": False, "running": False, "mode": None, "session": False, "last": None, "messages": []},
         "extras": [dict(e, id=i) for i, e in st.get("extras", {}).items()],
         "skillplan": skills.plan(core, root, st, st["current"], installed_names(root)) if st["current"] else [],
@@ -212,7 +222,21 @@ def perform(root, action, body, runner=None):
             raise Refused("running Claude from the dashboard is not available here")
         try:
             if action == "run_start":
-                runner.start(body.get("text"), body.get("mode"), body.get("budget", 3.0) if isinstance(body.get("budget", 3.0), (int, float)) else 3.0)
+                st = core.load_state(root)
+                sug = models_state(st)["current"] or {}
+                model, effort, label = body.get("model"), body.get("effort"), ""
+                if model == "suggested" or effort == "suggested":
+                    label = "suggested for phase %s" % st["current"]
+                    model = sug.get("model") if model == "suggested" else model
+                    effort = sug.get("effort") if effort == "suggested" else effort
+                url = None
+                if body.get("preview_url"):
+                    try:
+                        url = preview.check_url(body.get("preview_url"))
+                    except preview.PreviewError as exc:
+                        raise Refused(str(exc))
+                runner.start(body.get("text"), body.get("mode"), body.get("budget", 3.0) if isinstance(body.get("budget", 3.0), (int, float)) else 3.0,
+                             model, effort, body.get("chrome") is True, url, label)
                 return {"ok": True, "output": "Claude is working. Its replies appear in the chat as they arrive."}
             if action == "run_stop":
                 return {"ok": True, "output": "stopped" if runner.stop() else "nothing was running"}
@@ -222,6 +246,14 @@ def perform(root, action, body, runner=None):
             raise Refused(str(exc))
         except (ValueError, RuntimeError, FileNotFoundError) as exc:
             raise Refused(str(exc))
+    if action == "preview_add":
+        try:
+            t = preview.add(core, root, core.load_state(root), text_field(body, "name", 40), body.get("url"), body.get("path"))
+        except preview.PreviewError as exc:
+            raise Refused(str(exc))
+        return run_tracker(root, "preview", "add", t["name"], *(["--url", t["url"]] if t["kind"] == "web" else ["--path", t["path"]]))
+    if action == "preview_remove":
+        return run_tracker(root, "preview", "remove", text_field(body, "name", 40))
     if action == "input_remove":
         try:
             inputs.remove(root, text_field(body, "name", 120))
@@ -295,7 +327,8 @@ def make_handler(root, port, token=None, runner=None):
             self.send_header("Content-Length", str(len(body)))
             if "Cache-Control" not in (extra or {}):
                 self.send_header("Cache-Control", "no-store")
-            self.send_header("Content-Security-Policy", CSP)
+            if "Content-Security-Policy" not in (extra or {}):
+                self.send_header("Content-Security-Policy", CSP)
             self.send_header("X-Content-Type-Options", "nosniff")
             self.send_header("Referrer-Policy", "no-referrer")
             if self.command == "POST" and status >= 400:
@@ -326,9 +359,11 @@ def make_handler(root, port, token=None, runner=None):
             m = PREVIEW_RE.match(path)
             if m:
                 return self._preview(m)
+            if path.startswith("/live/site/"):
+                return self._site(path[len("/live/site/"):])
             if path == "/live/state.json":
                 try:
-                    return self._send(200, json.dumps(build_state(root, bool(token), runner)).encode(), "application/json")
+                    return self._send(200, json.dumps(build_state(root, bool(token), runner, port)).encode(), "application/json")
                 except (OSError, ValueError, KeyError, SystemExit):
                     return self._send(500, b'{"error":"state unavailable"}', "application/json")
             if path == "/live/events":
@@ -385,6 +420,19 @@ def make_handler(root, port, token=None, runner=None):
                 return self._send(400, json.dumps({"ok": False, "output": str(exc)}).encode(), "application/json")
             except (ValueError, OSError):
                 return self._send(400, b'{"ok":false,"output":"could not attach that"}', "application/json")
+
+        def _site(self, rel):
+            """A file of the project being built, for the preview frame. Sandboxed so it can never reach the dashboard's key."""
+            from urllib.parse import unquote
+            try:
+                _, full, ctype = preview.safe_rel(root, unquote(rel))
+                with open(full, "rb") as f:
+                    body = f.read(8 * 1024 * 1024)
+            except (preview.PreviewError, OSError):
+                return self._send(404, b"not found", "text/plain")
+            csp = ("sandbox allow-scripts allow-forms; default-src 'self' data: blob:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; "
+                   "img-src 'self' data: blob:; font-src 'self' data:; connect-src 'none'; frame-ancestors 'self'")
+            return self._send(200, body, ctype, {"Content-Security-Policy": csp})
 
         def _preview(self, m):
             """The catalogue's pictures and clips: a fixed folder, fixed extensions, byte ranges for video."""
