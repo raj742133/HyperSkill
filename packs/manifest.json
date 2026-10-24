@@ -1,0 +1,17 @@
+{
+  "_about": "Third-party skills bundled as installable packs. Files are copied unmodified by scripts/vendor_packs.py from the pinned commit; nothing here loads until a project runs `hyperskill.py integrations enable ID`.",
+  "packs": {
+    "cloudflare-security-audit": {"repo": "cloudflare/security-audit-skill", "license": "MIT", "copy": [["skills/security-audit", "skills/security-audit"]]},
+    "taste-skill": {"repo": "Leonxlnx/taste-skill", "license": "MIT", "copy": [["skills/taste-skill", "skills/taste-skill"]]},
+    "impeccable": {"repo": "pbakaus/impeccable", "license": "Apache-2.0", "copy": [["plugin/skills/impeccable", "skills/impeccable"]]},
+    "emil-skills": {"repo": "emilkowalski/skills", "license": "MIT", "copy": [["skills/*", "skills/"]]},
+    "karpathy-skills": {"repo": "multica-ai/andrej-karpathy-skills", "license": "MIT (stated in the upstream README; the repository has no LICENSE file and names no copyright holder)", "copy": [["skills/karpathy-guidelines", "skills/karpathy-guidelines"]]},
+    "ui-ux-pro-max": {"repo": "nextlevelbuilder/ui-ux-pro-max-skill", "license": "MIT", "copy": [[".claude/skills/*", "skills/"]]},
+    "superpowers": {"repo": "obra/superpowers", "license": "MIT", "copy": [["skills/*", "skills/"]]},
+    "ponytail": {"repo": "DietrichGebert/ponytail", "license": "MIT", "copy": [["skills/ponytail*", "skills/"]]},
+    "slopmonster": {"repo": "ItsssssJack/SlopMonster", "license": "MIT", "copy": [["SKILL.md", "skills/slopmonster/SKILL.md"], ["docs", "skills/slopmonster/docs"], ["examples", "skills/slopmonster/examples"], ["prompts", "skills/slopmonster/prompts"], ["references", "skills/slopmonster/references"], ["tools", "skills/slopmonster/tools"]]},
+    "better-icons": {"repo": "better-auth/better-icons", "license": "MIT", "copy": [["skills/SKILL.md", "skills/better-icons/SKILL.md"]]},
+    "watch": {"repo": "mathiaschu/watch", "license": "MIT", "copy": [["SKILL.md", "skills/watch/SKILL.md"], ["scripts", "skills/watch/scripts"]]},
+    "hyperframes": {"repo": "heygen-com/hyperframes", "license": "Apache-2.0", "copy": [["skills/figma", "skills/figma"], ["skills/hyperframes", "skills/hyperframes"], ["skills/hyperframes-cli", "skills/hyperframes-cli"], ["skills/hyperframes-registry", "skills/hyperframes-registry"], ["skills/media-use", "skills/media-use"], ["skills/remotion-to-hyperframes", "skills/remotion-to-hyperframes"], ["skills/slideshow", "skills/slideshow"]]}
+  }
+}

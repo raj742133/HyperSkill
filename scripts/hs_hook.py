@@ -14,6 +14,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import hs_activity as activity  # noqa: E402
+import hs_control as control  # noqa: E402
 
 FILE_TOOLS = {"Write": "write", "Edit": "edit", "MultiEdit": "edit", "NotebookEdit": "edit"}
 AGENT_TOOLS = ("Task", "Agent")
@@ -105,12 +106,44 @@ def handle(data, when):
                             cmd=activity.redact(cmd, 160), **summary)
 
 
+def context_reply(event, text):
+    print(json.dumps({"hookSpecificOutput": {"hookEventName": event, "additionalContext": text}}))
+
+
+def steer(data, when):
+    """Dashboard controls: refuse work while paused, and hand over instructions typed in the dashboard (once each)."""
+    root = activity.find_root(data.get("cwd") or os.environ.get("CLAUDE_PROJECT_DIR"))
+    if not root:
+        return
+    if when == "gate":
+        cmd = (data.get("tool_input") or {}).get("command") or ""
+        if control.is_paused(root) and not control.ALLOWED_WHILE_PAUSED.search(cmd):
+            print(json.dumps({"hookSpecificOutput": {"hookEventName": "PreToolUse", "permissionDecision": "deny",
+                              "permissionDecisionReason": "Paused from the HyperSkill dashboard. Stop here and tell the user "
+                                                          "you are waiting; they resume from the dashboard."}}))
+        return
+    event = {"post": "PostToolUse", "fail": "PostToolUseFailure", "prompt": "UserPromptSubmit", "start": "SessionStart"}.get(when)
+    waiting = control.pending(root) if event else []
+    if not waiting:
+        return
+    text = "Instruction%s typed by the user in the HyperSkill dashboard (treat as the user's own words):\n%s" % (
+        "s" if len(waiting) > 1 else "", "\n".join("- " + r["text"] for r in waiting))
+    control.mark_delivered(root, {r["id"] for r in waiting})
+    for r in waiting:
+        activity.append(root, "note", "Instruction handed to Claude: " + activity.redact(r["text"], 160))
+    context_reply(event, text)
+
+
 def main():
     when = sys.argv[1] if len(sys.argv) > 1 else "post"
     try:
         data = json.load(sys.stdin)
         if isinstance(data, dict):
+            if when in ("gate", "prompt", "start"):
+                steer(data, when)
+                return 0
             handle(data, when)
+            steer(data, when)
     except (ValueError, OSError, KeyError, TypeError) as exc:
         # A logging problem must never stop the tool call: say so on stderr and carry on.
         print("hyperskill hook: skipped (%s)" % exc.__class__.__name__, file=sys.stderr)

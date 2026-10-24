@@ -7,6 +7,7 @@
 <meta name="description" content="Watch what HyperSkill is making, testing and deciding, as it happens.">
 <meta name="theme-color" content="#14110f">
 <meta name="hs-mode" content="replay">
+<meta name="hs-token" content="">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="/live/live.css">
 </head>
@@ -31,6 +32,21 @@
     <p id="now-meta" class="now-meta"></p>
   </section>
 
+  <section id="ctl" class="ctl" aria-labelledby="ctl-h" hidden>
+    <h2 id="ctl-h" class="eyebrow">Controls</h2>
+    <div class="ctl-row">
+      <button type="button" id="c-pause" class="btn">Pause Claude</button>
+      <button type="button" id="c-advance" class="btn">Advance to the next phase</button>
+      <button type="button" id="c-install" class="btn">Switch on every recommended skill</button>
+    </div>
+    <form id="c-say" class="say">
+      <label for="c-say-text">Tell Claude something (it reads this before its next step)</label>
+      <div class="say-row"><textarea id="c-say-text" rows="2" maxlength="1000" placeholder="For example: use Postgres, not SQLite"></textarea><button type="submit" class="btn">Send</button></div>
+    </form>
+    <p id="c-msg" class="c-msg" role="status" aria-live="polite"></p>
+    <p id="c-inbox" class="sub"></p>
+  </section>
+
   <section aria-labelledby="rail-h">
     <h2 id="rail-h" class="eyebrow">The nine phases</h2>
     <ol id="rail" class="rail"></ol>
@@ -45,6 +61,13 @@
     <span id="r-pos" class="pos"></span>
     <progress id="r-bar" max="100" value="0" aria-label="Replay position"></progress>
   </div>
+
+  <section id="integ" class="integ" aria-labelledby="i-h" hidden>
+    <h2 id="i-h" class="eyebrow">Skills and integrations <span id="i-count" class="count"></span></h2>
+    <p id="i-slots" class="sub"></p>
+    <ul id="i-list" class="i-list"></ul>
+    <details class="i-more"><summary id="i-more-h">Not bundled</summary><ul id="i-other" class="i-list"></ul></details>
+  </section>
 
   <div class="cols">
     <section class="feed-col" aria-labelledby="feed-h">
@@ -80,6 +103,15 @@
       <section class="card" aria-labelledby="d-h">
         <h2 id="d-h" class="eyebrow">Decisions <span id="d-count" class="count"></span></h2>
         <ul id="decisions" class="decisions"></ul>
+        <details id="d-new" class="d-new" hidden>
+          <summary>Record a decision</summary>
+          <form id="d-form" class="mini">
+            <input id="d-title" maxlength="120" placeholder="Decision" aria-label="Decision title" required>
+            <input id="d-choice" maxlength="300" placeholder="What was chosen" aria-label="What was chosen" required>
+            <input id="d-why" maxlength="400" placeholder="Why" aria-label="Why" required>
+            <button type="submit" class="btn">Record</button>
+          </form>
+        </details>
       </section>
     </aside>
   </div>

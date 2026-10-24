@@ -12,6 +12,8 @@
   let mode = "connecting";
   let replay = null;
   let timer = null;
+  let editing = null; // { id, kind: "pass" | "waive", value } while a check's inline form is open
+  const token = document.querySelector('meta[name="hs-token"]')?.content || "";
 
   const GROUP = { file: "files", test: "tests", gate_pass: "gates", gate_waive: "gates", check_failed: "gates", refused: "gates", advance: "gates", skip: "gates", decision: "notes", note: "notes" };
   const KIND_LABEL = { building: "Building", testing: "Testing", reviewing: "Reviewing", waiting: "Waiting for you", done: "Done" };
@@ -76,7 +78,7 @@
   let queued = false;
   const schedule = () => { if (!queued) { queued = true; requestAnimationFrame(() => { queued = false; drawAll(); }); } };
 
-  function drawAll() { drawFeed(); drawNow(); drawRail(); drawPanels(); }
+  function drawAll() { drawFeed(); drawNow(); drawRail(); drawPanels(); drawControls(); }
 
   function drawFeed() {
     const list = $("feed");
@@ -129,8 +131,20 @@
     $("o-phase").textContent = cur ? cur.id : "the current phase";
     const open = $("open"); open.replaceChildren();
     const openItems = cur ? cur.items.filter((i) => i.state === "open") : [];
-    for (const i of openItems.slice(0, 12)) { const li = el("li", "", i.text); if (i.needs) li.append(el("span", "need", `needs ${i.needs.join("+")}`)); open.append(li); }
+    const canAct = controlOn() && cur;
+    for (const i of openItems.slice(0, 12)) {
+      const li = el("li", "", i.text);
+      if (i.needs) li.append(el("span", "need", `needs ${i.needs.join("+")}`));
+      if (canAct) {
+        const btns = el("span", "item-btns");
+        for (const kind of ["pass", "waive"]) { const b = el("button", "", kind === "pass" ? "Pass" : "Waive"); b.type = "button"; b.addEventListener("click", () => { editing = { id: i.id, kind, value: "" }; drawPanels(); const f = document.getElementById("item-input"); if (f) f.focus(); }); btns.append(b); }
+        li.append(btns);
+        if (editing && editing.id === i.id) li.append(itemForm(cur.id, i));
+      }
+      open.append(li);
+    }
     if (cur && !openItems.length) open.append(el("li", "", "All checks in this phase are passed or waived."));
+    if (!openItems.length) editing = null;
     if (!cur) open.append(el("li", "", state.phases.length ? "No phase is active." : "Waiting for the project state."));
 
     const seen = new Map();
@@ -145,6 +159,85 @@
     const dl = $("decisions"); dl.replaceChildren();
     for (const d of decisions.slice(-8).reverse()) { const li = el("li", "", `${d.n}. ${d.title}`); dl.append(li); }
     if (!decisions.length) dl.append(el("li", "", "No decisions recorded yet."));
+  }
+
+  /* ---------- controls (live mode with the page token only) ---------- */
+  const controlOn = () => Boolean(token && state.control && state.control.enabled);
+
+  function say(text, bad) { const m = $("c-msg"); m.textContent = text; m.className = "c-msg" + (bad === undefined ? "" : bad ? " bad" : " ok"); }
+
+  async function api(action, body) {
+    try {
+      const r = await fetch(`/live/api/${action}`, { method: "POST", headers: { "Content-Type": "application/json", "X-HS-Token": token }, body: JSON.stringify(body || {}) });
+      const j = await r.json();
+      say(j.output ? j.output.split("\n").slice(-3).join(" · ") : (j.ok ? "Done." : "Refused."), !(r.ok && j.ok));
+      await refreshState();
+      return r.ok && j.ok;
+    } catch (err) { say("Could not reach the dashboard server.", true); return false; }
+  }
+
+  function itemForm(phaseId, item) {
+    const form = el("form", "item-form");
+    const input = el("input"); input.id = "item-input"; input.maxLength = 500; input.required = true; input.value = editing.value;
+    input.placeholder = editing.kind === "pass" ? "Evidence: what you ran or saw" : "Reason for waiving";
+    input.setAttribute("aria-label", input.placeholder);
+    input.addEventListener("input", () => { editing.value = input.value; });
+    const go = el("button", "btn", editing.kind === "pass" ? "Pass" : "Waive"); go.type = "submit";
+    form.append(input, go);
+    form.addEventListener("submit", async (ev) => {
+      ev.preventDefault();
+      const ok = await api(editing.kind, editing.kind === "pass" ? { phase: phaseId, item: item.id, evidence: input.value } : { phase: phaseId, item: item.id, reason: input.value });
+      if (ok) editing = null;
+      drawPanels();
+    });
+    return form;
+  }
+
+  function drawControls() {
+    const on = controlOn();
+    $("ctl").hidden = !on;
+    $("integ").hidden = !(state.integrations && state.integrations.length && mode === "live");
+    $("d-new").hidden = !on;
+    if (on) {
+      const c = state.control;
+      $("c-pause").textContent = c.paused ? "Resume Claude" : "Pause Claude";
+      $("c-pause").classList.toggle("warn", !c.paused);
+      $("c-advance").disabled = state.current === null;
+      const inbox = c.inbox || [];
+      $("c-inbox").textContent = c.pending ? `${c.pending} instruction${c.pending === 1 ? "" : "s"} waiting for Claude's next step.` : (inbox.length ? "Your last instruction was delivered." : "");
+    }
+    const list = $("i-list"); list.replaceChildren();
+    const other = $("i-other"); other.replaceChildren();
+    const rows = (state.integrations || []).filter((r) => r.bundled || r.builtin || r.policy === "recommended" || r.policy === "opt-in");
+    const loose = rows.filter((r) => !r.bundled && !r.builtin);
+    $("i-more-h").textContent = `Not bundled: install these yourself (${loose.length})`;
+    $("i-count").textContent = rows.length ? `· ${rows.filter((r) => r.bundled && r.enabled).length} switched on` : "";
+    $("i-slots").textContent = (state.slots || []).length ? "This phase uses: " + state.slots.map((s) => `${s.slot} → ${s.use || "built-in fallback"}`).join(" · ") : "";
+    for (const r of rows) {
+      const li = el("li");
+      const target = r.bundled || r.builtin ? list : other;
+      li.append(el("span", "i-name", r.name));
+      const st = r.builtin ? "built in" : r.bundled ? (r.enabled && r.installed ? "on" : "off") : (r.installed ? "found on this computer" : "not bundled");
+      const badge = el("span", "i-state" + (st === "on" || st === "built in" ? " on" : ""), st);
+      if (on && r.bundled) {
+        const b = el("button", "btn", r.enabled ? "Switch off" : "Switch on"); b.type = "button";
+        b.addEventListener("click", () => api(r.enabled ? "disable" : "enable", { id: r.id }));
+        li.append(b);
+      } else li.append(badge);
+      li.append(el("span", "i-meta", [r.policy, r.license, r.bundled ? `${r.bundled} skill${r.bundled === 1 ? "" : "s"}` : r.install[0] || ""].filter(Boolean).join(" · ")));
+      target.append(li);
+    }
+  }
+
+  function wireControls() {
+    $("c-pause").addEventListener("click", () => api(state.control && state.control.paused ? "resume" : "pause"));
+    $("c-advance").addEventListener("click", () => { if (window.confirm("Move to the next phase? The tracker refuses it while checks are open.")) api("advance"); });
+    $("c-install").addEventListener("click", () => { if (window.confirm("Copy every recommended bundled skill into this project's .claude/skills?")) api("enable_all"); });
+    $("c-say").addEventListener("submit", async (ev) => { ev.preventDefault(); const t = $("c-say-text"); if (t.value.trim() && await api("say", { text: t.value })) t.value = ""; });
+    $("d-form").addEventListener("submit", async (ev) => {
+      ev.preventDefault();
+      if (await api("decide", { title: $("d-title").value, choice: $("d-choice").value, why: $("d-why").value })) $("d-form").reset();
+    });
   }
 
   function setMode(m, text) {
@@ -170,7 +263,8 @@
 
   function startLive() {
     setMode("live");
-    $("foot").textContent = "Read-only view of this project's .hyperskill/activity.jsonl. It never leaves this computer.";
+    $("foot").textContent = controlOn() ? "Controls act on this project only, through the same tracker commands a person would type. Nothing leaves this computer." : "Read-only view of this project's .hyperskill/activity.jsonl. It never leaves this computer.";
+    wireControls();
     const es = new EventSource("/live/events");
     es.onopen = () => setMode("live");
     es.onerror = () => setMode("offline", "Reconnecting");

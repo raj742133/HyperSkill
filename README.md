@@ -53,7 +53,8 @@ It exists because coding agents are good at saying "done". They are less good at
 
 Phases ask for capabilities (a design direction, a security audit, video, browser verification) called **slots**. `skills/hyperskill/integrations.json` maps **32 slots** to **37 reviewed providers** (built-in Claude features, built-in HyperSkill kits and third-party skills and tools), each with licence, risks and a policy: 15 recommended, 13 opt-in, 6 reference-only, 2 unreviewed, 1 blocked on commercial projects. `hyperskill.py integrations` resolves each slot against what is actually installed. The rules:
 
-- Nothing is installed without asking (`bash scripts/install-skills.sh --dry-run` prints the exact commands).
+- **Twelve of them are bundled** in [`packs/`](packs) (unmodified copies with their licences and a pinned commit: Impeccable, taste-skill, Emil Kowalski's skills, Karpathy guidelines, UI UX Pro Max, Cloudflare security-audit, SlopMonster, HyperFrames, Superpowers, Ponytail, /watch, better-icons). They load nothing until you switch them on: `hyperskill.py integrations enable <id>` (or `enable --all` for the recommended ones, or the button in the dashboard) copies the skills into the project's `.claude/skills`, and `disable` removes exactly those. Tools whose licence forbids redistribution (Hypit, Onetake, MiroFish) or that are not skills (gstack, CLIs, hosted services) are not bundled and stay external.
+- Nothing is installed without asking (`bash scripts/install-skills.sh --dry-run` prints the exact commands for the external ones).
 - Opt-in tools stay off until you run `integrations enable <id>`.
 - Noncommercial-licence tools are blocked on commercial projects, and the resolver says why.
 - One design-direction voice per project, and no second conductor.
@@ -74,7 +75,8 @@ How it works:
 
 - **A plugin hook records the work**, so it does not depend on Claude remembering to report. After each file write or edit, each shell command, each failed command and each helper agent, the hook (`scripts/hs_hook.py`) appends one line to `.hyperskill/activity.jsonl`. Test runs from `node:test`, `unittest`, `pytest` and `jest` are recognised and shown as counts. A failing run appears too.
 - **The tracker logs its own actions** (checks passed, waived, failed or refused, decisions, phase changes), and `hyperskill.py event "..." --kind building|testing|reviewing|waiting|done` sets the "Right now" card.
-- **The page is read-only and local.** `hyperskill.py live` serves it on `127.0.0.1` only, refuses requests whose `Host` header is not its own, sends only a short fixed list of files, and draws everything as plain text.
+- **It is also a control panel, and it is local.** `hyperskill.py live` serves it on `127.0.0.1` only, refuses requests whose `Host` or `Origin` is not its own, sends only a short fixed list of files, and draws everything as plain text. From the page you can pass or waive a check (with the evidence or reason the tracker requires), advance a phase (refused while checks are open), record a decision, switch bundled skills on and off, **pause** Claude, and **send Claude an instruction**. Each button runs the same `hyperskill.py` command a person would type, so no rule is bypassed, and there is no way to run an arbitrary command from the page. Controls need a random per-run key that only the served page carries. `live --read-only` removes them.
+- **Pause and instructions work through the plugin hook.** While paused, the hook refuses file writes, edits and shell commands (except `hyperskill.py status|resume|event|log`); an instruction typed in the page is handed to Claude once, as extra context, at its next tool step or prompt. This steers an agent that honours hooks. It cannot stop a command that is already running, and a pause is not a security boundary against an agent that finds another way to run code.
 - **Secrets are masked before they are written**: `TOKEN=...`, `Authorization` headers, `ghp_...`-style keys, URLs with passwords, long hex or base64 strings. Files outside the project are logged by name only, and the project folder shows as `.`.
 - **It only runs inside a HyperSkill project.** Outside one (no `.hyperskill/state.json` above the working directory) the hook does nothing, and it always exits 0 so it cannot block a tool call. The log is private (mode 0600), ignored by git, and rotated at 5 MB. To turn the recording off, uninstall the plugin or remove `hooks/hooks.json`.
 
@@ -154,7 +156,7 @@ A focus timer shaped like a glass of water ([live](https://hyperskill-hazel.verc
 Verified:
 
 - The plugin installs from GitHub into a clean config, and `/hyperskill` ran headless from an install of the same plugin (two separate tests, not one end-to-end run).
-- The tracker and the integration resolver are covered by 105 tests; `claude plugin validate .` passes.
+- The tracker and the integration resolver are covered by 135 tests; `claude plugin validate .` passes.
 - Two full runs on real code, described above, with the failures they exposed.
 
 Not verified, so do not rely on it yet:
@@ -174,14 +176,15 @@ skills/hs-*/           one skill per phase, with references/
 skills/hyperfigure/    the figure skill, derived from Anatomy (MIT, by Ryan): a capability, not a phase
 agents/                hs-researcher, hs-reviewer (read-only)
 commands/              /hyperskill, /hyperskill-status, /hyperskill-gate, /hyperskill-live, /hyperskill-figure
-hooks/                 hooks.json: records files, commands and test results for the live view
-scripts/               hyperskill.py (state, gates, integrations), hs_hook.py, hs_live.py, hs_activity.py,
+hooks/                 hooks.json: records the work for the live view; pause and instructions from the dashboard
+packs/                 12 bundled third-party skill packs (unmodified, licensed, off until enabled)
+scripts/               hyperskill.py (state, gates, integrations), hs_hook.py, hs_live.py, hs_control.py, hs_activity.py, vendor_packs.py,
                        make_replay.py, install-skills.sh, build_site.py
 site/                  the static launch site (Vercel; vercel.json); site/live is the live view and its replay
 examples/duesoon/      full nine-phase run
 examples/chaser/       research, plan and build of the second run
 docs/                  sources, integration review, README images
-tests/                 105 tests for the tracker, resolver, activity log, hook, live server, structure and site
+tests/                 135 tests for the tracker, resolver, activity log, hook, live server, structure and site
 ```
 
 ## Develop
