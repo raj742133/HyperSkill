@@ -42,3 +42,12 @@ These are services to run, not skills, so they became a **Self-hosted building b
 | **celld** | Apache-2.0, alpha | scale: an exit plan for Cloudflare-based products; not the only production path while it is young; peer port kept private |
 
 Weak fits, said plainly: Vikunja is only a convenient home for the launch to-do list, and Windmill only matters if the product has back-office work. They are options, not recommendations, and nothing is installed for you.
+
+## Four more repositories and three reels (2026-10-24)
+
+- **claude-watch** (MIT) is a fork of claude-video: scene-change frames, a 0-10 s "hook" pass, a report with fill-in markers, optional Obsidian save. We already vendor the upstream `watch` as an opt-in pack. Taken as ideas into **hs-watch**: frames per cut with an even-spacing fallback, the opening pass, a contact sheet, a report whose unfinished parts are explicit. Left out: speech-to-text (a 1.5 GB model download or an API key), cookie use and the Obsidian step.
+- **Filee** (MIT) is a C# desktop app (a drag-and-drop file converter with 256 formats), not a skill. Its useful idea is "the right engine per format, only the options that make sense". **hs-convert** does that with the tools already installed and adds the safety rules a script needs (no shell, absolute paths, no overwrite, cleanup). Its own converters were not reproduced.
+- **anatomy** (MIT) is what **Hyperfigure** already is; nothing new was needed.
+- **logo-design-skill** (MIT) has a process, tests and tools plus a 1,400-logo library. **hs-logo** takes the process and the test list, and writes its own audit, test sheet and kit. The library was not used: it is large, and "study these existing logos" is exactly where look-alikes come from.
+- **The three Instagram reels** could not be opened from the build environment (instagram.com does not resolve there, and reels are login-walled). Nothing was taken from them. If a reel names a tool or repository, paste its name or a screenshot of the caption and it will be looked at the same way.
+- **Not verified:** the LibreOffice route of hs-convert exits with "source file could not be loaded" for every input in the build sandbox (including a plain call outside the script), so it is untested; image, video and PDF routes are tested.

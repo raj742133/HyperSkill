@@ -3,9 +3,9 @@ window.HS = {
  "counts": {
   "phases": 9,
   "gateItems": 72,
-  "slots": 38,
+  "slots": 40,
   "providers": 38,
-  "tests": 331,
+  "tests": 348,
   "packs": 17,
   "picks": 821
  },
@@ -175,7 +175,9 @@ window.HS = {
     "copy-review",
     "explainer-figure",
     "site-scaffold",
-    "design-lint"
+    "design-lint",
+    "logo-design",
+    "file-convert"
    ],
    "gate": [
     {
@@ -381,7 +383,8 @@ window.HS = {
     "voiceover",
     "copy-review",
     "explainer-figure",
-    "site-scaffold"
+    "site-scaffold",
+    "file-convert"
    ],
    "gate": [
     {

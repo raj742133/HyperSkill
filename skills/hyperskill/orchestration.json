@@ -169,6 +169,18 @@
         "need": "situational",
         "when": "after the pages are built and before the design critique, when node is installed",
         "why": "a mechanical check of the built HTML and CSS against anti-slop rules, so the critique spends its time on judgement"
+      },
+      {
+        "slot": "logo-design",
+        "need": "situational",
+        "when": "when the product has no mark yet, or its favicon and app icons are missing",
+        "why": "one idea, tested at 16 px and in one colour, then the icon set the site needs"
+      },
+      {
+        "slot": "file-convert",
+        "need": "optional",
+        "when": "when an asset has to change format (a clip to a poster, a png to webp, a document to pdf)",
+        "why": "the right installed tool, no overwrites, and a result you look at"
       }
     ],
     "ship": [
@@ -285,6 +297,12 @@
         "need": "situational",
         "when": "when the launch page needs one memorable explainer",
         "why": "a figure people remember"
+      },
+      {
+        "slot": "file-convert",
+        "need": "optional",
+        "when": "when a render or screenshot has to change format for a channel",
+        "why": "the right installed tool, no overwrites, and a result you look at"
       }
     ],
     "scale": [

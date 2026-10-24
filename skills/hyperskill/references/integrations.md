@@ -39,7 +39,7 @@ Then record the decision, because the dashboard shows it and the next session re
 |---|---|---|---|
 | research | deep-research | deep-research skill | Multi-source sweep behind `docs/research.md` |
 | research | product-interrogation | gstack `/office-hours` (opt-in) | Pressure-test the idea before the interview |
-| research | video-analysis | `/watch` (opt-in) | Understand competitor/demo videos |
+| research | video-analysis | `hs-watch` (bundled; `/watch` is the opt-in alternative) | Understand competitor/demo videos: frames at each cut, the opening, captions, a report |
 | research | community-research | last30days (opt-in, not bundled) | Cited brief of what people said in the last 30 days: evidence for `user-evidence`, never proof of demand |
 | research | web-extraction | Scrapling (opt-in, not bundled) | Bulk collection of public data within each site's terms; never used to get past bot protection |
 | plan | coding-discipline | karpathy-skills | On by default (`init`); the hook reads its four rules at every session start, so also copy them into `CLAUDE.md` for other tools |
@@ -67,7 +67,9 @@ Then record the decision, because the dashboard shows it and the next session re
 | launch, product | copy-review | SlopMonster local checker; Humanizer (opt-in) for a rewrite pass, one of the two | Check README/landing/launch copy for AI-writing patterns; claims still must be true |
 | launch | video (2nd) | Hypit (opt-in) | Alternative video builder; read its licence conditions first; never clone others' videos |
 | launch | voiceover | Qwen3-TTS (opt-in) | Voiceover/dubbing; written consent for any cloned voice; disclose synthetic voices |
-| launch | video-analysis | `/watch` (opt-in) | Watch our own render to verify it (frames + transcript) |
+| launch | video-analysis | `hs-watch` (bundled) | Watch our own render to verify it (frames + captions) |
+| product | logo-design | `hs-logo` (bundled) | One idea, audited and tested at 16 px and in one colour, then the favicon, app-icon and manifest set |
+| product, launch | file-convert | `hs-convert` (bundled) | Convert an asset with the right installed tool, never overwriting |
 | launch | video-continuous | onetake | **Blocked for commercial projects** (PolyForm Noncommercial) |
 | scale | performance-audit | Chrome DevTools traces | Evidence for the bottleneck |
 | scale | parallel-terminals | herdr (opt-in) | Persistent parallel panes for load tests / multiple instances |

@@ -833,6 +833,73 @@
         "its stealth fetchers are built to get past bot protection: do not use that on a site whose terms forbid scraping",
         "scraped personal data is personal data: GDPR and similar apply"
       ]
+    },
+    "hs-watch": {
+      "name": "hs-watch (bundled)",
+      "kind": "skill",
+      "license": "MIT",
+      "policy": "recommended",
+      "builtin": true,
+      "install": [
+        "already bundled in this plugin at skills/hs-watch"
+      ],
+      "detect": {
+        "skills": [
+          "hs-watch"
+        ]
+      },
+      "provides": "Reads a video the way a person would: one frame per cut (or evenly spaced when there are few cuts), a closer look at the first ten seconds, a contact sheet, timestamped captions, and a report with markers for what only Claude can write.",
+      "vetted": "2026-10-24: written for this project (standard library plus ffmpeg), after reading the design of claude-watch (MIT) and claude-video; no code copied. Tested on a real clip.",
+      "risks": [
+        "needs ffmpeg and ffprobe",
+        "links need yt-dlp; it is run without cookies, one video, 500 MB cap, never to a private address",
+        "it does not transcribe speech: captions only, and the report says so when there are none",
+        "downloading from social platforms is often blocked or against their terms; use files the owner supplies where in doubt"
+      ]
+    },
+    "hs-convert": {
+      "name": "hs-convert (bundled)",
+      "kind": "skill",
+      "license": "MIT",
+      "policy": "recommended",
+      "builtin": true,
+      "install": [
+        "already bundled in this plugin at skills/hs-convert"
+      ],
+      "detect": {
+        "skills": [
+          "hs-convert"
+        ]
+      },
+      "provides": "Converts files with the tools already installed (ImageMagick, ffmpeg, LibreOffice, pandoc, pdftoppm): chooses the tool, builds the command without a shell, never overwrites, deletes failed output.",
+      "vetted": "2026-10-24: written for this project, after reading Filee's README and format list (MIT); no code copied. Image, video and PDF routes tested here; the LibreOffice route could not be run in the build sandbox and is untested.",
+      "risks": [
+        "converting untrusted documents and images runs complex parsers: use a throwaway folder and only when needed",
+        "lossy formats lose quality each time: convert from the original",
+        "LibreOffice output can shift layout: check a rendered page"
+      ]
+    },
+    "hs-logo": {
+      "name": "hs-logo (bundled)",
+      "kind": "skill",
+      "license": "MIT",
+      "policy": "recommended",
+      "builtin": true,
+      "install": [
+        "already bundled in this plugin at skills/hs-logo"
+      ],
+      "detect": {
+        "skills": [
+          "hs-logo"
+        ]
+      },
+      "provides": "A logo process (brief, concepts, one idea, tests, kit) with a stdlib SVG audit, a test sheet (size ladder, one-colour, reversed, blur, mirror, contexts) and a favicon, app-icon and manifest kit.",
+      "vetted": "2026-10-24: written for this project, after reading logo-design-skill (MIT: process, test list and tool idea); no code copied, and its 1,400-logo library was not used. Audit, test sheet and kit tested here with headless Chrome.",
+      "risks": [
+        "PNG output needs a Chrome-family browser; without one only the SVG parts are made",
+        "a generated mark is a starting point: check it is not close to an existing brand before real use (trademark search is not something this does)",
+        "text is only safe as outlines in a final file"
+      ]
     }
   },
   "slots": {
@@ -981,6 +1048,7 @@
     },
     "video-analysis": {
       "providers": [
+        "hs-watch",
         "watch"
       ],
       "fallback": "ffprobe + extracted frames inspected by hand"
@@ -1076,6 +1144,18 @@
         "rea"
       ],
       "fallback": "inspect your own build output by hand: grep the bundle for secrets and internal URLs, and check that source maps are not published"
+    },
+    "file-convert": {
+      "providers": [
+        "hs-convert"
+      ],
+      "fallback": "ffmpeg or ImageMagick by hand, then look at the result"
+    },
+    "logo-design": {
+      "providers": [
+        "hs-logo"
+      ],
+      "fallback": "draw a simple mark by hand in SVG and export the sizes yourself; run the one-colour and 16 px checks by eye"
     }
   }
 }
