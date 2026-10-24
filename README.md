@@ -64,6 +64,8 @@ Phases ask for capabilities (a design direction, a security audit, video, browse
 
 **Skill orchestration, per phase.** [`orchestration.json`](skills/hyperskill/orchestration.json) says for every phase which skills to consider, how much each matters (core, situational, optional), **when** to use it and **why**. `hyperskill.py skills` resolves that against what is installed: *ready*, *pull* (bundled, installed for this phase only), *ask the user* (opt-in), *you install it* (not bundled) or *fallback*. The session hook hands Claude the plan at session start and `advance` prints the next phase's plan, so the agent thinks through each line against the real task, pulls what it needs (`skills pull ID`; opt-in ones only after your yes), and records every decision with a reason (`skills use|skip SLOT --why ...`). Core skills need a stated reason to skip, pulled skills are released when the phase ends unless the next phase wants them (so Claude's context stays small), and the dashboard shows the plan, the decisions and why, with buttons to override any of it.
 
+**Paste your idea, from the dashboard.** The "Your idea" box takes your whole brief. **Your words decide what gets built; HyperSkill decides how** (phases, checks, evidence), and it never waives a check because of the brief or rewrites your idea behind your back. Claude reads the brief, lists each requirement, and returns every gap, conflict and improvement it sees as a question you answer in the dashboard (accept, reject or answer in your own words). Open gaps and conflicts block the phase from ending, so nothing is assumed; suggestions never block. When choices clash the order is: what you ticked in the dashboard, then your brief, then the design system you selected, then Sitewright's defaults, then HyperSkill's defaults. If you picked a palette, font pairing, style or landing pattern, `hyperskill.py catalog sitewright` writes your palette into Sitewright's brand colours and your fonts into its font settings (style and landing pattern come as guidance), so the generated auth and landing pages use your design system, not Sitewright's default look. Each picked Sitewright component or figure becomes a check: Claude records where it goes (`place add`), and `place check --close` only closes it when the piece is really used in the code (Sitewright's own library and gallery do not count).
+
 **Pick what to use, from the dashboard.** [`catalog.json`](skills/hyperskill/catalog.json) (801 items, built by `scripts/build_catalog.py` from the bundled packs) lists everything a person can choose, and the dashboard shows it as a picker with search, checkboxes, colour swatches and a live-gallery link:
 
 - **Sitewright, in full:** its 7 modules, 12 hero backgrounds, 10 sign-in backgrounds, 8 headline animations, button, card and scroll effects, 4 page extras, 7 ready-made looks, 22 interactive line figures and 58 components (16 charts among them), plus the theme. Your picks become the exact `site.json` fragment (`hyperskill.py catalog sitewright`).
@@ -170,7 +172,7 @@ A focus timer shaped like a glass of water ([live](https://hyperskill-hazel.verc
 Verified:
 
 - The plugin installs from GitHub into a clean config, and `/hyperskill` ran headless from an install of the same plugin (two separate tests, not one end-to-end run).
-- The tracker and the integration resolver are covered by 180 tests; `claude plugin validate .` passes.
+- The tracker and the integration resolver are covered by 194 tests; `claude plugin validate .` passes.
 - Two full runs on real code, described above, with the failures they exposed.
 
 Not verified, so do not rely on it yet:
@@ -192,7 +194,7 @@ agents/                hs-researcher, hs-reviewer (read-only)
 commands/              /hyperskill, /hyperskill-status, /hyperskill-gate, /hyperskill-live, /hyperskill-figure
 hooks/                 hooks.json: records the work for the live view; pause and instructions from the dashboard
 packs/                 13 bundled skill packs (unmodified, licensed, off until enabled)
-scripts/               hyperskill.py (state, gates, integrations), hs_hook.py, hs_live.py, hs_control.py, hs_skills.py, hs_catalog.py, build_catalog.py, hs_activity.py, vendor_packs.py,
+scripts/               hyperskill.py (state, gates, integrations), hs_hook.py, hs_live.py, hs_control.py, hs_skills.py, hs_catalog.py, hs_brief.py, build_catalog.py, hs_activity.py, vendor_packs.py,
                        make_replay.py, install-skills.sh, build_site.py
 site/                  the static launch site (Vercel; vercel.json); site/live is the live view and its replay
 examples/duesoon/      full nine-phase run

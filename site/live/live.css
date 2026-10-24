@@ -155,3 +155,8 @@ progress { flex: 1 1 160px; height: 8px; accent-color: var(--accent); }
 .kit-box::backdrop { background: rgba(20,17,15,.55); }
 .kit-box .kit-media { margin-bottom: 12px; } .kit-box .tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 0; }
 .kit-box .kit-bar { margin-top: 12px; }
+.idea-form textarea { width: 100%; box-sizing: border-box; font: inherit; color: var(--ink); background: var(--bg, transparent); border: 1px solid var(--rule); border-radius: 10px; padding: 10px 12px; resize: vertical; }
+#idea-found h3 { margin: 16px 0 4px; }
+.fd-kind { font: 700 11px var(--mono); text-transform: uppercase; letter-spacing: .06em; border: 1px solid currentColor; border-radius: 999px; padding: 0 8px; }
+.fd-kind[data-k="gap"] { color: var(--warn); } .fd-kind[data-k="conflict"] { color: var(--bad); } .fd-kind[data-k="suggestion"] { color: var(--go); }
+.fd-proposed { margin: 3px 0 0; font-size: .88rem; color: var(--ink); overflow-wrap: anywhere; }

@@ -12,6 +12,7 @@
   let mode = "connecting";
   let replay = null;
   let timer = null;
+  let ideaDirty = false, ideaSig = "";
   let catalogData = null, pick = new Set(), dirty = false, activeGroup = null, kitSig = "", kitLimit = 80, editingExtra = null;
   let editingSkill = null; // { slot, kind: "use" | "skip", value }
   let editing = null; // { id, kind: "pass" | "waive", value } while a check's inline form is open
@@ -81,7 +82,7 @@
   let queued = false;
   const schedule = () => { if (!queued) { queued = true; requestAnimationFrame(() => { queued = false; drawAll(); }); } };
 
-  function drawAll() { drawFeed(); drawNow(); drawRail(); drawPanels(); drawControls(); drawKit(); drawExtras(); }
+  function drawAll() { drawFeed(); drawNow(); drawRail(); drawPanels(); drawControls(); drawKit(); drawExtras(); drawIdea(); }
 
   function drawFeed() {
     const list = $("feed");
@@ -394,10 +395,22 @@
     if (rows.length > shown) { const b = el("button", "chip", "show more"); b.type = "button"; b.addEventListener("click", () => { kitLimit += 120; kitSig = ""; drawKit(); }); more.append(b); }
   }
 
+  function drawPlacements() {
+    const pl = state.placements || [], list = $("pl-list"); list.replaceChildren();
+    $("pl-count").textContent = pl.length ? `· ${pl.filter((p) => p.placed && p.used_in).length} of ${pl.length} placed and used` : "";
+    for (const p of pl) {
+      const li = el("li"), head = el("div", "xt-head"); const st = el("span", "xt-st", p.placed && p.used_in ? "used" : (p.placed ? "placed, not in code yet" : "not placed")); st.dataset.s = p.placed && p.used_in ? "done" : "open";
+      head.append(st, el("b", "", p.name), el("span", "sub", p.where || "Claude has not said where yet")); li.append(head);
+      if (p.used_in) li.append(el("p", "sp-dec", "found in " + p.used_in)); list.append(li);
+    }
+    if (!pl.length) list.append(el("li", "sub", "Pick Sitewright components or figures above; Claude records where each one goes and the check confirms it is really used."));
+  }
+
   function drawExtras() {
     const ex = state.extras || [];
     $("xt").hidden = !(ex.length && mode === "live");
     if ($("xt").hidden) return;
+    drawPlacements();
     const open = ex.filter((e) => e.state === "open").length;
     $("xt-count").textContent = `· ${open} open of ${ex.length}`;
     const list = $("xt-list"); list.replaceChildren();
@@ -423,6 +436,57 @@
       }
       list.append(li);
     }
+  }
+
+  /* ---------- the idea: paste a brief, see what Claude found, answer ---------- */
+  function drawIdea() {
+    const on = controlOn(), box = $("idea");
+    box.hidden = !(mode === "live" && state.brief !== undefined);
+    if (box.hidden) return;
+    const b = state.brief, ta = $("idea-text");
+    if (!ideaDirty && document.activeElement !== ta && ta.value !== b.text) ta.value = b.text;
+    ta.disabled = !on; $("idea-save").disabled = !on;
+    $("idea-ver").textContent = b.version ? `· saved as version ${b.version}` : "";
+    $("idea-status").textContent = ideaDirty ? "Unsaved changes" : (b.version ? "Saved. Claude reads it at its next step." : (on ? "Nothing saved yet" : "Read-only"));
+    const sig = JSON.stringify([b.findings, b.requirements, on]);
+    $("idea-found").hidden = !(b.findings.length || b.requirements.length);
+    if (sig === ideaSig) return;
+    ideaSig = sig;
+    const open = b.findings.filter((f) => f.state === "open").length;
+    $("idea-open").textContent = b.findings.length ? `· ${open} waiting for you` : "";
+    const list = $("idea-list"); list.replaceChildren();
+    for (const f of b.findings) {
+      const li = el("li"), head = el("div", "xt-head");
+      const k = el("span", "fd-kind", f.kind); k.dataset.k = f.kind;
+      const st = el("span", "xt-st", f.state); st.dataset.s = f.state === "open" ? "open" : (f.state === "rejected" ? "waived" : "done");
+      head.append(k, el("b", "", f.text), st); li.append(head);
+      if (f.proposed) li.append(el("p", "fd-proposed", "Proposed: " + f.proposed));
+      if (f.state !== "open") li.append(el("p", "sp-dec", f.answer ? `You: ${f.answer}` : `You ${f.state} this.`));
+      else if (on) {
+        const form = el("form", "item-form"); const input = el("input"); input.maxLength = 600;
+        input.placeholder = f.kind === "gap" ? "Your answer" : "Optional note"; input.setAttribute("aria-label", input.placeholder); if (f.kind === "gap") input.required = true;
+        form.append(input);
+        const mk = (label, state) => { const x = el("button", state === "rejected" ? "chip" : "btn", label); x.type = state === "answered" ? "submit" : "button"; return x; };
+        if (f.kind === "gap") form.append(mk("Answer", "answered"));
+        else {
+          const a = mk("Accept", "accepted"), r = mk("Reject", "rejected"); a.className = "btn go"; r.className = "btn";
+          a.addEventListener("click", () => api("finding_resolve", { id: f.id, state: "accepted", answer: input.value }));
+          r.addEventListener("click", () => api("finding_resolve", { id: f.id, state: "rejected", answer: input.value }));
+          form.append(a, r);
+        }
+        form.addEventListener("submit", (ev) => { ev.preventDefault(); if (f.kind === "gap") api("finding_resolve", { id: f.id, state: "answered", answer: input.value }); });
+        li.append(form);
+      }
+      list.append(li);
+    }
+    const rl = $("req-list"); rl.replaceChildren();
+    $("req-count").textContent = b.requirements.length ? `· ${b.requirements.filter((r) => r.state === "covered").length} of ${b.requirements.length} covered` : "";
+    for (const r of b.requirements) { const li = el("li"), head = el("div", "xt-head"); const st = el("span", "xt-st", r.state); st.dataset.s = r.state === "covered" ? "done" : "open"; head.append(st, el("span", "", r.text)); li.append(head); if (r.evidence) li.append(el("p", "sp-dec", r.evidence)); rl.append(li); }
+  }
+
+  function wireIdea() {
+    $("idea-text").addEventListener("input", () => { ideaDirty = true; drawIdea(); });
+    $("idea-form").addEventListener("submit", async (ev) => { ev.preventDefault(); const t = $("idea-text").value; if (t.trim() && await api("brief_save", { text: t })) ideaDirty = false; drawIdea(); });
   }
 
   function wireKit() {
@@ -470,7 +534,7 @@
   function startLive() {
     setMode("live");
     $("foot").textContent = controlOn() ? "Controls act on this project only, through the same tracker commands a person would type. Nothing leaves this computer." : "Read-only view of this project's .hyperskill/activity.jsonl. It never leaves this computer.";
-    wireControls(); wireKit(); loadCatalog();
+    wireControls(); wireKit(); wireIdea(); loadCatalog();
     const es = new EventSource("/live/events");
     es.onopen = () => setMode("live");
     es.onerror = () => setMode("offline", "Reconnecting");

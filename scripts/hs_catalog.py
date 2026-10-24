@@ -58,6 +58,11 @@ def apply(core, root, st, ids):
     cur = st.get("current") or "scale"
     for i in ids:
         it = items[i]
+        if it["mode"] == "build" and it["group"] in ("sw-components", "sw-figures") and i not in extras:
+            ph = it["phase"] if phase_rank(core, it["phase"]) >= phase_rank(core, cur) else cur
+            extras[i] = {"phase": ph, "name": it["name"], "group": it["group_title"], "state": "open", "at": core.now(),
+                         "text": "Use %s where it fits (its own note says what it is for), record it with `hyperskill.py place add %s --where PAGE/SECTION --why ...`, "
+                                 "then `hyperskill.py place check --close` confirms it is really used in the code." % (it["name"], i)}
         if it["mode"] == "track" and i not in extras:
             ph = it["phase"] if phase_rank(core, it["phase"]) >= phase_rank(core, cur) else cur
             extras[i] = {"phase": ph, "name": it["name"], "group": it["group_title"], "text": it.get("text") or it["desc"], "state": "open", "at": core.now()}
@@ -109,6 +114,22 @@ def sitewright_config(st):
                 figs.append(v)
             elif k == "theme":
                 cfg["design"]["theme"] = v
+    guidance = []
+    for i in selected(st):
+        it = items.get(i)
+        if not it:
+            continue
+        if it["group"] == "uu-palettes" and it.get("swatch"):  # the chosen palette drives Sitewright's two brand colours
+            cfg.setdefault("brand", {})["colors"] = {"primary": it["swatch"][0], "signal": it["swatch"][2]}
+            guidance.append("palette %s: primary %s, accent %s, background %s, text %s" % (it["name"], it["swatch"][0], it["swatch"][2], it["swatch"][3], it["swatch"][4]))
+        elif it["group"] == "uu-fonts" and it.get("fonts"):
+            cfg.setdefault("brand", {})["font"] = {"display": it["fonts"][0], "body": it["fonts"][1]}
+        elif it["group"] == "uu-styles":
+            guidance.append("visual style: %s (%s)" % (it["name"], it["desc"][:140]))
+        elif it["group"] == "uu-landing":
+            guidance.append("landing pattern: %s (%s)" % (it["name"], it["desc"][:160]))
+    if guidance:
+        cfg["_guidance"] = guidance  # not Sitewright keys: how to shape the pages, for Claude
     if comps:
         cfg["effects"]["components"] = comps
     if extras:
@@ -127,6 +148,9 @@ def sitewright_config(st):
             if free:
                 places[free.pop(0)] = f
         cfg["effects"]["figures"] = places
+    mods = set(cfg["modules"])
+    if {"signin", "mfa"} <= mods:
+        cfg.setdefault("_guidance", []).append("both sign-in (shared password) and MFA accounts are picked: they are alternatives, ask the user which one the product needs")
     return {k: v for k, v in cfg.items() if v}
 
 
@@ -145,7 +169,9 @@ def brief(core, root, st, phase):
             lines.append("- %s: %s" % (title, ", ".join(names[:40]) + (" ..." if len(names) > 40 else "")))
         sw = sitewright_config(st)
         if sw:
-            lines.append("Sitewright config to merge into site.json (`hyperskill.py catalog sitewright` prints it): " + json.dumps(sw, ensure_ascii=False))
+            lines.append("Sitewright config to merge into site.json (`hyperskill.py catalog sitewright` prints it; keys starting with _ are guidance, not config): "
+                         + json.dumps(sw, ensure_ascii=False))
+            lines.append("The user's design picks win over Sitewright's default look; anything they did not pick keeps Sitewright's default.")
         packs = sorted({it["pack"] for it in build if it.get("pack")})
         if packs:
             lines.append("Skills the user wants used (pull their packs with `hyperskill.py skills pull ID`): " + ", ".join(packs))

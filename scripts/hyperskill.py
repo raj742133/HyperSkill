@@ -21,6 +21,8 @@ Usage:
   hyperskill.py log TEXT
   hyperskill.py event TEXT [--kind building|testing|reviewing|waiting|done]
                                                     tell the live view what is happening right now
+  hyperskill.py brief [show|set --file F|finding add ...|req add ...|resolve ID --state S]   the pasted idea, gaps and conflicts, your answers
+  hyperskill.py place [list|add ITEM --where W --why T|check --close]   where each picked component or figure is used, and proof it is
   hyperskill.py catalog [list|select|unselect|brief|sitewright] [IDS] [--group G --all|--recommended]
                                                     pick what to use (Sitewright parts, styles, checks, add-ons); the picks reach the build
   hyperskill.py extras [list|done ID --evidence T|waive ID --reason T]   the checks that came from your picks
@@ -56,6 +58,7 @@ import hs_activity as activity  # noqa: E402  (shared with the plugin hook and t
 import hs_control as control  # noqa: E402
 import hs_skills as skills  # noqa: E402
 import hs_catalog as cat  # noqa: E402
+import hs_brief as brief  # noqa: E402
 GATES_PATH = os.path.join(_HERE, "..", "skills", "hyperskill", "gates.json")
 INTEGRATIONS_PATH = os.path.join(_HERE, "..", "skills", "hyperskill", "integrations.json")
 
@@ -356,6 +359,12 @@ def cmd_advance(args):
         activity.append(args.root, "refused", "Cannot leave %s: %d check%s still open" % (cur["id"], len(open_ids), "" if len(open_ids) == 1 else "s"),
                         phase=cur["id"], open=",".join(open_ids))
         die("gate not clear for '%s'. Open items: %s" % (cur["id"], ", ".join(open_ids)))
+    waiting = brief.open_blocking(st)
+    if waiting:
+        activity.append(args.root, "refused", "Cannot leave %s: %d question%s about the brief still open" % (cur["id"], len(waiting), "" if len(waiting) == 1 else "s"),
+                        phase=cur["id"], open=",".join(waiting))
+        die("the user has not answered these gaps or conflicts in the brief yet: %s. They answer in the dashboard (or `brief resolve ID ...`); "
+            "do not assume the answer." % ", ".join(waiting))
     open_x = cat.open_extras(st, cur["id"])
     if open_x:
         activity.append(args.root, "refused", "Cannot leave %s: %d selected check%s still open" % (cur["id"], len(open_x), "" if len(open_x) == 1 else "s"),
@@ -506,6 +515,75 @@ def cmd_skills(args):
         gone = skills.release(me, args.root, st, phase)
         save_state(args.root, st)
         print("released: %s" % (", ".join(gone) or "(nothing was pulled for this phase)"))
+
+
+def cmd_brief(args):
+    st = load_state(args.root)
+    me = sys.modules[__name__]
+    a, t = args.action or "show", args.target
+    if a == "set":
+        text = args.text
+        if args.file:
+            with open(args.file, encoding="utf-8") as f:
+                text = f.read()
+        v = brief.set_brief(me, args.root, st, text)
+        save_state(args.root, st)
+        print("brief saved (version %d). Now extract the requirements and any gaps, conflicts or suggestions." % v)
+        return
+    if a == "show":
+        print(brief.summary(st) or "(no brief yet: paste one in the dashboard or `hyperskill.py brief set --file idea.md`)")
+        return
+    if a == "finding":
+        sub = t
+        if sub != "add":
+            die("usage: brief finding add --kind gap|conflict|suggestion --text TEXT [--proposed TEXT] [--blocking|--non-blocking]")
+        fid = brief.add_finding(me, args.root, st, args.kind, args.text, args.proposed, True if args.blocking else (False if args.non_blocking else None))
+        save_state(args.root, st)
+        print("finding %s added (%s)" % (fid, args.kind))
+        return
+    if a == "req":
+        sub = t
+        if sub == "add":
+            rid = brief.add_req(me, args.root, st, args.text)
+            print("requirement %s added" % rid)
+        elif sub == "done":
+            rid = args.rest[0] if args.rest else ""
+            brief.finish_req(me, args.root, st, rid, args.evidence)
+            print("requirement %s covered" % rid)
+        else:
+            die("usage: brief req add --text TEXT | brief req done ID --evidence TEXT")
+        save_state(args.root, st)
+        return
+    if a == "resolve":
+        brief.resolve(me, args.root, st, t, args.state, args.answer)
+        save_state(args.root, st)
+        print("%s %s" % (t, args.state))
+        return
+    if a == "list":
+        for i, f in st.get("findings", {}).items():
+            print("%-4s %-10s %-9s %s" % (i, f["kind"], f["state"], f["text"][:90]))
+        for i, r in st.get("requirements", {}).items():
+            print("%-4s requirement %-9s %s" % (i, r["state"], r["text"][:90]))
+
+
+def cmd_place(args):
+    st = load_state(args.root)
+    me = sys.modules[__name__]
+    a = args.action or "list"
+    if a == "add":
+        if not args.target:
+            die("give the catalogue item id, e.g. sw-components/ring-chart")
+        brief.add_place(me, args.root, st, args.target, args.where, args.why)
+        save_state(args.root, st)
+        print("placed %s" % args.target)
+        return
+    rows = brief.check(me, args.root, st, close=a == "check" and args.close)
+    if a == "check" and args.close:
+        save_state(args.root, st)
+    for r in rows:
+        print("%-34s placed=%-5s used=%s%s" % (r["id"], "yes" if r["placed"] else "NO", r["used_in"] or "NOT FOUND", "   at: " + r["where"] if r["where"] else ""))
+    if not rows:
+        print("(no Sitewright components or figures picked)")
 
 
 def cmd_catalog(args):
@@ -862,6 +940,29 @@ def build_parser():
     p.add_argument("text")
     p.add_argument("--kind", choices=KINDS, default="building")
     p.set_defaults(fn=cmd_event)
+
+    p = sub.add_parser("brief", help="the pasted idea, what was found in it, and the user's answers")
+    p.add_argument("action", nargs="?", choices=["show", "set", "finding", "req", "resolve", "list"])
+    p.add_argument("target", nargs="?")
+    p.add_argument("rest", nargs="*")
+    p.add_argument("--text")
+    p.add_argument("--file")
+    p.add_argument("--kind", choices=list(brief.KINDS))
+    p.add_argument("--proposed", default="")
+    p.add_argument("--blocking", action="store_true")
+    p.add_argument("--non-blocking", dest="non_blocking", action="store_true")
+    p.add_argument("--evidence")
+    p.add_argument("--state", choices=["accepted", "rejected", "answered"])
+    p.add_argument("--answer", default="")
+    p.set_defaults(fn=cmd_brief)
+
+    p = sub.add_parser("place", help="where each picked Sitewright component or figure is used")
+    p.add_argument("action", nargs="?", choices=["list", "add", "check"])
+    p.add_argument("target", nargs="?")
+    p.add_argument("--where")
+    p.add_argument("--why", default="")
+    p.add_argument("--close", action="store_true", help="check: close the checks of pieces that are placed and really used")
+    p.set_defaults(fn=cmd_place)
 
     p = sub.add_parser("catalog", help="what you can pick from (Sitewright parts, styles, checks, add-ons ...) and what you picked")
     p.add_argument("action", nargs="?", choices=["list", "select", "unselect", "set", "brief", "sitewright"])

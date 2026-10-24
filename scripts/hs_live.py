@@ -25,6 +25,7 @@ import webbrowser
 _HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, _HERE)
 import hs_activity as activity  # noqa: E402
+import hs_brief as brief  # noqa: E402
 import hs_catalog as cat  # noqa: E402
 import hs_control as control  # noqa: E402
 import hs_skills as skills  # noqa: E402
@@ -82,6 +83,13 @@ def integrations_state(root, st):
     return rows, slots
 
 
+def cat_places(root, st):
+    try:
+        return brief.check(core, root, st)
+    except (OSError, SystemExit):
+        return []
+
+
 def build_state(root, controls=False):
     """Everything the page needs to draw the phase rail, the open checks and the decisions."""
     phases = core.load_gates()
@@ -110,6 +118,10 @@ def build_state(root, controls=False):
         "decisions": [{"n": d["n"], "title": d["title"], "choice": activity.redact(d["choice"], 200)} for d in st["decisions"]],
         "integrations": rows, "slots": slots,
         "catalog": {"selected": cat.selected(st)},
+        "brief": {"text": (st.get("brief") or {}).get("text", ""), "version": (st.get("brief") or {}).get("version", 0), "at": (st.get("brief") or {}).get("at"),
+                  "findings": [dict(f, id=i) for i, f in st.get("findings", {}).items()],
+                  "requirements": [dict(r, id=i) for i, r in st.get("requirements", {}).items()]},
+        "placements": cat_places(root, st),
         "extras": [dict(e, id=i) for i, e in st.get("extras", {}).items()],
         "skillplan": skills.plan(core, root, st, st["current"], installed_names(root)) if st["current"] else [],
         "control": {"enabled": controls, "paused": control.is_paused(root), "pending": len(control.pending(root)), "inbox": control.recent(root)},
@@ -191,6 +203,25 @@ def perform(root, action, body):
         if action == "skill_use" and isinstance(prov, str) and ID.fullmatch(prov) and prov in reg["providers"]:
             argv += ["--provider", prov]
         return run_tracker(root, *argv)
+    if action == "brief_save":
+        text = text_field(body, "text", brief.MAX_BRIEF)
+        res = run_tracker(root, "brief", "set", "--text", text)
+        if res["ok"]:
+            control.push(root, "The user pasted or changed their idea in the dashboard. Run `hyperskill.py brief show`, then extract every requirement "
+                               "(`brief req add`) and every gap, conflict or improvement (`brief finding add`). Do not assume answers: the user answers each in the dashboard.")
+        return res
+    if action == "finding_resolve":
+        fid = text_field(body, "id", 20)
+        st_ = body.get("state")
+        if not re.fullmatch(r"f\d{1,4}", fid) or st_ not in ("accepted", "rejected", "answered") or fid not in core.load_state(root).get("findings", {}):
+            raise Refused("unknown finding or state")
+        argv = ["brief", "resolve", fid, "--state", st_]
+        if body.get("answer"):
+            argv += ["--answer", text_field(body, "answer", 600)]
+        res = run_tracker(root, *argv)
+        if res["ok"]:
+            control.push(root, "The user answered finding %s (%s). Run `hyperskill.py brief show` and build on their answer." % (fid, st_))
+        return res
     if action == "catalog_apply":
         ids = body.get("ids")
         if not isinstance(ids, list) or len(ids) > 1000 or not all(isinstance(i, str) and re.fullmatch(r"[a-z0-9][a-z0-9_/-]{0,120}", i) for i in ids):

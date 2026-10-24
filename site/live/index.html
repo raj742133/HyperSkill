@@ -62,6 +62,22 @@
     <progress id="r-bar" max="100" value="0" aria-label="Replay position"></progress>
   </div>
 
+  <section id="idea" class="integ" aria-labelledby="idea-h" hidden>
+    <h2 id="idea-h" class="eyebrow">Your idea <span id="idea-ver" class="count"></span></h2>
+    <p class="sub">Paste everything you know: what it is, who it is for, must-haves, look and feel. Your words decide <b>what</b> gets built; HyperSkill decides <b>how</b> (phases, checks, evidence). It will not rewrite your idea behind your back: gaps, conflicts and improvements come back as questions below, and you answer them.</p>
+    <form id="idea-form" class="idea-form">
+      <label for="idea-text" class="sub">Your brief</label>
+      <textarea id="idea-text" rows="9" maxlength="20000" placeholder="Example: A site for my coffee roastery. Landing page, staff login with authenticator codes, and a dashboard of customer orders. Brown and amber, calm, no stock photos."></textarea>
+      <div class="kit-bar"><span id="idea-status" role="status" aria-live="polite"></span><button type="submit" class="btn go" id="idea-save">Save and have Claude read it</button></div>
+    </form>
+    <div id="idea-found" hidden>
+      <h3 class="kit-title">What Claude found <span id="idea-open" class="count"></span></h3>
+      <ul id="idea-list" class="xt-list"></ul>
+      <h3 class="kit-title">Requirements <span id="req-count" class="count"></span></h3>
+      <ul id="req-list" class="xt-list"></ul>
+    </div>
+  </section>
+
   <section id="sp" class="integ" aria-labelledby="sp-h" hidden>
     <h2 id="sp-h" class="eyebrow">Skill plan for <span id="sp-phase"></span> <span id="sp-count" class="count"></span></h2>
     <p class="sub">Which skill this phase should use, when and why. Claude decides each line, pulls what it needs and records why; you can override any of it here.</p>
@@ -72,6 +88,8 @@
     <h2 id="xt-h" class="eyebrow">Checks from your picks <span id="xt-count" class="count"></span></h2>
     <p class="sub">Each thing you picked below that needs doing is a check. Claude closes it with evidence, or you waive it with a reason; a phase cannot end while one of its checks is open.</p>
     <ul id="xt-list" class="xt-list"></ul>
+    <h3 class="kit-title">Where each picked piece is used <span id="pl-count" class="count"></span></h3>
+    <ul id="pl-list" class="xt-list"></ul>
   </section>
 
   <section id="kit" class="kit" aria-labelledby="kit-h" hidden>

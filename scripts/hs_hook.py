@@ -139,6 +139,10 @@ def steer(data, when):
         if brief:
             parts.append(brief)
     if when == "start":
+        idea = idea_brief(root)
+        if idea:
+            parts.append(idea)
+    if when == "start":
         picked = picks_brief(root)
         if picked:
             parts.append(picked)
@@ -182,6 +186,17 @@ def skill_brief(root):
                 "every decision with `hyperskill.py skills use|skip SLOT --why ...`. Core lines need a stated reason to skip. "
                 "Details of any line: `hyperskill.py skills`.")
     except (Exception, SystemExit):  # a missing state or registry must never stop a session
+        return None
+
+
+def idea_brief(root):
+    """The user's pasted idea with the precedence rule, open questions and the answers they already gave."""
+    try:
+        import hyperskill as core
+        import hs_brief
+        text = hs_brief.summary(core.load_state(root))
+        return ("HyperSkill brief. " + text) if text else None
+    except (Exception, SystemExit):
         return None
 
 
