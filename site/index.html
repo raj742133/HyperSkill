@@ -27,6 +27,7 @@
     <a href="#packs">Skill packs</a>
     <a href="#styles">Styles</a>
     <a href="#tour">Screens</a>
+    <a href="#more">And also</a>
     <a href="#watch">Recording</a>
     <a href="#bench">Bench</a>
     <a href="#limits">Limits</a>
@@ -198,6 +199,33 @@
       <figure class="shot"><img src="shots/logo-sheet.webp" width="1100" height="1345" loading="lazy" alt="The hs-logo test sheet for a blue rounded square with the letter N: the size ladder from 256 down to 16 pixels, one colour, reversed, greyscale, on several backgrounds, blurred, mirrored, upside down, and in a browser tab, app icon and round avatar"><figcaption><strong>hs-logo: the test sheet.</strong> Where a mark breaks: small, in one colour, reversed, blurred. The black version of this one is a solid block, which is the point of the test.</figcaption></figure>
       <figure class="shot"><img src="shots/logo-terminal.webp" width="1100" height="502" loading="lazy" alt="Terminal output of hs-logo: an audit of a bad SVG listing errors for a script, an external reference and an embedded raster, and warnings, then a clean audit and the kit it exported"><figcaption><strong>hs-logo: audit and kit.</strong> Errors and warnings in plain words, then the icon set and manifest.</figcaption></figure>
       <figure class="shot wide"><img src="shots/logo-kit.webp" width="1100" height="189" loading="lazy" alt="The exported icons at their true proportions: favicon 16, 32 and 48 pixels, the 192 pixel icon, the Apple touch icon and the maskable icon"><figcaption><strong>hs-logo: the icon set.</strong> 16, 32 and 48 px favicons (also packed into favicon.ico), 192 and 512 px icons, the Apple touch icon, a maskable icon, the manifest and the head snippet.</figcaption></figure>
+    </div>
+  </section>
+
+  <section class="more" id="more" aria-labelledby="more-h">
+    <div class="sec-head">
+      <p class="eyebrow">And also</p>
+      <h2 id="more-h">The parts that do not fit in a screenshot.</h2>
+      <p>What makes a pass mean something, what else is bundled, and what is deliberately left optional.</p>
+    </div>
+    <div class="more-grid">
+      <article><h3>Checks that defend themselves</h3>
+        <p>The state file is <strong>signed</strong>: edit it by hand and every command refuses until you choose to keep the change or restore the last good copy (<code>repair --accept</code> or <code>--restore</code>). Evidence that names a missing file, or a command that cannot fail, is refused. Four checks (<code>go-no-go</code>, <code>system-design-read</code>, <code>architecture-explained</code>, <code>promo-rendered</code>) can only be passed by a person pressing <strong>Confirm</strong> in the dashboard. Claude cannot edit or read the key files.</p>
+        <p class="fine">Tamper-evident and accident-proof, not a sandbox: a process that already has your shell can do what you can.</p></article>
+      <article><h3>A check before every push</h3>
+        <p><code>scripts/check.sh</code> runs the whole test suite, the plugin validator, shell and JavaScript syntax and confirms the generated site data is current. <code>scripts/install-git-hooks.sh</code> makes it run before each <code>git push</code>, and the same script runs on GitHub when Actions is available.</p></article>
+      <article><h3>Hyperfigure: explain an idea as a working object</h3>
+        <p><code>/hyperskill-figure</code> builds an interactive isometric figure: a cache key as a pin-tumbler lock, a rate limiter as a turnstile. It has a drawing kit (SVG, WebGL, optional 3D), nine worked examples and audits. Derived from Anatomy by Ryan (MIT); the notice stays with it. Needs Node 20.10+ and Chrome for its checks.</p></article>
+      <article><h3>Ten visual styles, with build rules</h3>
+        <p>Skeuomorphism, Neumorphism, Glassmorphism, Claymorphism, Brutalism, Minimalism, Maximalism, Liquid Glass, Bento Grid and Spatial UI. Each has a recipe, its traps and the checks it must pass (<code>style-recipes.md</code>), plus a designed example to play and try live in the dashboard. One style per product: a pick here replaces a pick from the long list.</p></article>
+      <article><h3>Helper agents, priced by difficulty</h3>
+        <p>Work is split into tasks and each goes to the cheapest helper that can do it well: Haiku for lookups, Sonnet at medium or high effort for coding, Opus for architecture and review. Tasks that touch the same files never run together, a failed task moves up a tier, and every tier's model and effort can be changed per project from the dashboard to keep a project cheap.</p></article>
+      <article><h3>Opt-in tools, not bundled</h3>
+        <p><strong>last30days</strong> (what people said in the last 30 days, as evidence, never as proof of demand), <strong>Scrapling</strong> (bulk public data, within each site&rsquo;s terms, never to get past bot protection) and <strong>REA</strong> (analysing a bundle you ship). Each is registered with its risks and does nothing until you ask. <strong>Diagram Design</strong>, <strong>Hallmark</strong> and <strong>Humanizer</strong> are bundled unmodified.</p></article>
+      <article><h3>Self-hosted building blocks</h3>
+        <p>GlitchTip (errors), Gotify (alerts), Windmill (automation), Vikunja (tasks), celld and RAG-Anything (questions over your own documents). Each is a tracked check with its licence caveat written next to it and a plain description of what &ldquo;done&rdquo; means, including the cost of running it yourself.</p></article>
+      <article><h3>Honest about its limits</h3>
+        <p>Tests cover the tracker, registry, hooks, dashboard and site, not model behaviour. Windows and macOS are untested, third-party skill text was read at README level, and the LibreOffice route of hs-convert could not be run in the build sandbox. The full list is under <a href="#limits">Limits</a>.</p></article>
     </div>
   </section>
 
