@@ -95,6 +95,30 @@ class StructureTests(unittest.TestCase):
                          ["research", "plan", "foundation", "product", "ship",
                           "harden", "operate", "launch", "scale"])
 
+    def test_the_local_check_script_and_pre_push_hook_exist_and_are_runnable(self):
+        import stat
+        for rel in ("scripts/check.sh", "scripts/install-git-hooks.sh", ".githooks/pre-push"):
+            path = os.path.join(ROOT, rel)
+            self.assertTrue(os.path.isfile(path), rel)
+            self.assertTrue(os.stat(path).st_mode & stat.S_IXUSR, rel + " is not executable")
+        with open(os.path.join(ROOT, ".githooks", "pre-push"), encoding="utf-8") as f:
+            self.assertIn("scripts/check.sh", f.read())
+        with open(os.path.join(ROOT, ".github", "workflows", "ci.yml"), encoding="utf-8") as f:
+            self.assertIn("scripts/check.sh", f.read())
+
+    def test_the_installer_turns_the_hook_on_in_a_scratch_clone_only(self):
+        import subprocess
+        import tempfile
+        with tempfile.TemporaryDirectory() as d:
+            subprocess.run(["git", "init", "-q", d], check=True)
+            for rel in ("scripts/install-git-hooks.sh", "scripts/check.sh", ".githooks/pre-push"):
+                os.makedirs(os.path.join(d, os.path.dirname(rel)), exist_ok=True)
+                with open(os.path.join(ROOT, rel), "rb") as src, open(os.path.join(d, rel), "wb") as dst:
+                    dst.write(src.read())
+            self.assertEqual(subprocess.run(["bash", os.path.join(d, "scripts", "install-git-hooks.sh")], capture_output=True).returncode, 0)
+            out = subprocess.run(["git", "-C", d, "config", "core.hooksPath"], capture_output=True, text=True).stdout.strip()
+            self.assertEqual(out, ".githooks")
+
 
 if __name__ == "__main__":
     unittest.main()

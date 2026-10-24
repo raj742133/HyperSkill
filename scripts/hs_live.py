@@ -10,6 +10,7 @@ rule of the tracker (evidence required, gate must be clear) still applies. There
 here. Standard library only.
 """
 import hmac
+import http.cookies
 import http.server
 import json
 import os
@@ -49,6 +50,9 @@ STATIC = {  # the only files this server will ever send
 }
 CSP = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; media-src 'self'; frame-src 'self' http://127.0.0.1:* http://localhost:* https://127.0.0.1:* https://localhost:*; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
 RECENT = 300  # events sent to a browser that has just connected
+COOKIE = "hs_session_%d"  # one cookie per port: cookies are shared between ports on 127.0.0.1, and projects each have their own dashboard
+LOCKED = (b"<!doctype html><meta charset=utf-8><title>HyperSkill is locked</title><p>This dashboard is locked. Open the address HyperSkill printed in your terminal "
+          b"(it ends with <code>?k=...</code>), or run <code>hyperskill.py live</code> in the project again. The key is in <code>.hyperskill/live.key</code>, readable only by you.</p>")
 PREVIEW_DIR = os.path.normpath(os.path.join(_HERE, "..", "site", "live", "previews"))
 PREVIEW_RE = re.compile(r"^/live/previews/([a-z0-9-]{1,40})/([a-z0-9][a-z0-9._-]{0,80}\.(mp4|webp|svg|png))$")
 PREVIEW_TYPES = {"mp4": "video/mp4", "webp": "image/webp", "svg": "image/svg+xml", "png": "image/png"}
@@ -114,6 +118,8 @@ def build_state(root, controls=False, runner=None, port=None):
             applies = core.applies(st, it)
             state = "na" if not applies else (r["state"] if r else "open")
             row = {"id": it["id"], "text": core.item_text(st, it), "state": state}
+            if it.get("confirm"):
+                row["confirm"] = "confirmed" if core.confirmed(st, p["id"], it["id"]) else "needed"
             if it.get("needs"):
                 row["needs"] = it["needs"]
             if r:
@@ -163,9 +169,9 @@ def text_field(body, name, limit=500, required=True):
     return v.strip()
 
 
-def run_tracker(root, *argv):
+def run_tracker(root, *argv, env=None):
     r = subprocess.run([sys.executable, os.path.join(_HERE, "hyperskill.py"), "--root", root, *argv],
-                       capture_output=True, text=True, timeout=60, stdin=subprocess.DEVNULL)
+                       capture_output=True, text=True, timeout=60, stdin=subprocess.DEVNULL, env=dict(os.environ, **env) if env else None)
     out = ((r.stdout or "") + (r.stderr or "")).strip()
     return {"ok": r.returncode == 0, "output": activity.redact(out[-900:], 900)}
 
@@ -274,6 +280,20 @@ def perform(root, action, body, runner=None):
         if body.get("bias") in workmod.BIAS:
             argv += ["--bias", body["bias"]]
         return run_tracker(root, *argv)
+    if action == "confirm":
+        pid_, iid = phase(), text_field(body, "item", 60)
+        try:
+            with open(key_file(root), encoding="utf-8") as f:
+                launch_key = f.read().strip()
+        except OSError:
+            raise Refused("the dashboard's key file is missing: restart the dashboard")
+        argv = ["gate", pid_["id"], "--confirm", iid]
+        note = body.get("note")
+        if isinstance(note, str) and 0 < len(note.strip()) <= 300:
+            argv += ["--reason", note.strip()]
+        return run_tracker(root, *argv, env={"HYPERSKILL_CONFIRM_KEY": launch_key})
+    if action in ("state_accept", "state_restore"):
+        return run_tracker(root, "repair", "--accept" if action == "state_accept" else "--restore")
     if action == "work_tier":
         tid = text_field(body, "tier", 20)
         if body.get("reset") is True:
@@ -347,7 +367,7 @@ def perform(root, action, body, runner=None):
     raise Refused("unknown action")
 
 
-def make_handler(root, port, token=None, runner=None):
+def make_handler(root, port, token=None, runner=None, key=None, session=None):
     allowed_hosts = {"127.0.0.1:%d" % port, "localhost:%d" % port, "[::1]:%d" % port}
     lock = threading.Lock()
 
@@ -381,11 +401,33 @@ def make_handler(root, port, token=None, runner=None):
             self.end_headers()
             self.wfile.write(body)
 
+        def _signed_in(self):
+            """The browser holds this dashboard's session cookie. Any other local process, or another user on this computer, does not."""
+            if not session:
+                return True
+            jar = http.cookies.SimpleCookie()
+            try:
+                jar.load(self.headers.get("Cookie", ""))
+            except http.cookies.CookieError:
+                return False
+            got = jar.get(COOKIE % port)
+            return bool(got) and hmac.compare_digest(got.value, session)
+
         def do_GET(self):
             # A web page on another site must not be able to read this: refuse any Host header that is not ours (DNS rebinding).
             if self.headers.get("Host", "") not in allowed_hosts:
                 return self._send(403, b'{"error":"forbidden host"}', "application/json")
             path = self.path.split("?")[0]
+            query = self.path.partition("?")[2]
+            if key and path in STATIC and query.startswith("k="):
+                # Opening the address HyperSkill printed (it carries the launch key) signs this browser in, then drops the key from the address bar.
+                if hmac.compare_digest(query[2:].split("&")[0], key):
+                    return self._send(302, b"", "text/plain", {"Location": path, "Set-Cookie": "%s=%s; Path=/; HttpOnly; SameSite=Lax" % (COOKIE % port, session)})
+                return self._send(403, LOCKED, "text/html; charset=utf-8")
+            if path != "/favicon.svg" and not self._signed_in():
+                if path in STATIC:
+                    return self._send(401, LOCKED, "text/html; charset=utf-8")
+                return self._send(401, b'{"error":"not signed in: open the address HyperSkill printed"}', "application/json")
             if path in STATIC:
                 folder, name, ctype = STATIC[path]
                 try:
@@ -407,6 +449,9 @@ def make_handler(root, port, token=None, runner=None):
                 try:
                     return self._send(200, json.dumps(build_state(root, bool(token), runner, port)).encode(), "application/json")
                 except (OSError, ValueError, KeyError, SystemExit):
+                    kind, why = core.integrity(root)
+                    if kind in ("tampered", "damaged"):  # the page shows what happened and lets the person decide, instead of a blank error
+                        return self._send(200, json.dumps({"mode": "live", "broken": {"kind": kind, "why": why}, "control": {"enabled": bool(token)}}).encode(), "application/json")
                     return self._send(500, b'{"error":"state unavailable"}', "application/json")
             if path == "/live/events":
                 return self._events()
@@ -419,6 +464,8 @@ def make_handler(root, port, token=None, runner=None):
             origin = self.headers.get("Origin")
             if host not in allowed_hosts or (origin is not None and origin != "http://" + host):
                 return self._send(403, b'{"error":"forbidden origin"}', "application/json")
+            if not self._signed_in():
+                return self._send(401, b'{"error":"not signed in: open the address HyperSkill printed"}', "application/json")
             if not hmac.compare_digest(self.headers.get("X-HS-Token", ""), token):
                 return self._send(403, b'{"error":"missing or wrong token"}', "application/json")
             if self.path.split("?")[0] == "/live/upload":
@@ -569,11 +616,14 @@ def make_server(root, port=4777, tries=10, controls=False, allow_run=False):
     """Bind 127.0.0.1 only, on the first free port from `port`. Controls are off unless asked for."""
     last = None
     token = secrets.token_urlsafe(24) if controls else None
+    key, session = secrets.token_urlsafe(24), secrets.token_urlsafe(32)
     runner = hs_run.Runner(root, bool(allow_run and controls)) if controls else None
     for p in range(port, port + tries):
         try:
-            srv = Server(("127.0.0.1", p), make_handler(root, p, token, runner))
-            srv.token = token
+            srv = Server(("127.0.0.1", p), make_handler(root, p, token, runner, key, session))
+            srv.token, srv.key, srv.session = token, key, session
+            os.makedirs(os.path.join(root, ".hyperskill"), exist_ok=True)
+            write_private(key_file(root), key)
             srv.runner = runner
             return srv, p
         except OSError as exc:
@@ -583,6 +633,18 @@ def make_server(root, port=4777, tries=10, controls=False, allow_run=False):
 
 def live_file(root):
     return os.path.join(root, ".hyperskill", "live.json")
+
+
+def key_file(root):
+    return os.path.join(root, ".hyperskill", "live.key")
+
+
+def write_private(path, text):
+    """A file only this user can read: the launch key must not be readable by other accounts on the computer."""
+    fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+    with os.fdopen(fd, "w", encoding="utf-8") as f:
+        f.write(text)
+    os.chmod(path, 0o600)
 
 
 def read_live(root):
@@ -596,12 +658,19 @@ def read_live(root):
         if b"hyperskill" not in cmd:
             raise ValueError("pid reused")
     except (OSError, ValueError, KeyError, TypeError):
-        try:
-            os.remove(live_file(root))
-        except OSError:
-            pass
+        for gone in (live_file(root), key_file(root)):
+            try:
+                os.remove(gone)
+            except OSError:
+                pass
         return None
-    return {"pid": pid, "port": port, "url": "http://127.0.0.1:%d/" % port}
+    url = "http://127.0.0.1:%d/" % port
+    try:
+        with open(key_file(root), encoding="utf-8") as f:
+            launch = url + "?k=" + f.read().strip()
+    except OSError:
+        launch = url
+    return {"pid": pid, "port": port, "url": url, "launch": launch}
 
 
 def ensure(root, port=4777, idle_hours=4, wait=3.0):
@@ -622,6 +691,16 @@ def ensure(root, port=4777, idle_hours=4, wait=3.0):
     return None
 
 
+def open_in_browser(root):
+    """Open the signed-in dashboard in the person's browser. Prints nothing secret: the key stays in a file only they can read."""
+    info = read_live(root)
+    opener = os.path.join(root, ".hyperskill", "open.html")
+    if not info or not os.path.isfile(opener):
+        return None
+    threading.Thread(target=lambda: webbrowser.open("file://" + opener), daemon=True).start()
+    return opener
+
+
 def stop(root):
     """Stop this project's dashboard. Returns True if one was running."""
     info = read_live(root)
@@ -638,21 +717,31 @@ def serve(root, port=4777, open_browser=True, control=True, idle_hours=0, allow_
     core.load_state(root)  # fail early with the usual message when this is not a HyperSkill project
     if read_live(root):
         print("HyperSkill live view is already running: %s" % read_live(root)["url"])
+        print("To sign in, run `hyperskill.py live --open` (or open .hyperskill/open.html in your browser).")
         if allow_run:
             print("It was started without --allow-run. Stop it first (hyperskill.py live --stop), then start it again with --allow-run.")
         return
     server, p = make_server(root, port, controls=control, allow_run=allow_run)
     url = "http://127.0.0.1:%d/" % p
+    launch = url + "?k=" + server.key
     os.makedirs(os.path.dirname(live_file(root)), exist_ok=True)
+    write_private(key_file(root), server.key)
     with open(live_file(root), "w", encoding="utf-8") as f:
         json.dump({"pid": os.getpid(), "port": p, "started": activity.now()}, f)
-    print("HyperSkill live view: %s" % url, flush=True)
+    opener = os.path.join(os.path.dirname(live_file(root)), "open.html")
+    write_private(opener, '<!doctype html><meta charset="utf-8"><meta http-equiv="refresh" content="0;url=%s"><title>Opening HyperSkill</title><a href="%s">Open the dashboard</a>' % (launch, launch))
+    if sys.stdout.isatty():  # the key is printed only to a person's own terminal, never into output that Claude reads
+        print("HyperSkill live view: %s" % launch, flush=True)
+        print("The address carries a key that signs this browser in; keep it to yourself (it is also in .hyperskill/live.key, readable only by you).", flush=True)
+    else:
+        print("HyperSkill live view: %s (locked). To sign in, run `hyperskill.py live --open`, or open %s in your browser." % (url, opener), flush=True)
     print("Controls on (pass checks, advance, enable skills, pause, instruct Claude), this computer only. Press Ctrl+C to stop."
           if control else "Read-only, this computer only. Press Ctrl+C to stop.", flush=True)
     if control and allow_run:
         print("RUN MODE ON: the chat box can start Claude on this project (your Claude login and usage; shell commands only if you choose that per message).", flush=True)
     if open_browser:
-        threading.Thread(target=lambda: webbrowser.open(url), daemon=True).start()
+        # The browser is pointed at a private file that redirects to the keyed address, so the key never appears in a process list.
+        threading.Thread(target=lambda: webbrowser.open("file://" + opener), daemon=True).start()
     server.last_seen = time.time()
     if idle_hours:
         def watchdog():
@@ -671,7 +760,8 @@ def serve(root, port=4777, open_browser=True, control=True, idle_hours=0, allow_
         if getattr(server, "runner", None):
             server.runner.stop()
         server.server_close()
-        try:
-            os.remove(live_file(root))
-        except OSError:
-            pass
+        for gone in (live_file(root), key_file(root), opener):
+            try:
+                os.remove(gone)
+            except OSError:
+                pass

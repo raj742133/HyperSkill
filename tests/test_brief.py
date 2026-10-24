@@ -11,6 +11,9 @@ import unittest
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SCRIPTS = os.path.join(ROOT, "scripts")
 sys.path.insert(0, SCRIPTS)
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import _auth  # noqa: E402,F401  (signs test clients in to the dashboard)
+from _auth import confirm_items, seed_docs  # noqa: E402,F401
 import hs_live  # noqa: E402
 
 TRACKER = os.path.join(SCRIPTS, "hyperskill.py")
@@ -47,6 +50,7 @@ class Base(unittest.TestCase):
             return json.load(f)
 
     def clear_research(self):
+        confirm_items(self.p, "research")
         tracker(self.p, "gate", "research", "--waive", gate_ids(0), "--reason", "test run")
 
 
