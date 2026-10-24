@@ -328,7 +328,7 @@ class LockAndHookTests(Base):
     def hook(self, when, payload):
         import subprocess
         r = subprocess.run([sys.executable, os.path.join(SCRIPTS, "hs_hook.py"), when], input=json.dumps(dict(payload, cwd=self.p)), capture_output=True, text=True,
-                           env=dict(os.environ, HOME=EMPTY_HOME, HYPERSKILL_NO_AUTOSTART="1"))
+                           env=dict(os.environ, HOME=EMPTY_HOME, HYPERSKILL_NO_LIVE="1"))
         self.assertEqual(r.returncode, 0, r.stderr)
         return r.stdout
 

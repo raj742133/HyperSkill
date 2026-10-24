@@ -22,7 +22,7 @@ Read `references/plan-playbook.md` for the detailed prompts and traps for each s
 
 ## Steps
 
-1. **Requirements interview.** Don't write code. Interview in groups, one group at a time: users and roles; the 3-5 core workflows; tenancy; data and sensitivity; scale; billing; compliance; integrations. Then write `docs/system-design.md` (problem, roles, flows, functional and non-functional requirements, out-of-scope, open questions).
+1. **Requirements interview.** Don't write code. Interview in groups, one group at a time: users and roles; the 3-5 core workflows; tenancy; data and sensitivity; scale; billing; compliance; integrations. Then write `docs/system-design.md` (problem, roles, flows, functional and non-functional requirements, out-of-scope, open questions). Put the architecture and the main data flow in it as a diagram the user can read: use the `architecture-diagram` slot (Diagram Design) when it resolves, otherwise Mermaid, and check every box and arrow against the plan before the user reads it. The user must be able to explain each box; the check is theirs to confirm in the dashboard.
 2. **Stress-test.** Spawn `hs-reviewer` on the design as a skeptical staff engineer: missing requirements, ambiguous flows, scaling/privacy risk, over-engineering for this stage. Resolve or explicitly accept each finding.
 3. **Capacity sketch.** Peak requests/second, DB size, file storage, background-job volume, with the maths shown and the first bottleneck named.
 4. **Architecture.** Propose (don't build) in `docs/architecture.md`: Mermaid component diagram; one stack choice per layer with a rejected alternative; folder structure; where background jobs run; third-party services with cost; the 3 riskiest decisions.

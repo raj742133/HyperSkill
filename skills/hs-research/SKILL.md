@@ -19,7 +19,7 @@ Goal: decide whether to build, and what the smallest valuable version is, **befo
 ## Steps
 
 1. **Frame the idea.** One paragraph: who, what painful job, what they do today. Restate it to the user and get a yes.
-2. **Research in parallel.** Use the `deep-research` slot if installed (see `hyperskill/references/integrations.md`). Otherwise spawn up to 4 `hs-researcher` agents, one per angle, in a single message:
+2. **Research in parallel.** Use the `deep-research` slot if installed (see `hyperskill/references/integrations.md`). When demand evidence is thin, `community-research` (last30days, opt-in) gathers what people said in the last 30 days with sources; treat it as evidence to weigh, not proof. `web-extraction` (Scrapling, opt-in) is for collecting public data in bulk within each site's terms, never for getting past bot protection. Otherwise spawn up to 4 `hs-researcher` agents, one per angle, in a single message:
    - Alternatives and competitors (including spreadsheets and "do nothing")
    - Users and pain evidence (forums, reviews, job posts, communities)
    - Market size, pricing norms, and how competitors acquire customers

@@ -40,11 +40,15 @@ Then record the decision, because the dashboard shows it and the next session re
 | research | deep-research | deep-research skill | Multi-source sweep behind `docs/research.md` |
 | research | product-interrogation | gstack `/office-hours` (opt-in) | Pressure-test the idea before the interview |
 | research | video-analysis | `/watch` (opt-in) | Understand competitor/demo videos |
+| research | community-research | last30days (opt-in, not bundled) | Cited brief of what people said in the last 30 days: evidence for `user-evidence`, never proof of demand |
+| research | web-extraction | Scrapling (opt-in, not bundled) | Bulk collection of public data within each site's terms; never used to get past bot protection |
 | plan | coding-discipline | karpathy-skills | On by default (`init`); the hook reads its four rules at every session start, so also copy them into `CLAUDE.md` for other tools |
 | plan | plan-review | gstack `/plan-*-review` (opt-in) | Extra reviewers on the design |
+| plan | architecture-diagram | Diagram Design (recommended, bundled); Hyperfigure for an explanatory figure | The diagram in `docs/system-design.md` that the user reads for `system-design-read` and explains for `architecture-explained` |
 | plan | ui-library-choice | emil `pick-ui-library` | Evidence for the component-library decision |
 | foundation | coding-discipline, code-review | karpathy, built-in `code-review` | Small surgical diffs; review each PR-sized change |
-| product | design-direction | taste-skill | Sets look & dials **before** pixels |
+| product | design-direction | taste-skill, or Hallmark (opt-in): one voice, not both | Sets look & dials **before** pixels |
+| product | design-lint | Hallmark's `sloplint.mjs` (opt-in, needs node) | Mechanical check of the built HTML/CSS against anti-slop rules; run it through `gate --run` so the result is recorded |
 | product | design-reference | Uizze (opt-in, hosted) | Real-product reference screens before designing; inspiration only |
 | product | design-system-generation | UI UX Pro Max | Tokens, palette, font pairing from its local data; feeds the design system |
 | product | icons | better-icons (opt-in) | One icon collection; record its licence (gate `icon-set-licence`) |
@@ -56,10 +60,11 @@ Then record the decision, because the dashboard shows it and the next session re
 | ship | code-review | Open Code Review (opt-in, bundled skills, needs the `ocr` CLI; delegate mode by default) else built-in `code-review` | Review every change set; record findings in `docs/reviews/` |
 | ship | qa-browser | Chrome DevTools; gstack `/qa` (opt-in) | End-to-end exploration beyond scripted tests |
 | ship | release | gstack `/ship`, `/land-and-deploy` (opt-in) | PR + deploy automation, **only if** it respects our CD gate |
+| harden | artifact-analysis | REA (opt-in, not bundled) | Only for a shipped bundle or binary you own: leaked secrets, published source maps, unexpected endpoints |
 | harden | security-audit | cloudflare security-audit (sandboxed) + built-in `security-review`; gstack `/cso` (opt-in) | Findings JSON in `docs/security/`, run via `hs-reviewer` |
 | operate | canary, performance-audit | gstack `/canary` (opt-in); Chrome DevTools traces | Post-deploy checks and real perf traces |
 | launch | video | **HyperFrames** (router + `product-launch-video`, `faceless-explainer`, `embedded-captions`, `talking-head-recut`, `motion-graphics`) | Renders; our `video-hyperframes.md` supplies brief and verification |
-| launch, product | copy-review | SlopMonster local checker | Check README/landing/launch copy for AI-writing patterns; claims still must be true |
+| launch, product | copy-review | SlopMonster local checker; Humanizer (opt-in) for a rewrite pass, one of the two | Check README/landing/launch copy for AI-writing patterns; claims still must be true |
 | launch | video (2nd) | Hypit (opt-in) | Alternative video builder; read its licence conditions first; never clone others' videos |
 | launch | voiceover | Qwen3-TTS (opt-in) | Voiceover/dubbing; written consent for any cloned voice; disclose synthetic voices |
 | launch | video-analysis | `/watch` (opt-in) | Watch our own render to verify it (frames + transcript) |

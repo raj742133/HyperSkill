@@ -3,17 +3,17 @@ window.HS = {
  "counts": {
   "phases": 9,
   "gateItems": 72,
-  "slots": 33,
-  "providers": 33,
-  "tests": 309,
-  "packs": 14,
-  "picks": 803
+  "slots": 38,
+  "providers": 38,
+  "tests": 329,
+  "packs": 17,
+  "picks": 821
  },
  "policyCounts": {
-  "recommended": 11,
-  "opt-in": 13,
+  "recommended": 12,
+  "opt-in": 18,
   "blocked-if-commercial": 1,
-  "reference-only": 6,
+  "reference-only": 5,
   "unreviewed": 2
  },
  "phases": [
@@ -24,7 +24,9 @@ window.HS = {
    "slots": [
     "deep-research",
     "product-interrogation",
-    "video-analysis"
+    "video-analysis",
+    "community-research",
+    "web-extraction"
    ],
    "gate": [
     {
@@ -58,7 +60,8 @@ window.HS = {
     "plan-review",
     "ui-library-choice",
     "explainer-figure",
-    "site-scaffold"
+    "site-scaffold",
+    "architecture-diagram"
    ],
    "gate": [
     {
@@ -171,7 +174,8 @@ window.HS = {
     "implementation-discipline",
     "copy-review",
     "explainer-figure",
-    "site-scaffold"
+    "site-scaffold",
+    "design-lint"
    ],
    "gate": [
     {
@@ -276,7 +280,8 @@ window.HS = {
    "skill": "hs-harden",
    "slots": [
     "security-audit",
-    "code-review"
+    "code-review",
+    "artifact-analysis"
    ],
    "gate": [
     {
@@ -887,16 +892,19 @@ window.HS = {
   },
   {
    "id": "rea",
-   "name": "REA (Reverse Engineer Anything)",
+   "name": "REA (reverse engineering for agents)",
    "repo": "morluto/rea",
-   "kind": "mcp+cli+skill",
-   "license": "MIT (third-party engines licensed separately)",
-   "policy": "reference-only",
-   "slots": [],
+   "kind": "mcp+skill+cli",
+   "license": "MIT",
+   "policy": "opt-in",
+   "slots": [
+    "artifact-analysis"
+   ],
    "risks": [
-    "dual-use security tool outside this pipeline's scope",
-    "reverse engineering software you do not own can breach licences or law",
-    "runtime capture executes the target with your privileges"
+    "not bundled: a large toolkit with its own MCP server",
+    "use it only on software you own or are authorised to examine; its own disclaimer says so, and it grants no licence to Hopper, IDA or Ghidra",
+    "runtime capture runs the target with your user permissions",
+    "for this pipeline the fit is narrow: checking your own shipped bundle for leaked secrets, source maps and unexpected endpoints"
    ]
   },
   {
@@ -929,6 +937,91 @@ window.HS = {
     "its templates fetch fonts from Google Fonts and icons from api.iconify.design, and the browser checks need Chromium: review that against your privacy and CSP decisions",
     "sign-in and MFA modules ship development-only passwords and secrets in .env.local: replace them before any deploy",
     "bundles Hairline (MIT, Lucas Marques) figures: keep packs/sitewright/THIRD_PARTY_NOTICES.md with it"
+   ]
+  },
+  {
+   "id": "hallmark",
+   "name": "Hallmark",
+   "repo": "nutlope/hallmark",
+   "kind": "skill+script",
+   "license": "MIT",
+   "policy": "opt-in",
+   "slots": [
+    "design-direction",
+    "design-lint"
+   ],
+   "risks": [
+    "a second design voice: use it instead of taste-skill, not alongside it",
+    "do not run its install.mjs or install-hook.mjs: they edit .claude/settings.json, and HyperSkill already has its own hooks",
+    "scripts/imagegen.mjs sends prompts to Together AI, and only when TOGETHER_API_KEY is set",
+    "theme.mjs photos downloads Wikimedia Commons images only when asked; each keeps its own licence",
+    "sloplint writes a .hallmark/ folder into the project; --render needs puppeteer-core and Chrome",
+    "its stamp line must be the first line of the CSS; a lint pass shows the rules were followed, not that the design is good"
+   ]
+  },
+  {
+   "id": "humanizer",
+   "name": "Humanizer",
+   "repo": "blader/humanizer",
+   "kind": "skill",
+   "license": "MIT",
+   "policy": "opt-in",
+   "slots": [
+    "copy-review"
+   ],
+   "risks": [
+    "it rewrites: review the diff, and keep every claim true (a smoother sentence is not a verified one)",
+    "overlaps SlopMonster: use one pass, not both"
+   ]
+  },
+  {
+   "id": "diagram-design",
+   "name": "Diagram Design",
+   "repo": "cathrynlavery/diagram-design",
+   "kind": "skill+script",
+   "license": "MIT",
+   "policy": "recommended",
+   "slots": [
+    "architecture-diagram"
+   ],
+   "risks": [
+    "asks to customise the style guide on first use: answer it once, or keep the default",
+    "PNG export needs Playwright, which it does not install for you",
+    "a diagram is a claim: check each box and arrow against the code before the architecture-explained check"
+   ]
+  },
+  {
+   "id": "last30days",
+   "name": "last30days (community research)",
+   "repo": "mvanhorn/last30days-skill",
+   "kind": "plugin",
+   "license": "MIT",
+   "policy": "opt-in",
+   "slots": [
+    "community-research"
+   ],
+   "risks": [
+    "not bundled: the skill folder is about 18 MB",
+    "with a reasoning-provider key set, your topic and the retrieved snippets go to that provider",
+    "some sources use browser cookies or third-party scraping services (ScrapeCreators, Bright Data): check their terms and never give it a logged-in session you care about",
+    "engagement is not demand: treat the brief as evidence to weigh, never as proof of a market"
+   ]
+  },
+  {
+   "id": "scrapling",
+   "name": "Scrapling (web extraction)",
+   "repo": "D4Vinci/Scrapling",
+   "kind": "library+mcp",
+   "license": "BSD-3-Clause",
+   "policy": "opt-in",
+   "slots": [
+    "web-extraction"
+   ],
+   "risks": [
+    "not bundled: a Python library with browser downloads",
+    "its README says it is for educational and research use and that you must follow site terms, robots.txt and privacy law",
+    "its stealth fetchers are built to get past bot protection: do not use that on a site whose terms forbid scraping",
+    "scraped personal data is personal data: GDPR and similar apply"
    ]
   }
  ],

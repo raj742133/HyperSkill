@@ -8,8 +8,10 @@ fail=0
 step() { printf '\n== %s\n' "$1"; }
 
 step "unit tests"
-python3 -m unittest discover -s tests 2>&1 | tail -n 8 | tee /tmp/hs-check-tests.out
-grep -q '^OK' /tmp/hs-check-tests.out || fail=1
+out="$(mktemp)"
+python3 -m unittest discover -s tests >"$out" 2>&1
+tail -n 4 "$out"
+grep -q '^OK' "$out" || { fail=1; grep -E '^(FAIL|ERROR):' "$out"; echo "(full output: $out)"; }
 
 step "shell syntax"
 for f in scripts/*.sh .githooks/*; do [ -f "$f" ] && bash -n "$f" || { echo "bad: $f"; fail=1; }; done
