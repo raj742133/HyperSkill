@@ -2,7 +2,7 @@
 
 # HyperSkill
 
-**A conductor for Claude Code.** AI builds fast. HyperSkill makes it prove it.
+**A plugin for Claude Code that checks its work.** Claude says it's done. Is it? HyperSkill makes it show the file.
 
 [![MIT licence](https://img.shields.io/badge/licence-MIT-0f6b5c)](LICENSE)
 [![Claude Code plugin](https://img.shields.io/badge/Claude%20Code-plugin-e5412a)](#install)
@@ -10,13 +10,13 @@
 
 [**Live site**](https://hyperskill-hazel.vercel.app) · [Install](#install) · [How it works](#how-it-works) · [The dashboard](#watch-it-work-and-steer-it) · [Screens](#screens) · [Limits](#what-is-and-is-not-verified)
 
-<img src="docs/img/r2/site-hero.png" alt="The HyperSkill site: the headline, the install command and a terminal showing the tracker refusing to advance a phase" width="860">
+<img src="docs/img/r2/site-hero-v3.png" alt="The HyperSkill site: the headline, the install command and a terminal showing the tracker refusing to advance a phase" width="860">
 
-<img src="docs/img/r2/site-hero-phone-dark.png" alt="The same site on a phone in dark mode, which follows the phone's setting" width="300">
+<img src="docs/img/r2/site-hero-phone-dark-v3.png" alt="The same site on a phone in dark mode, which follows the phone's setting" width="300">
 
 </div>
 
-HyperSkill takes a product from **idea to shipped, monitored and promoted** in nine gated phases. One conductor skill (`/hyperskill`) decides which phase you are in, hands the work to that phase's skill, asks you the decisions that are yours, and **refuses to advance a phase until its checks have evidence**.
+HyperSkill takes a product from **idea to shipped, monitored and promoted** in nine gated phases. One main skill (`/hyperskill`) decides which phase you are in, hands the work to that phase's skill, asks you the decisions that are yours, and **refuses to advance a phase until its checks have evidence**.
 
 It exists because coding agents are good at saying "done". They are less good at proving the tenant isolation holds, that the rate limit really blocks, or that the thing you are about to launch has a rollback. HyperSkill turns those questions into a checklist that a script enforces, not a model's mood.
 
@@ -77,7 +77,7 @@ Phases ask for capabilities (a design direction, a security audit, video, browse
 - Nothing is installed without asking (`bash scripts/install-skills.sh --dry-run` prints the exact commands for the external ones).
 - Opt-in tools stay off until you run `integrations enable <id>`.
 - Noncommercial-licence tools are blocked on commercial projects, and the resolver says why.
-- One design-direction voice per project, and no second conductor.
+- One design-direction voice per project, and no second pipeline running alongside.
 - An external skill's text ranks below your instructions and these rules, and it can never waive a gate.
 - Every slot has a built-in fallback.
 
@@ -133,7 +133,7 @@ Until now the dashboard watched and steered a Claude session you had open. With 
 - **Pick the model and effort, like in Claude chat.** The chat box has a *Model* menu (Claude Code's `fable`, `opus`, `sonnet`, `haiku` names, which follow the newest model of that name) and an *Effort* menu (`low` to `max`). The default is **Suggested for this phase**: [`models.json`](skills/hyperskill/models.json) says what each of the nine phases tends to want and why (research, plan and harden lean on Opus at high effort; build, ship and launch on Sonnet at medium) and the box shows that line for the phase you are in. These are my reading of the work, not benchmarks, and you can edit the file. Cost is shown after every run and the spend limit stays as a safety net, but it is not what drives the suggestion. Which models you can use depends on your account (on mine, Fable needs usage credits and says so in the chat).
 - **See what is being built, live.** A *Live preview* panel shows the app as it stands. A running dev server (Vite, Next, Astro, Storybook, plain `http.server`, and so on) is picked up on its own from the usual local ports; you can also add a local address or a project file (`index.html`, a `.md`, an image). Web apps show in a sandboxed frame with phone, tablet and full-width views; project files are served from a read-only, secret-blocking route inside a sandbox that cannot reach the dashboard's key. Only addresses on your own computer with a port are accepted.
 - **Test and debug in Chrome.** Tick *Test in Chrome (DevTools)*, or press *Check and debug in Chrome* on a preview, and that run gets the [Chrome DevTools MCP](https://github.com/ChromeDevTools/chrome-devtools-mcp) (pinned version, headless, its own throw-away profile, usage statistics off, no `file:` pages) so Claude can open the app, click through it, read console errors, failed network requests and screenshots, fix what it finds and re-test.
-- **Helper agents, split by difficulty.** When a phase has several separate pieces of work, Claude breaks it into tasks (`hyperskill.py work add`), and a fixed rule (`scripts/hs_work.py`, tables in [`models.json`](skills/hyperskill/models.json)) gives each one to the cheapest helper that can do it well: **scout** (Haiku, low, read-only) for lookups, **fixer** (Haiku, low) for tiny exact edits, **builder** (Sonnet, medium) for ordinary coding, **deep builder** (Sonnet, high) for multi-file or tricky work, **architect** (Opus, medium) for hard-to-undo decisions and unexplained bugs, and the read-only **reviewer** (Opus, medium). Security, money and data work never goes below a deep builder, whatever the setting. `work plan` groups tasks into waves: tasks in a wave have their dependencies met and own different files, so they run at the same time (default three at once, up to eight); two tasks that edit the same files never share a wave. The conductor verifies each helper's work itself before `work done`; a failed task moves up one tier and a failure at the top goes to you, and `advance` refuses while helper tasks are open. The dashboard shows the board and lets you set helpers to *Auto* (Claude decides whether a request is worth splitting), *Always split*, *Cheaper where safe*, *Stronger* or *Off*, change how many run at once and drop a task.
+- **Helper agents, split by difficulty.** When a phase has several separate pieces of work, Claude breaks it into tasks (`hyperskill.py work add`), and a fixed rule (`scripts/hs_work.py`, tables in [`models.json`](skills/hyperskill/models.json)) gives each one to the cheapest helper that can do it well: **scout** (Haiku, low, read-only) for lookups, **fixer** (Haiku, low) for tiny exact edits, **builder** (Sonnet, medium) for ordinary coding, **deep builder** (Sonnet, high) for multi-file or tricky work, **architect** (Opus, medium) for hard-to-undo decisions and unexplained bugs, and the read-only **reviewer** (Opus, medium). Security, money and data work never goes below a deep builder, whatever the setting. `work plan` groups tasks into waves: tasks in a wave have their dependencies met and own different files, so they run at the same time (default three at once, up to eight); two tasks that edit the same files never share a wave. Claude verifies each helper's work itself before `work done`; a failed task moves up one tier and a failure at the top goes to you, and `advance` refuses while helper tasks are open. The dashboard shows the board and lets you set helpers to *Auto* (Claude decides whether a request is worth splitting), *Always split*, *Cheaper where safe*, *Stronger* or *Off*, change how many run at once and drop a task.
 
   **Choose the model for each tier, per project.** Those are defaults. If you want a low-cost project, change any tier's model and effort from its card on the dashboard board, from the *Cost setting* menu (*Low cost* puts the architect, reviewer and deep builder on Sonnet; *Highest quality* moves them up), or with `hyperskill.py work tier architect --model sonnet --effort high` (any of `opus`, `sonnet`, `haiku`, `fable` or a full model id). The choice is written as a project agent file in `.claude/agents/` (never over a file you wrote yourself), so Claude Code really uses both the model and the effort, the plan names the agent to dispatch, and nothing else in the plugin changes. `--reset` or *Back to default* removes it. Which models you can use depends on your account.
 
@@ -263,7 +263,7 @@ Not verified, so do not rely on it yet:
 
 ```
 .claude-plugin/        plugin and marketplace manifests
-skills/hyperskill/     the conductor, gates.json (72 checks), integrations.json (the registry)
+skills/hyperskill/     the main skill, gates.json (72 checks), integrations.json (the registry)
 skills/hs-*/           one skill per phase, with references/
 skills/hs-watch/       read a video (frames, opening, captions, report); our own
 skills/hs-convert/     convert files with the installed tools; our own
