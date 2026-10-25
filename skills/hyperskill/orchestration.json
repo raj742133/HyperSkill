@@ -181,6 +181,12 @@
         "need": "optional",
         "when": "when an asset has to change format (a clip to a poster, a png to webp, a document to pdf)",
         "why": "the right installed tool, no overwrites, and a result you look at"
+      },
+      {
+        "slot": "responsive-check",
+        "need": "situational",
+        "when": "when a screen was designed desktop-first, or before the phone-test gate is marked passed",
+        "why": "measured overflow, tap targets and form zoom at phone, tablet and desktop widths"
       }
     ],
     "ship": [

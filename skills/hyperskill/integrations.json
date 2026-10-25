@@ -900,6 +900,69 @@
         "a generated mark is a starting point: check it is not close to an existing brand before real use (trademark search is not something this does)",
         "text is only safe as outlines in a final file"
       ]
+    },
+    "hs-a11y-review": {
+      "name": "hs-a11y-review (bundled)",
+      "kind": "skill",
+      "license": "MIT",
+      "policy": "recommended",
+      "builtin": true,
+      "install": [
+        "already bundled in this plugin at skills/hs-a11y-review"
+      ],
+      "detect": {
+        "skills": [
+          "hs-a11y-review"
+        ]
+      },
+      "provides": "Measured accessibility review: real text and focus-ring contrast in light and dark (from CSS, and from the page as Chrome paints it), the nearest passing colour for each failure, and a ranked keyboard, label, target and motion checklist.",
+      "vetted": "2026-10-25: written for this project from the one-line descriptions of a set of Figma Community skills seen in a post; the Figma pages themselves could not be opened, so nothing was read or copied from them. Tested here with headless Chrome.",
+      "risks": [
+        "measures declared and computed colours only: gradients, images and opacity tricks are listed as not measured",
+        "contrast is one part of accessibility; the checklist still has to be walked by hand",
+        "page checks need a Chrome-family browser and run a temporary copy of the page"
+      ]
+    },
+    "hs-responsive": {
+      "name": "hs-responsive (bundled)",
+      "kind": "skill",
+      "license": "MIT",
+      "policy": "recommended",
+      "builtin": true,
+      "install": [
+        "already bundled in this plugin at skills/hs-responsive"
+      ],
+      "detect": {
+        "skills": [
+          "hs-responsive"
+        ]
+      },
+      "provides": "Desktop-to-mobile adaptation checklist plus a measured check at phone, tablet and desktop widths: sideways scrolling and its cause, tap targets, form-field zoom, tiny text, missing viewport tag.",
+      "vetted": "2026-10-25: written for this project from the one-line descriptions of a set of Figma Community skills seen in a post; the Figma pages themselves could not be opened, so nothing was read or copied from them. Tested here with headless Chrome.",
+      "risks": [
+        "page checks need a Chrome-family browser and run a temporary copy of the page",
+        "it measures; it does not judge layout taste, so look at screenshots too"
+      ]
+    },
+    "hs-design-review": {
+      "name": "hs-design-review (bundled)",
+      "kind": "skill",
+      "license": "MIT",
+      "policy": "recommended",
+      "builtin": true,
+      "install": [
+        "already bundled in this plugin at skills/hs-design-review"
+      ],
+      "detect": {
+        "skills": [
+          "hs-design-review"
+        ]
+      },
+      "provides": "A design critique method that ranks findings (blocking, important, polish), requires evidence for each, and gives the exact fix.",
+      "vetted": "2026-10-25: written for this project from the one-line descriptions of a set of Figma Community skills seen in a post; the Figma pages themselves could not be opened, so nothing was read or copied from them. Tested here with headless Chrome.",
+      "risks": [
+        "a method, not a tool: quality depends on looking at the running page, and it should run in a fresh context"
+      ]
     }
   },
   "slots": {
@@ -958,7 +1021,8 @@
     "design-critique": {
       "providers": [
         "impeccable",
-        "vercel-web-interface-guidelines"
+        "vercel-web-interface-guidelines",
+        "hs-design-review"
       ],
       "fallback": "screen checklist in hs-product/references/design-system.md"
     },
@@ -972,7 +1036,8 @@
     "a11y-audit": {
       "providers": [
         "chrome-devtools-agents",
-        "impeccable"
+        "impeccable",
+        "hs-a11y-review"
       ],
       "fallback": "axe in the test suite"
     },
@@ -1156,6 +1221,12 @@
         "hs-logo"
       ],
       "fallback": "draw a simple mark by hand in SVG and export the sizes yourself; run the one-colour and 16 px checks by eye"
+    },
+    "responsive-check": {
+      "providers": [
+        "hs-responsive"
+      ],
+      "fallback": "open the page at 375px in Chrome devtools, scroll sideways, tap every control, and write down what broke"
     }
   }
 }
