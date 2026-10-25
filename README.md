@@ -2,7 +2,7 @@
 
 # HyperSkill
 
-**A conductor for Claude Code.** AI builds fast. HyperSkill makes it prove it.
+**A conductor for Claude Code.** No file, no pass. Claude says "done" a lot; HyperSkill asks for the evidence.
 
 [![MIT licence](https://img.shields.io/badge/licence-MIT-0f6b5c)](LICENSE)
 [![Claude Code plugin](https://img.shields.io/badge/Claude%20Code-plugin-e5412a)](#install)
@@ -10,9 +10,9 @@
 
 [**Live site**](https://hyperskill-hazel.vercel.app) · [Install](#install) · [How it works](#how-it-works) · [The dashboard](#watch-it-work-and-steer-it) · [Screens](#screens) · [Limits](#what-is-and-is-not-verified)
 
-<img src="docs/img/r2/site-hero.png" alt="The HyperSkill site: the headline, the install command and a terminal showing the tracker refusing to advance a phase" width="860">
+<img src="docs/img/r2/site-hero-v2.png" alt="The HyperSkill site: the headline, the install command and a terminal showing the tracker refusing to advance a phase" width="860">
 
-<img src="docs/img/r2/site-hero-phone-dark.png" alt="The same site on a phone in dark mode, which follows the phone's setting" width="300">
+<img src="docs/img/r2/site-hero-phone-dark-v2.png" alt="The same site on a phone in dark mode, which follows the phone's setting" width="300">
 
 </div>
 
