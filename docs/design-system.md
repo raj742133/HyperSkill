@@ -1,448 +1,323 @@
 # HyperSkill design system
 
-The look of the HyperSkill site, written down so it can be reused in other projects. **Warm paper, near-black ink, one orange-red accent, an editorial serif for headlines, a monospace for the "system voice".** It reads like a printed field manual with a terminal on the side, not like a SaaS landing page.
+The look of the HyperSkill site, written down so it can be reused. **Neo-brutalism**: flat saturated fills, one thick black border, one hard offset shadow, heavy capital headlines, a monospace for "the system speaking". It follows this project's own recipe for the style (`skills/hs-product/references/style-recipes.md`).
 
 - Source of truth: [`site/styles.css`](../site/styles.css), [`site/index.html`](../site/index.html), [`site/app.js`](../site/app.js). Live: https://hyperskill-hazel.vercel.app
-- Every CSS block below is copied exactly from `site/styles.css` (a test fails if they drift apart), so you can paste them as they are.
-- Plain HTML and CSS, no framework, no build step, no icon library, no images needed for the look. About 14 KB of CSS.
+- Every CSS block below is copied exactly from `site/styles.css` by `scripts/build_design_doc.py`, and a test fails if they drift apart, so you can paste them as they are.
+- Plain HTML and CSS, no framework, no build step, no icon library, no images needed for the look.
 
-**Preview.** The starter page from section 13, built from this document's own CSS blocks and nothing else: light on a desktop, dark on a phone.
+**Preview.** The starter page from the last section, built from this document's CSS and nothing else: light on a desktop, dark on a phone.
 
-<img src="img/design-system-starter-light.png" alt="The starter page in light mode: mono wordmark, a serif headline with an orange italic second half, two buttons and a row of big serif numbers" width="640"> <img src="img/design-system-starter-dark-phone.png" alt="The same starter page on a phone in dark mode" width="200">
+<img src="img/design-system-starter-light.png" alt="The starter page in light mode: a black wordmark with a pink square, a heavy capital headline with a pink block, a yellow command button, and a strip of flat-colour number cells" width="640"> <img src="img/design-system-starter-dark-phone.png" alt="The same starter page on a phone in dark mode, with yellow hard shadows" width="200">
 
-## 1. What makes it look like this (the rules)
+## What makes it look like this (the rules)
 
-1. **One accent, used sparingly.** Orange-red appears on: the eyebrow label, the italic half of the headline, big serif numerals, list markers, the focus ring, the primary hover and one button. Never as a large background.
-2. **Three typefaces, three jobs.** Serif for display (headlines, big numbers). Sans for reading. Mono for anything that is "the system speaking": labels, commands, tags, table headers, code.
-3. **Paper and ink, not white and grey.** The page is warm off-white (`#f3eee4`), text is near-black (`#14110f`), secondary text is a warm brown-grey. Dark mode swaps them rather than inverting to pure black and white.
-4. **Hairlines, not boxes.** Structure comes from 1px rules (`--rule`) and one heavy 2px ink rule at the top of a section or footer. Cards are rare; where there is one it has a 1px rule border and a 14-16px radius.
-5. **One hard shadow.** The only shadow is a solid offset block (`8px 8px 0 var(--accent)`) under the terminal. No blur shadows, no gradients, no glass.
-6. **Big, tight, balanced headlines.** `line-height` 1 to 1.05, negative letter-spacing, `text-wrap: balance`. Body text is generous (17px / 1.6) with a 54ch to 760px measure.
-7. **Mostly still.** There is almost no motion: smooth anchor scroll, a hover colour change, a terminal that types its lines one by one. Everything stops under `prefers-reduced-motion`.
+1. **One border width, one shadow offset.** `--bw` (3px) on every box, `--off` (6px, 4px on phones) for every shadow. Nothing else. This is what makes it deliberate instead of messy.
+2. **Hard shadows only.** A solid offset block in `--shadow` (black; yellow in dark mode). No blur, no gradients, no glass, no rounded corners.
+3. **Flat fills with a job.** `--yellow` for commands and highlights, `--pink` for the accent, `--lime` for "go" and good states, `--blue` for links and one fill. Text on any fill is always `--on-fill` (black), except white on blue.
+4. **Heavy display, calm body.** `--display` (Archivo Black, capitals, tight) for headings and big numbers; `--sans` (Archivo) for reading; `--mono` (Space Mono) for labels, commands, tags and table headers.
+5. **Grid paper.** A faint 32px grid on the page background makes the structure visible. It is decoration, so text contrast is measured against the page colour underneath.
+6. **A focus ring that is not the border.** `:focus-visible` is a 4px outline in `--focus` (blue; yellow in dark mode), offset by 4px, so it never disappears into a border.
+7. **Hover changes colour and shadow, not layout.** Buttons shrink their shadow and take a new fill; nothing moves the page.
+8. **Mostly still.** Smooth anchor scroll, hover colour changes, a terminal that types its lines. Everything stops under `prefers-reduced-motion`.
 
-## 2. Quick start
+## Quick start
 
-1. Fonts (Instrument Serif, Inter, JetBrains Mono from Google Fonts), in `<head>`:
+1. Fonts (Archivo Black, Archivo, Space Mono from Google Fonts), in `<head>`:
 
 ```html
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-<meta name="theme-color" content="#f3eee4" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#14110f" media="(prefers-color-scheme: dark)">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wght@400;500;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<meta name="theme-color" content="#fff8e1" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f0f0f" media="(prefers-color-scheme: dark)">
 ```
 
-2. Paste the tokens (section 3), the base (section 5) and the layout (section 6).
-3. Add the components you need (section 7). Each one is independent.
+2. Paste the tokens and the base, then the header and hero.
+3. Add the components you need. Each one is independent.
 
-If a page has a strict Content-Security-Policy, the Google Fonts link needs `style-src https://fonts.googleapis.com` and `font-src https://fonts.gstatic.com`. To avoid that, self-host the three families (download the font files, add `@font-face` rules, remove the links). Without the fonts the system fallbacks in the stacks below still look reasonable (Georgia for the serif).
+If a page has a strict Content-Security-Policy, the Google Fonts link needs `style-src https://fonts.googleapis.com` and `font-src https://fonts.gstatic.com`; to avoid that, self-host the three families.
 
-## 3. Design tokens
+## Tokens
+
+| Token | Light | Dark | Use |
+|---|---|---|---|
+| `--paper` | `#fff8e1` | `#0f0f0f` | Page background |
+| `--paper-2` | `#ffffff` | `#1b1b1b` | Panels, cards, table body |
+| `--ink` | `#000000` | `#ffffff` | Text |
+| `--line` | `#000000` | `#ffffff` | Every border |
+| `--shadow` | `#000000` | `#ffe14d` | Every hard shadow |
+| `--pink` | `#ff4fa3` | same | The accent; headline block, selected tab |
+| `--yellow` | `#ffe14d` | same | Commands, table head, highlights |
+| `--blue` | `#3b5bff` | same | Links, one fill, the focus ring (light) |
+| `--lime` | `#b6ff3b` | same | Install pill, "recommended", slot tags |
+| `--on-fill` | `#000000` | same | Text on any colour fill |
+| `--focus` | `#3b5bff` | `#ffe14d` | Focus ring |
+| `--bw` | `3px` | same | The one border width |
+| `--off` | `6px` (4px on phones) | same | The one shadow offset |
+
+**Contrast** is measured, not eyeballed, with this project's `hs-a11y-review` tools: `page_contrast.py` reads every text element as Chrome paints it, in light and dark, and finds no failures on the site (4.5:1 for text, 3:1 for large text and focus rings). The tightest pair is white on `--blue` at about 5.1:1. Re-run it after any colour change.
+
+## The stylesheet, in blocks
+
+### 1. Tokens and dark theme
+
+The colours, the one border width, the one shadow offset and the three typefaces, plus the dark theme (a system setting or `data-theme`).
 
 ```css file=site/styles.css
+/* Neo-brutalism, following skills/hs-product/references/style-recipes.md:
+   one border width, one shadow offset, flat saturated fills, no blur, no gradients, a focus ring that is not the border. */
 :root {
-  --paper: #f3eee4;
-  --paper-2: #ebe4d6;
-  --ink: #14110f;
-  --ink-2: #4a433b;
-  --rule: #cfc6b4;
-  --accent: #d93a1c;
-  --accent-ink: #ffffff;
-  --term: #14110f;
-  --term-ink: #f3eee4;
-  --term-dim: #9d9384;
-  --ok: #7ccf8a;
-  --bad: #ff7a5c;
-  --serif: "Instrument Serif", "Iowan Old Style", Georgia, serif;
-  --sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --paper: #fff8e1;
+  --paper-2: #ffffff;
+  --ink: #000000;
+  --ink-2: #1f1f1f;
+  --line: #000000;
+  --shadow: #000000;
+  --pink: #ff4fa3;
+  --yellow: #ffe14d;
+  --blue: #3b5bff;
+  --lime: #b6ff3b;
+  --accent: var(--pink);
+  --on-fill: #000000;          /* text on any flat colour fill is always black */
+  --focus: #3b5bff;
+  --term: #000000;
+  --term-ink: #fff8e1;
+  --term-dim: #b9b39c;
+  --ok: #b6ff3b;
+  --bad: #ff8a8a;
+  --grid: rgba(0, 0, 0, .07);
+  --bw: 3px;                   /* the one border width */
+  --off: 6px;                  /* the one shadow offset */
+  --display: "Archivo Black", "Arial Black", Impact, system-ui, sans-serif;
+  --sans: "Archivo", system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+  --mono: "Space Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
   --gutter: clamp(16px, 4vw, 40px);
   --max: 1180px;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --paper: #14110f; --paper-2: #1d1916; --ink: #f3eee4; --ink-2: #b8ae9d; --rule: #3a342d;
-    --accent: #ff6a4d; --accent-ink: #14110f; --term: #0b0908; --term-ink: #f3eee4;
+    --paper: #0f0f0f; --paper-2: #1b1b1b; --ink: #ffffff; --ink-2: #e6e6e6; --line: #ffffff; --shadow: #ffe14d;
+    --grid: rgba(255, 255, 255, .06); --focus: #ffe14d; --term: #000000;
   }
 }
 :root[data-theme="dark"] {
-  --paper: #14110f; --paper-2: #1d1916; --ink: #f3eee4; --ink-2: #b8ae9d; --rule: #3a342d;
-  --accent: #ff6a4d; --accent-ink: #14110f; --term: #0b0908;
+  --paper: #0f0f0f; --paper-2: #1b1b1b; --ink: #ffffff; --ink-2: #e6e6e6; --line: #ffffff; --shadow: #ffe14d;
+  --grid: rgba(255, 255, 255, .06); --focus: #ffe14d; --term: #000000;
 }
 ```
 
-| Token | Light | Dark | Use |
-|---|---|---|---|
-| `--paper` | `#f3eee4` | `#14110f` | Page background |
-| `--paper-2` | `#ebe4d6` | `#1d1916` | Second surface: inline code, table header, panels, chips |
-| `--ink` | `#14110f` | `#f3eee4` | Text, heavy rules, the dark command box, selected states |
-| `--ink-2` | `#4a433b` | `#b8ae9d` | Secondary text, labels |
-| `--rule` | `#cfc6b4` | `#3a342d` | 1px hairlines and borders |
-| `--accent` | `#d93a1c` | `#ff6a4d` | The one accent |
-| `--accent-ink` | `#ffffff` | `#14110f` | Text on an accent background |
-| `--term` / `--term-ink` / `--term-dim` | `#14110f` / `#f3eee4` / `#9d9384` | `#0b0908` / same / same | The terminal card (dark in both modes) |
-| `--ok` / `--bad` | `#7ccf8a` / `#ff7a5c` | same | Success and error text, only inside the terminal |
-| `--gutter` | `clamp(16px, 4vw, 40px)` | | Side padding |
-| `--max` | `1180px` | | Content width |
+### 2. Base
 
-### Contrast (measured with the WCAG formula)
-
-| Pair | Ratio | Verdict |
-|---|---|---|
-| Light: ink on paper | 16.3:1 | passes AAA |
-| Light: ink-2 on paper | 8.4:1 | passes AAA |
-| Light: white on accent (button) | 4.6:1 | passes AA |
-| Light: **accent on paper as text** | **4.0:1** | **fails AA for small text**, passes for large text (24px and up, or 19px bold) |
-| Light: rule on paper | 1.5:1 | decorative only, never carries meaning |
-| Dark: ink on paper | 16.3:1 | passes AAA |
-| Dark: ink-2 on paper | 8.6:1 | passes AAA |
-| Dark: accent on paper | 6.6:1 | passes AA |
-| Terminal: ok / bad / dim on terminal | 10.0 / 7.3 / 6.2:1 | passes AA |
-
-**Known weakness in the original:** in light mode the accent on paper is 4.0:1, and the site uses it for small text (the 12px uppercase eyebrow). Use the accent for large text, markers and decoration only, or add a darker text variant for small text. `#bf3015` gives 5.0:1 on `--paper` and 4.6:1 on `--paper-2`:
-
-```css
-:root { --accent-text: #bf3015; }                       /* light: small accent text */
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --accent-text: var(--accent); } }
-:root[data-theme="dark"] { --accent-text: var(--accent); }
-.eyebrow { color: var(--accent-text); }
-```
-
-## 4. Typography
-
-| Role | Family | Size | Notes |
-|---|---|---|---|
-| Display `h1` | Instrument Serif 400 | `clamp(44px, 6.6vw, 84px)` / 1 | letter-spacing `-.02em`, `text-wrap: balance`; `<em>` is italic in the accent colour |
-| Section `h2` | Instrument Serif 400 | `clamp(32px, 4.6vw, 56px)` / 1.05 | letter-spacing `-.015em` |
-| Big numerals | Instrument Serif 400 | `clamp(40px, 6vw, 72px)` / 1 | the stats row and the numbered rules |
-| `h3` | Inter 600 | 18px / 1.3 | |
-| Body | Inter 400 | 17px / 1.6 | secondary copy uses `--ink-2`; small print is 13.5px / 1.5 |
-| Lede | Inter 400 | `clamp(17px, 1.6vw, 20px)` | max 54ch, `--ink-2` |
-| Eyebrow | JetBrains Mono 600 | 12px | uppercase, letter-spacing `.14em`, accent colour |
-| Labels, tags, table headers | JetBrains Mono 600 | 11.5 to 12px | uppercase with `.1em` to `.12em` spacing for headers |
-| Code, commands | JetBrains Mono 400 | `.88em` inline, 13.5 to 14px in blocks | |
-
-The headline pattern is two lines: a roman first line, then the second line in `<em>` (italic, accent). Example: `AI builds fast. <em>HyperSkill makes it prove it.</em>`
-
-## 5. Base
+Reset, the grid-paper page background, links, inline code, the focus ring and the skip link.
 
 ```css file=site/styles.css
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
 body {
-  margin: 0; background: var(--paper); color: var(--ink);
+  margin: 0; background-color: var(--paper); color: var(--ink);
+  background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 32px 32px;
   font: 400 17px/1.6 var(--sans); -webkit-font-smoothing: antialiased;
 }
-a { color: inherit; text-decoration-color: var(--accent); text-underline-offset: 3px; }
+a { color: inherit; text-decoration-thickness: 2px; text-decoration-color: var(--blue); text-underline-offset: 3px; }
+a:hover { background: var(--yellow); color: var(--on-fill); text-decoration-color: var(--on-fill); }
 code, pre { font-family: var(--mono); }
-code { font-size: .88em; background: var(--paper-2); padding: .1em .35em; border-radius: 4px; }
-:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
-.skip { position: absolute; left: -999px; top: 8px; background: var(--ink); color: var(--paper); padding: 8px 14px; z-index: 10; border-radius: 6px; }
+code { font-size: .86em; background: var(--yellow); color: var(--on-fill); padding: .08em .35em; border: 2px solid var(--line); }
+:focus-visible { outline: 4px solid var(--focus); outline-offset: 4px; }
+.skip { position: absolute; left: -999px; top: 8px; background: var(--yellow); color: var(--on-fill); border: var(--bw) solid var(--line); padding: 8px 14px; z-index: 10; font-weight: 700; }
 .skip:focus { left: 8px; }
 ```
 
-## 6. Layout
+### 3. Header, brand mark and nav
 
-Every section is the same width and the same vertical rhythm: side padding from `--gutter`, centred at `--max`, and a bottom margin of `clamp(64px, 10vw, 128px)`. Two-column layouts are CSS grid with `minmax(0, 1fr)` columns (the `0` stops long content from stretching a column) and collapse to one column at the breakpoints below.
+Header, brand square, nav links, the lime install pill, section spacing, the black eyebrow label.
 
 ```css file=site/styles.css
 .top, main > section, .foot { padding-left: var(--gutter); padding-right: var(--gutter); }
-.top { display: flex; align-items: center; justify-content: space-between; max-width: calc(var(--max) + 2 * var(--gutter)); margin: 0 auto; padding-top: 18px; padding-bottom: 18px; }
-.brand { font: 600 15px/1 var(--mono); text-decoration: none; display: inline-flex; align-items: center; gap: 10px; letter-spacing: -.01em; }
-.mark { width: 18px; height: 18px; background: var(--ink); border-radius: 5px; position: relative; }
-.mark::after { content: ""; position: absolute; right: -3px; bottom: -3px; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); border: 2px solid var(--paper); }
-.top nav { display: flex; align-items: center; gap: clamp(12px, 3vw, 28px); font-size: 15px; }
-.top nav a { text-decoration: none; color: var(--ink-2); }
-.top nav a:hover { color: var(--ink); }
-.top nav .pill { background: var(--ink); color: var(--paper); padding: 8px 16px; border-radius: 999px; }
-.top nav .pill:hover { background: var(--accent); color: var(--accent-ink); }
-@media (max-width: 520px) { .top nav a:not(.pill):nth-child(n+3) { display: none; } }
+.top { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px 20px; max-width: calc(var(--max) + 2 * var(--gutter)); margin: 0 auto; padding-top: 18px; padding-bottom: 18px; border-bottom: var(--bw) solid var(--line); }
+.brand { min-height: 44px; font: 700 18px/1 var(--mono); text-transform: uppercase; letter-spacing: -.02em; text-decoration: none; display: inline-flex; align-items: center; gap: 12px; }
+.brand:hover { background: none; color: inherit; }
+.mark { width: 24px; height: 24px; background: var(--pink); border: var(--bw) solid var(--line); box-shadow: 3px 3px 0 var(--shadow); }
+.top nav { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 4px; font: 700 13px/1 var(--mono); text-transform: uppercase; letter-spacing: .02em; }
+.top nav a { text-decoration: none; padding: 14px 10px; border: 2px solid transparent; min-height: 44px; display: inline-flex; align-items: center; }
+.top nav a:hover { background: var(--yellow); color: var(--on-fill); border-color: var(--line); }
+.top nav .pill { min-height: 44px; background: var(--lime); color: var(--on-fill); border: var(--bw) solid var(--line); box-shadow: 4px 4px 0 var(--shadow); margin-left: 8px; }
+.top nav .pill:hover { background: var(--pink); }
+@media (max-width: 760px) { .top nav a:not(.pill):nth-child(n+4) { display: none; } }
 
-main > section { max-width: calc(var(--max) + 2 * var(--gutter)); margin: 0 auto clamp(64px, 10vw, 128px); }
-.eyebrow { font: 600 12px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--accent); margin: 0 0 14px; }
-.fine { font-size: 13.5px; color: var(--ink-2); margin: 14px 0 0; line-height: 1.5; }
+main > section { max-width: calc(var(--max) + 2 * var(--gutter)); margin: 0 auto clamp(56px, 9vw, 112px); }
+.eyebrow { display: inline-block; font: 700 12px/1 var(--mono); letter-spacing: .1em; text-transform: uppercase; background: var(--ink); color: var(--paper); padding: 7px 10px; margin: 0 0 16px; }
+.fine { font-size: 14px; color: var(--ink-2); margin: 14px 0 0; line-height: 1.5; }
 ```
 
-Breakpoints used: **900px** (hero stacks), **860px** (feature grid stacks), **820px** (tabs become a horizontal scroller), **720px** (stats and rules go to fewer columns), **520px** (nav keeps only the first two links and the pill; command box wraps).
+### 4. Hero, command box and buttons
 
-## 7. Components
-
-### 7.1 Header, brand mark and pill link
-A mono wordmark with a small rounded square and an accent dot, plain text links, and one pill-shaped call to action.
-
-```html
-<header class="top">
-  <a class="brand" href="#top" aria-label="Home"><span class="mark" aria-hidden="true"></span>HyperSkill</a>
-  <nav aria-label="Primary">
-    <a href="#pipeline">Pipeline</a>
-    <a href="#bench">Bench</a>
-    <a class="pill" href="#install">Install</a>
-  </nav>
-</header>
-```
-
-Its CSS is in the layout block above (`.top`, `.brand`, `.mark`, `.top nav`, `.pill`). The favicon uses the same mark:
-
-```html
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="7" fill="#14110f"/><path d="M8 9h4v5.5h8V9h4v14h-4v-5.2h-8V23H8z" fill="#f3eee4"/><circle cx="25" cy="24.5" r="2.6" fill="#ff4d2e"/></svg>
-```
-
-### 7.2 Hero, command box and links
-Two columns: text on the left, a terminal (7.3) on the right. The command box is a dark rounded bar with the command in mono and a small accent copy button; `.ghost` is an underlined text link, `.solid` a pill button.
-
-```html
-<section class="hero" id="top">
-  <div>
-    <p class="eyebrow">A conductor for Claude Code</p>
-    <h1>AI builds fast. <em>HyperSkill makes it prove it.</em></h1>
-    <p class="lede">One or two sentences that say what it is and what you get.</p>
-    <div class="cta">
-      <div class="cmd"><code id="cmd-text">/plugin marketplace add owner/repo</code><button type="button" id="copy">Copy</button></div>
-      <a class="ghost" href="#demo">Watch it refuse</a>
-    </div>
-    <p class="fine">Small print: who it is for and what it needs.</p>
-  </div>
-  <figure class="term"> ... </figure>
-</section>
-```
+The headline with its pink block, the yellow command box and the ghost button.
 
 ```css file=site/styles.css
 /* hero */
 .hero { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: clamp(28px, 5vw, 64px); align-items: center; padding-top: clamp(28px, 6vw, 72px); padding-bottom: clamp(40px, 7vw, 90px); }
-h1 { font: 400 clamp(44px, 6.6vw, 84px)/1 var(--serif); letter-spacing: -.02em; margin: 0 0 22px; text-wrap: balance; }
-h1 em { font-style: italic; color: var(--accent); }
-.lede { font-size: clamp(17px, 1.6vw, 20px); color: var(--ink-2); max-width: 54ch; margin: 0 0 28px; }
-.cta { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
-.cmd { display: flex; align-items: center; background: var(--ink); color: var(--paper); border-radius: 12px; padding: 6px 6px 6px 16px; max-width: 100%; min-width: 0; }
-.cmd code { background: none; color: inherit; font-size: 14px; padding: 0; overflow-x: auto; white-space: nowrap; scrollbar-width: none; min-width: 0; }
+h1 { font: 400 clamp(40px, 6.2vw, 84px)/.98 var(--display); text-transform: uppercase; letter-spacing: -.03em; margin: 0 0 24px; text-wrap: balance; }
+h1 em { font-style: normal; background: var(--pink); color: var(--on-fill); padding: 0 .12em; box-decoration-break: clone; -webkit-box-decoration-break: clone; border: var(--bw) solid var(--line); box-shadow: var(--off) var(--off) 0 var(--shadow); display: inline-block; margin-top: .12em; }
+.lede { font-size: clamp(17px, 1.6vw, 20px); font-weight: 500; max-width: 54ch; margin: 0 0 28px; }
+.cta { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; }
+.cmd { display: flex; align-items: center; background: var(--yellow); color: var(--on-fill); border: var(--bw) solid var(--line); box-shadow: var(--off) var(--off) 0 var(--shadow); padding: 6px 6px 6px 16px; max-width: 100%; min-width: 0; }
+.cmd code { background: none; border: 0; color: inherit; font-size: 14px; font-weight: 700; padding: 0; overflow-x: auto; white-space: nowrap; scrollbar-width: none; min-width: 0; }
 .cmd code::-webkit-scrollbar { display: none; }
-.cmd button { margin-left: 14px; flex: none; border: 0; border-radius: 8px; background: var(--accent); color: var(--accent-ink); font: 600 13px var(--sans); padding: 10px 14px; cursor: pointer; }
-.cmd button:hover { filter: brightness(1.08); }
-.ghost { font-weight: 500; text-decoration: none; border-bottom: 2px solid var(--accent); padding-bottom: 2px; }
-.ghost:hover { color: var(--accent); }
+.cmd button { margin-left: 14px; flex: none; border: var(--bw) solid #000; background: #000; color: #fff8e1; font: 700 13px var(--mono); text-transform: uppercase; padding: 10px 14px; min-height: 44px; cursor: pointer; }
+.cmd button:hover { background: var(--pink); color: var(--on-fill); }
+.ghost { font-weight: 800; text-transform: uppercase; font-size: 14px; letter-spacing: .02em; text-decoration: none; border: var(--bw) solid var(--line); background: var(--paper-2); padding: 12px 16px; box-shadow: 4px 4px 0 var(--shadow); }
+.ghost:hover { background: var(--blue); color: #fff; box-shadow: 2px 2px 0 var(--shadow); text-decoration: none; }
 ```
 
-### 7.3 Terminal card
-A dark card with the hard accent offset shadow, a title bar with three dots and a small "Replay" button, and monospace output coloured by meaning: accent prompt, bright command, green success, orange error, dim notes.
+### 5. Terminal card
 
-```html
-<figure class="term" id="demo" aria-labelledby="demo-cap">
-  <div class="term-bar">
-    <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
-    <span class="term-title">real output, not a mock-up</span>
-    <button type="button" id="replay" class="mini">Replay</button>
-  </div>
-  <pre class="term-body" id="term-body" aria-live="polite"></pre>
-  <figcaption id="demo-cap">Every line above is produced by <code>script.py</code> when the site is built.</figcaption>
-</figure>
-```
-
-Inside `.term-body` each step is a `div` with a `$ ` prompt span (`.p`) and the command (`.c`), then one `div` per output line with class `ok`, `bad`, `dim` or `c`.
+A black terminal under a yellow title bar, with a hard pink shadow.
 
 ```css file=site/styles.css
 /* terminal */
-.term { margin: 0; background: var(--term); color: var(--term-ink); border-radius: 16px; overflow: hidden; box-shadow: 8px 8px 0 var(--accent); min-width: 0; }
-.term-bar { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 1px solid #2a2520; font: 12px var(--mono); color: var(--term-dim); }
-.dots { display: inline-flex; gap: 6px; } .dots i { width: 10px; height: 10px; border-radius: 50%; background: #3a342d; }
+.term { margin: 0; background: var(--term); color: var(--term-ink); border: var(--bw) solid var(--line); box-shadow: 10px 10px 0 var(--pink); min-width: 0; }
+.term-bar { display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: var(--yellow); color: var(--on-fill); border-bottom: var(--bw) solid var(--line); font: 700 12px var(--mono); text-transform: uppercase; }
+.dots { display: inline-flex; gap: 6px; } .dots i { width: 12px; height: 12px; background: #000; border: 0; }
+.dots i:nth-child(2) { background: var(--pink); } .dots i:nth-child(3) { background: var(--blue); }
 .term-title { flex: 1; }
-.mini { background: none; border: 1px solid #3a342d; color: var(--term-ink); border-radius: 6px; font: 12px var(--mono); padding: 4px 9px; cursor: pointer; }
-.mini:hover { border-color: var(--accent); }
+.mini { background: #000; border: 2px solid #000; color: #fff8e1; font: 700 12px var(--mono); text-transform: uppercase; padding: 5px 9px; min-height: 44px; cursor: pointer; }
+.mini:hover { background: var(--pink); color: var(--on-fill); }
 .term-body { margin: 0; padding: 18px 18px 8px; font-size: 12.5px; line-height: 1.55; min-height: 420px; max-height: 520px; overflow: auto; white-space: pre-wrap; word-break: break-word; }
-.term-body .p { color: var(--accent); } .term-body .c { color: var(--term-ink); }
+.term-body .p { color: var(--yellow); } .term-body .c { color: var(--term-ink); }
 .term-body .ok { color: var(--ok); } .term-body .bad { color: var(--bad); } .term-body .dim { color: var(--term-dim); }
 .term figcaption { padding: 4px 18px 16px; font-size: 12px; color: var(--term-dim); }
-.term figcaption code { background: #221d19; color: var(--term-ink); }
+.term figcaption code { font-size: 12px; background: #222; color: var(--term-ink); border-color: #555; }
 ```
 
-### 7.4 Numbers ledger
-A row of big serif numerals with small captions under a heavy top rule. Five columns, two on a phone.
+### 6. Numbers strip
 
-```html
-<section class="ledger" aria-label="By the numbers">
-  <dl>
-    <div><dt>9</dt><dd>phases, idea to scale</dd></div>
-    <div><dt>72</dt><dd>gate checks</dd></div>
-    ...
-  </dl>
-  <p class="fine">Where the numbers come from.</p>
-</section>
-```
+A row of flat-colour cells, each one big number and a label.
 
 ```css file=site/styles.css
 /* numbers ledger */
-.ledger { border-top: 2px solid var(--ink); border-bottom: 1px solid var(--rule); padding-top: 26px; padding-bottom: 22px; }
-.ledger dl { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 18px; margin: 0; }
-.ledger div { min-width: 0; }
-.ledger dt { font: 400 clamp(40px, 6vw, 72px)/1 var(--serif); letter-spacing: -.02em; }
-.ledger dd { margin: 6px 0 0; font-size: 14px; color: var(--ink-2); }
-@media (max-width: 720px) { .ledger dl { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.ledger { padding-top: 8px; padding-bottom: 8px; }
+.ledger dl { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0; margin: 0; border: var(--bw) solid var(--line); box-shadow: var(--off) var(--off) 0 var(--shadow); background: var(--paper-2); }
+.ledger div { min-width: 0; padding: 16px 16px 14px; border-right: var(--bw) solid var(--line); border-bottom: var(--bw) solid var(--line); margin: -1.5px; }
+.ledger div:nth-child(4n+1) { background: var(--yellow); color: var(--on-fill); } .ledger div:nth-child(4n+2) { background: var(--pink); color: var(--on-fill); }
+.ledger div:nth-child(4n+3) { background: var(--lime); color: var(--on-fill); } .ledger div:nth-child(4n) { background: var(--blue); color: #fff; }
+.ledger dt { font: 400 clamp(40px, 5.4vw, 64px)/1 var(--display); letter-spacing: -.03em; }
+.ledger dd { margin: 6px 0 0; font: 700 13px/1.3 var(--mono); text-transform: uppercase; }
+.ledger .fine { margin-top: 18px; }
 ```
 
-### 7.5 Section head
-Eyebrow, serif `h2`, one muted paragraph, at most 760px wide.
+### 7. Section heads
 
-```html
-<div class="sec-head">
-  <p class="eyebrow">The pipeline</p>
-  <h2>Nine phases. 72 checks. No &ldquo;trust me&rdquo;.</h2>
-  <p>One sentence of context.</p>
-</div>
-```
+Display headings in capitals and the sub-heading scale.
 
 ```css file=site/styles.css
 /* section heads */
-.sec-head { max-width: 760px; margin-bottom: 32px; }
-h2 { font: 400 clamp(32px, 4.6vw, 56px)/1.05 var(--serif); letter-spacing: -.015em; margin: 0 0 14px; text-wrap: balance; }
-.sec-head p { color: var(--ink-2); margin: 0; }
-h3 { font: 600 18px/1.3 var(--sans); margin: 0 0 6px; }
+.sec-head { max-width: 800px; margin-bottom: 32px; }
+h2 { font: 400 clamp(30px, 4.4vw, 54px)/1.02 var(--display); text-transform: uppercase; letter-spacing: -.025em; margin: 0 0 16px; text-wrap: balance; }
+.sec-head p { margin: 0; font-weight: 500; }
+h3 { font: 800 19px/1.25 var(--sans); margin: 0 0 6px; }
 ```
 
-### 7.6 Tabs (a vertical list that becomes a horizontal scroller)
-A list of tab buttons on the left, a panel on the right; on a phone the list scrolls sideways above the panel. The selected tab is inverted (ink background, paper text). Inside a panel: a serif `h3`, a mono caption, an uppercase mono `h4`, a checkbox-style list, and pill "slots".
+### 8. Tabs (a list that becomes a scroller)
 
-```html
-<div class="pipe">
-  <div class="phase-list" role="tablist" aria-label="Phases" id="phase-tabs"></div>
-  <div class="phase-panel" id="phase-panel" role="tabpanel" tabindex="0" aria-live="polite"></div>
-</div>
-```
-
-Behaviour (see `site/app.js`): each tab is a `<button role="tab" aria-selected>`; Arrow Up/Down/Left/Right move between tabs and wrap, Home and End jump to the first and last, and the panel is replaced with the chosen item's content.
+A boxed tab list and panel; on a phone the list scrolls sideways inside itself.
 
 ```css file=site/styles.css
 /* pipeline */
-.pipe { display: grid; grid-template-columns: 280px minmax(0, 1fr); border: 1px solid var(--rule); border-radius: 16px; overflow: hidden; background: var(--paper-2); }
-.phase-list { display: flex; flex-direction: column; border-right: 1px solid var(--rule); }
-.phase-tab { display: flex; align-items: baseline; gap: 12px; text-align: left; background: none; border: 0; border-bottom: 1px solid var(--rule); padding: 14px 18px; font: 500 15px/1.3 var(--sans); color: var(--ink-2); cursor: pointer; }
+.pipe { display: grid; grid-template-columns: 290px minmax(0, 1fr); border: var(--bw) solid var(--line); box-shadow: var(--off) var(--off) 0 var(--shadow); background: var(--paper-2); }
+.phase-list { display: flex; flex-direction: column; border-right: var(--bw) solid var(--line); }
+.phase-tab { display: flex; align-items: baseline; gap: 12px; text-align: left; background: var(--paper-2); color: var(--ink); border: 0; border-bottom: 2px solid var(--line); padding: 14px 18px; font: 700 15px/1.3 var(--sans); cursor: pointer; }
 .phase-tab:last-child { border-bottom: 0; }
-.phase-tab .num { font: 600 12px var(--mono); color: var(--accent); }
-.phase-tab:hover { background: var(--paper); color: var(--ink); }
-.phase-tab[aria-selected="true"] { background: var(--ink); color: var(--paper); }
-.phase-tab[aria-selected="true"] .num { color: var(--accent); }
-.phase-panel { padding: clamp(20px, 3vw, 36px); background: var(--paper); }
-.phase-panel h3 { font: 400 clamp(28px, 3.4vw, 42px)/1.05 var(--serif); margin-bottom: 8px; }
-.phase-panel .skillname { font: 13px var(--mono); color: var(--ink-2); margin: 0 0 20px; }
-.phase-panel h4 { font: 600 12px var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--ink-2); margin: 22px 0 10px; }
-.gate-items { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
-.gate-items li { display: grid; grid-template-columns: 22px 1fr; gap: 10px; font-size: 15px; line-height: 1.5; }
-.gate-items li::before { content: ""; width: 14px; height: 14px; margin-top: 5px; border: 2px solid var(--ink); border-radius: 3px; }
+.phase-tab .num { font: 700 12px var(--mono); background: var(--yellow); color: var(--on-fill); border: 2px solid var(--line); padding: 2px 5px; }
+.phase-tab:hover { background: var(--yellow); color: var(--on-fill); }
+.phase-tab:hover .num { background: #fff; }
+.phase-tab[aria-selected="true"] { background: var(--pink); color: var(--on-fill); }
+.phase-tab[aria-selected="true"] .num { background: #000; color: #fff8e1; border-color: #000; }
+.phase-panel { padding: clamp(20px, 3vw, 36px); background: var(--paper-2); }
+.phase-panel h3 { font: 400 clamp(26px, 3.2vw, 40px)/1.02 var(--display); text-transform: uppercase; margin-bottom: 8px; }
+.phase-panel .skillname { font: 700 13px var(--mono); margin: 0 0 20px; }
+.phase-panel h4 { font: 700 12px var(--mono); letter-spacing: .1em; text-transform: uppercase; background: var(--ink); color: var(--paper); display: inline-block; padding: 5px 8px; margin: 22px 0 12px; }
+.gate-items { list-style: none; margin: 0; padding: 0; display: grid; gap: 9px; }
+.gate-items li { display: grid; grid-template-columns: 24px 1fr; gap: 10px; font-size: 15px; line-height: 1.5; }
+.gate-items li::before { content: ""; width: 16px; height: 16px; margin-top: 4px; border: var(--bw) solid var(--line); background: var(--paper-2); }
 .slot-row { display: flex; flex-wrap: wrap; gap: 8px; }
-.slot { font: 12.5px var(--mono); border: 1px solid var(--rule); border-radius: 999px; padding: 4px 11px; background: var(--paper-2); }
+.slot { font: 700 12px var(--mono); border: 2px solid var(--line); padding: 4px 9px; background: var(--lime); color: var(--on-fill); }
 @media (max-width: 820px) {
   .pipe { grid-template-columns: minmax(0, 1fr); }
-  .phase-list { flex-direction: row; overflow-x: auto; border-right: 0; border-bottom: 1px solid var(--rule); scrollbar-width: thin; }
-  .phase-tab { border-bottom: 0; border-right: 1px solid var(--rule); white-space: nowrap; flex: none; }
+  .phase-list { flex-direction: row; overflow-x: auto; border-right: 0; border-bottom: var(--bw) solid var(--line); scrollbar-width: thin; }
+  .phase-tab { border-bottom: 0; border-right: 2px solid var(--line); white-space: nowrap; flex: none; }
 }
 ```
 
-### 7.7 Numbered rules
-A two-column list of statements, each with a big accent serif numeral (01, 02, ...) generated by a CSS counter, a bold title and a muted sentence.
+### 9. Numbered rules
 
-```html
-<ol class="rule-list">
-  <li><h3>Evidence or it did not happen</h3><p>One or two sentences.</p></li>
-  <li><h3>Your decisions stay yours</h3><p>One or two sentences.</p></li>
-</ol>
-```
+Boxed list items with a coloured number tile.
 
 ```css file=site/styles.css
 /* rules */
-.rule-list { list-style: none; counter-reset: r; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 clamp(24px, 5vw, 64px); }
-.rule-list li { counter-increment: r; border-top: 1px solid var(--rule); padding: 22px 0 28px 56px; position: relative; }
-.rule-list li::before { content: "0" counter(r); position: absolute; left: 0; top: 22px; font: 400 36px/1 var(--serif); color: var(--accent); }
-.rule-list p { margin: 0; color: var(--ink-2); font-size: 16px; }
+.rule-list { list-style: none; counter-reset: r; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.rule-list li { counter-increment: r; border: var(--bw) solid var(--line); background: var(--paper-2); box-shadow: 5px 5px 0 var(--shadow); padding: 18px 18px 22px 74px; position: relative; }
+.rule-list li::before { content: "0" counter(r); position: absolute; left: 14px; top: 14px; font: 400 26px/1 var(--display); background: var(--yellow); color: var(--on-fill); border: 2px solid var(--line); padding: 6px 7px; }
+.rule-list li:nth-child(4n+2)::before { background: var(--pink); } .rule-list li:nth-child(4n+3)::before { background: var(--lime); } .rule-list li:nth-child(4n)::before { background: var(--blue); color: #fff; }
+.rule-list p { margin: 0; font-size: 16px; }
 @media (max-width: 720px) { .rule-list { grid-template-columns: minmax(0, 1fr); } }
 ```
 
-### 7.8 Filter chips, table and status tags
-Pill-shaped toggle chips (`aria-pressed`) filter a table whose header is small uppercase mono. Status tags are mono pills: green for good, amber for opt-in, accent for blocked, grey for neutral (these colours also have dark-mode versions).
+### 10. Chips, table and status tags
 
-```html
-<div class="chips"><button class="chip" aria-pressed="true">All <small>32</small></button> ...</div>
-<div class="table-wrap"><table>
-  <thead><tr><th>Tool</th><th>Status</th></tr></thead>
-  <tbody><tr><td class="tool"><b>Name</b><span>owner/repo</span></td><td><span class="tag recommended">recommended</span></td></tr></tbody>
-</table></div>
-```
+Toggle chips, a boxed table and flat status tags.
 
 ```css file=site/styles.css
 /* bench */
-.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
-.chip { font: 500 13.5px var(--sans); background: none; color: var(--ink); border: 1px solid var(--rule); border-radius: 999px; padding: 7px 14px; cursor: pointer; }
-.chip[aria-pressed="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
-.chip small { font: 12px var(--mono); opacity: .7; margin-left: 6px; }
-.table-wrap { border: 1px solid var(--rule); border-radius: 14px; overflow-x: auto; }
+.chips { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+.chip { font: 700 13px var(--mono); text-transform: uppercase; background: var(--paper-2); color: var(--ink); border: var(--bw) solid var(--line); padding: 8px 12px; min-height: 44px; cursor: pointer; box-shadow: 3px 3px 0 var(--shadow); }
+.chip:hover { background: var(--yellow); color: var(--on-fill); }
+.chip[aria-pressed="true"] { background: var(--ink); color: var(--paper); box-shadow: none; }
+.chip small { font: 700 12px var(--mono); opacity: .8; margin-left: 6px; }
+.table-wrap { border: var(--bw) solid var(--line); box-shadow: var(--off) var(--off) 0 var(--shadow); overflow-x: auto; background: var(--paper-2); }
 table { width: 100%; border-collapse: collapse; font-size: 14.5px; min-width: 760px; }
-th { text-align: left; font: 600 12px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-2); padding: 12px 16px; background: var(--paper-2); border-bottom: 1px solid var(--rule); }
-td { padding: 13px 16px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { text-align: left; font: 700 12px var(--mono); letter-spacing: .08em; text-transform: uppercase; background: var(--yellow); color: var(--on-fill); padding: 12px 16px; border-bottom: var(--bw) solid var(--line); }
+td { padding: 13px 16px; border-bottom: 2px solid var(--line); vertical-align: top; }
 tr:last-child td { border-bottom: 0; }
-td.tool b { display: block; font-weight: 600; }
-td.tool span { font: 12px var(--mono); color: var(--ink-2); }
+td.tool b { display: block; font-weight: 800; }
+td.tool span { font: 12px var(--mono); }
 td.lic { font: 12.5px var(--mono); max-width: 170px; }
-td.slots { font: 12px var(--mono); color: var(--ink-2); max-width: 200px; }
-td.risk { color: var(--ink-2); max-width: 300px; }
-.tag { display: inline-block; font: 600 11.5px var(--mono); padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
-.tag.recommended { background: #d8efd9; color: #1d4b24; }
-.tag.opt-in { background: #f6e4b3; color: #5a4300; }
-.tag.blocked-if-commercial { background: var(--accent); color: var(--accent-ink); }
-.tag.reference-only, .tag.unreviewed { background: var(--paper-2); color: var(--ink-2); border: 1px solid var(--rule); }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .tag.recommended { background: #234a2a; color: #c9f0cd; } :root:not([data-theme="light"]) .tag.opt-in { background: #4d3b0b; color: #f6e4b3; } }
+td.slots { font: 12px var(--mono); max-width: 200px; }
+td.risk { max-width: 300px; }
+.tag { display: inline-block; font: 700 12px var(--mono); text-transform: uppercase; padding: 3px 8px; white-space: nowrap; border: 2px solid var(--line); color: var(--on-fill); }
+.tag.recommended { background: var(--lime); }
+.tag.opt-in { background: var(--yellow); }
+.tag.blocked-if-commercial { background: var(--pink); }
+.tag.reference-only, .tag.unreviewed { background: #fff; }
 ```
 
-### 7.9 Numbered steps (install)
-A big accent serif number beside a dark code block.
+### 11. Numbered steps
 
-```html
-<div class="steps">
-  <div class="step"><span class="n">1</span><pre><code>/plugin marketplace add owner/repo</code></pre></div>
-  <div class="step"><span class="n">2</span><pre><code>/command "what you want"</code></pre></div>
-</div>
-```
+Install steps: a pink number tile and a boxed code block.
 
 ```css file=site/styles.css
 /* install */
-.steps { display: grid; gap: 14px; max-width: 760px; margin-bottom: 18px; }
-.step { display: grid; grid-template-columns: 44px 1fr; gap: 16px; align-items: start; }
-.step .n { font: 400 40px/1 var(--serif); color: var(--accent); }
-.step pre { margin: 0; background: var(--term); color: var(--term-ink); border-radius: 12px; padding: 16px 18px; font-size: 13.5px; overflow-x: auto; }
-.step code { background: none; padding: 0; font-size: inherit; }
+.steps { display: grid; gap: 16px; max-width: 800px; margin-bottom: 18px; }
+.step { display: grid; grid-template-columns: 56px 1fr; gap: 16px; align-items: start; }
+.step .n { font: 400 28px/1 var(--display); background: var(--pink); color: var(--on-fill); border: var(--bw) solid var(--line); text-align: center; padding: 10px 0; box-shadow: 4px 4px 0 var(--shadow); }
+.step pre { margin: 0; background: var(--term); color: var(--term-ink); border: var(--bw) solid var(--line); box-shadow: 5px 5px 0 var(--shadow); padding: 16px 18px; font-size: 13.5px; overflow-x: auto; }
+.step code { background: none; border: 0; color: inherit; padding: 0; font-size: inherit; }
 ```
 
-### 7.10 Honest-limits list and footer
-A plain list with accent markers, and a footer that starts with the same heavy 2px ink rule as the stats row, so the page opens and closes on the same line.
+### 12. Limits list, footer and small-screen rules
+
+The honest-limits list, the footer, reduced motion and the phone adjustments.
 
 ```css file=site/styles.css
 /* limits */
-.limit-list { max-width: 760px; margin: 0; padding-left: 1.2em; display: grid; gap: 12px; color: var(--ink-2); }
-.limit-list li::marker { color: var(--accent); }
+.limit-list { max-width: 800px; margin: 0; padding: 0 0 0 1.3em; display: grid; gap: 12px; font-weight: 500; }
+.limit-list li::marker { color: var(--pink); font-weight: 900; }
 
-.foot { max-width: calc(var(--max) + 2 * var(--gutter)); margin: 0 auto; border-top: 2px solid var(--ink); padding-top: 24px; padding-bottom: 48px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 24px; }
-.foot p { margin: 0; font-size: 15px; }
-.noscript { padding: 16px var(--gutter); background: var(--paper-2); }
-```
+.foot { max-width: calc(var(--max) + 2 * var(--gutter)); margin: 0 auto; border-top: var(--bw) solid var(--line); padding-top: 24px; padding-bottom: 48px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 24px; }
+.foot p { margin: 0; font-size: 15px; font-weight: 500; }
+.noscript { padding: 16px var(--gutter); background: var(--yellow); color: var(--on-fill); border: var(--bw) solid var(--line); }
 
-### 7.11 Feature block with a screenshot (the "live view" section)
-A text column with a tick list (accent dots) and a call-to-action pill, next to a framed screenshot with a caption.
-
-```css file=site/styles.css
-/* live view section */
-.watch { padding-top: 56px; padding-bottom: 24px; }
-.watch-grid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 36px; align-items: center; margin-top: 8px; }
-.watch-shot { margin: 0; }
-.watch-shot img { display: block; width: 100%; height: auto; border-radius: 12px; border: 1px solid var(--rule); background: var(--paper-2); }
-.watch-shot figcaption { margin-top: 8px; font-size: 14px; color: var(--ink-2); }
-.tick { list-style: none; margin: 0 0 20px; padding: 0; }
-.tick li { padding: 10px 0 10px 24px; border-top: 1px solid var(--rule); position: relative; }
-.tick li:first-child { border-top: 0; }
-.tick li::before { content: ""; position: absolute; left: 0; top: 19px; width: 10px; height: 10px; border-radius: 50%; background: var(--accent); }
-.solid { display: inline-flex; align-items: center; min-height: 48px; padding: 0 22px; border-radius: 999px; background: var(--ink); color: var(--paper); font-weight: 600; text-decoration: none; }
-.solid:hover { background: var(--accent); color: var(--accent-ink); }
-@media (max-width: 860px) { .watch-grid { grid-template-columns: 1fr; } }
-```
-
-### 7.12 Responsive and reduced-motion rules
-
-```css file=site/styles.css
 @media (max-width: 900px) {
   .hero { grid-template-columns: minmax(0, 1fr); }
   .term-body { min-height: 280px; }
@@ -452,56 +327,77 @@ A text column with a tick list (accent dots) and a call-to-action pill, next to 
 .hero > * { min-width: 0; }
 
 @media (max-width: 520px) {
+  :root { --off: 4px; }
   .cmd { flex-wrap: wrap; padding: 12px; gap: 10px; }
   .cmd code { white-space: normal; word-break: break-all; }
   .cmd button { margin-left: 0; }
   .term-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .term { box-shadow: 6px 6px 0 var(--pink); }
 }
 ```
 
-## 8. Motion
+### 13. Feature block with a screenshot
 
-- `html { scroll-behavior: smooth }` for anchor links.
-- The hero terminal prints one step every 1300ms, with a Replay button. With reduced motion it prints everything at once.
-- Hover: nav links go from `--ink-2` to `--ink`; the pill and the solid button turn accent; the copy button brightens by 8% (`filter: brightness(1.08)`).
-- Nothing else moves. Under `prefers-reduced-motion: reduce` all transitions and animations are switched off by the one rule in 7.12.
+Copy next to a bordered, shadowed screenshot; plus the solid button.
 
-## 9. Dark mode
+```css file=site/styles.css
+/* live view section */
+.watch { padding-top: 56px; padding-bottom: 24px; }
+.watch-grid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 36px; align-items: center; margin-top: 8px; }
+.watch-shot { margin: 0; }
+.watch-shot img { display: block; width: 100%; height: auto; border: var(--bw) solid var(--line); box-shadow: var(--off) var(--off) 0 var(--shadow); background: var(--paper-2); }
+.watch-shot figcaption { margin-top: 12px; font-size: 14px; font-weight: 500; }
+.tick { list-style: none; margin: 0 0 20px; padding: 0; }
+.tick li { padding: 10px 0 10px 32px; border-top: 2px solid var(--line); position: relative; font-weight: 500; }
+.tick li:first-child { border-top: 0; }
+.tick li::before { content: ""; position: absolute; left: 0; top: 17px; width: 16px; height: 16px; background: var(--lime); border: 2px solid var(--line); }
+.solid { display: inline-flex; align-items: center; min-height: 48px; padding: 0 22px; background: var(--blue); color: #fff; border: var(--bw) solid var(--line); box-shadow: 5px 5px 0 var(--shadow); font: 800 14px var(--sans); text-transform: uppercase; text-decoration: none; }
+.solid:hover { background: var(--pink); color: var(--on-fill); box-shadow: 2px 2px 0 var(--shadow); text-decoration: none; }
+@media (max-width: 860px) { .watch-grid { grid-template-columns: 1fr; } }
+```
 
-Dark mode follows the visitor's system setting: tokens are redefined inside `@media (prefers-color-scheme: dark)`, guarded by `:root:not([data-theme="light"])`, and again under `:root[data-theme="dark"]`. That gives a manual override for free: set `data-theme="light"` or `"dark"` on `<html>` (the site has no toggle button yet). The accent becomes lighter and the text on it flips to ink; the terminal stays dark in both modes. Test both: a design that only works in light mode is half finished.
+### 14. Screenshot rows, pack list, style grid, tour and card grid
 
-## 10. Accessibility already built in
+Rows, lists and grids built from the same border, shadow and flat fills.
 
-- Skip link (`.skip`) as the first element, visible on focus.
-- A 3px accent focus ring on every focusable element (`:focus-visible`).
-- Tabs use real roles and the full arrow, Home and End keys; the terminal output is an `aria-live` region.
-- Touch targets: the pill and the solid button are at least 40 to 48px tall.
-- Respects `prefers-reduced-motion` and `prefers-color-scheme`; `<meta name="theme-color">` for both.
-- No inline `style` attributes or inline scripts, so a strict CSP works (`script-src 'self'`).
-- A `<noscript>` message where the page depends on JavaScript.
+```css file=site/styles.css
+.dash, .packs, .styles, .tour, .more { padding-top: 56px; padding-bottom: 24px; }
+.dash-row { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 36px; align-items: center; margin: 32px 0; }
+.dash-row.flip { grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); } .dash-row.flip .dash-shot { order: 2; }
+.dash-shot { margin: 0; } .dash-shot img { display: block; width: 100%; height: auto; border: var(--bw) solid var(--line); box-shadow: var(--off) var(--off) 0 var(--shadow); background: var(--paper-2); }
+.dash-copy h3 { margin: 0 0 8px; font: 400 clamp(20px, 2.2vw, 26px)/1.1 var(--display); text-transform: uppercase; } .dash-copy p { margin: 0 0 10px; }
+.pack-list { list-style: none; margin: 18px 0; padding: 0; display: grid; gap: 12px; }
+.pack-list li { padding: 12px 14px; border: var(--bw) solid var(--line); background: var(--paper-2); box-shadow: 4px 4px 0 var(--shadow); } .pack-list li span { margin-left: 6px; }
+.pack-list li:nth-child(odd) { background: var(--yellow); color: var(--on-fill); }
+@media (max-width: 860px) { .dash-row, .dash-row.flip { grid-template-columns: 1fr; } .dash-row.flip .dash-shot { order: 0; } }
 
-What it does **not** have, so add it if you need it: a visible theme toggle, an icon set, form controls, modals, toasts, or a data-visualisation style. The live dashboard (`site/live/live.css`) is a separate, denser variant of the same tokens for an app screen.
+.style-grid { list-style: none; margin: 24px 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 22px; }
+.style-grid li { display: grid; gap: 6px; align-content: start; }
+.style-grid video { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border: var(--bw) solid var(--line); box-shadow: 5px 5px 0 var(--shadow); background: var(--paper-2); }
+.style-grid strong { font: 400 17px/1.1 var(--display); text-transform: uppercase; margin-top: 6px; }
+.style-grid span { font-size: .9em; font-weight: 500; }
 
-## 11. Do and don't
+.tour-h { margin: 44px 0 18px; font: 400 clamp(20px, 2.4vw, 28px)/1.1 var(--display); text-transform: uppercase; display: inline-block; background: var(--yellow); color: var(--on-fill); border: var(--bw) solid var(--line); box-shadow: 4px 4px 0 var(--shadow); padding: 8px 12px; }
+.shots { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px 28px; align-items: start; }
+.shot { margin: 0; } .shot img { display: block; width: 100%; height: auto; border: var(--bw) solid var(--line); box-shadow: var(--off) var(--off) 0 var(--shadow); background: var(--paper-2); }
+.shot figcaption { margin-top: 14px; font-size: .95em; line-height: 1.5; font-weight: 500; } .shot figcaption strong { font-weight: 800; }
+.shot.wide { grid-column: 1 / -1; }
+.shot.tall img { max-height: 760px; object-fit: cover; object-position: top; }
+@media (max-width: 860px) { .shots { grid-template-columns: 1fr; } }
 
-| Do | Don't |
-|---|---|
-| Keep exactly one accent colour | Add a second accent, or use the accent as a large fill |
-| Use serif only for big display text | Set body copy or buttons in the serif |
-| Use mono for labels, commands, tags and table headers | Use mono for paragraphs |
-| Separate with 1px rules and whitespace | Add card shadows, blur or gradients |
-| Keep the one hard offset shadow for the single hero object | Put it on everything |
-| Write short, plain sentences with numbers and evidence | Write marketing adjectives |
-| Let sections be as wide as the hero, with one clear job each | Mix several card styles on one page |
-| Check both colour modes and a 375px width | Ship after checking only the desktop light view |
+.more-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; margin-top: 24px; }
+.more-grid article { border: var(--bw) solid var(--line); box-shadow: 5px 5px 0 var(--shadow); background: var(--paper-2); padding: 18px 18px 12px; }
+.more-grid article:nth-child(4n+1) { background: var(--yellow); color: var(--on-fill); } .more-grid article:nth-child(4n+2) { background: var(--lime); color: var(--on-fill); }
+.more-grid article:nth-child(4n+3) { background: #fff; color: var(--on-fill); } .more-grid article:nth-child(4n) { background: var(--pink); color: var(--on-fill); }
+.more-grid h3 { margin: 0 0 8px; font: 400 19px/1.1 var(--display); text-transform: uppercase; } .more-grid p { margin: 0 0 8px; line-height: 1.55; font-weight: 500; }
+.more-grid .fine { color: inherit; }
+.more-grid code { background: #fff; }
+@media (max-width: 860px) { .more-grid { grid-template-columns: 1fr; } }
+```
 
-## 12. Voice
+## Starter page
 
-Blunt, specific and evidence-first. Short declarative sentences; real numbers instead of adjectives; limits stated next to claims ("not launch-ready", "waived, with a reason"); labels such as "real output, not a mock-up". Headlines are a plain statement followed by a pointed one. Avoid exclamation marks, superlatives and filler.
-
-## 13. Starter page
-
-A complete minimal page using the tokens, base, layout, hero, ledger and footer. Save the CSS blocks from sections 3, 5, 6, 7.2, 7.4, 7.11 (for `.solid`) and 7.12 (responsive rules) as `styles.css` next to it, plus this one line, which lets the hero be a single column when there is no terminal beside it:
+A complete minimal page using the blocks above. Save the CSS blocks for tokens, base, header, hero, numbers strip and the small-screen rules as `styles.css` next to it, plus this one line:
 
 ```css
 .hero.single { grid-template-columns: minmax(0, 1fr); }
@@ -515,11 +411,11 @@ A complete minimal page using the tokens, base, layout, hero, ledger and footer.
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Project name: one plain line</title>
 <meta name="description" content="One sentence.">
-<meta name="theme-color" content="#f3eee4" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#14110f" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#fff8e1" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f0f0f" media="(prefers-color-scheme: dark)">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wght@400;500;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -553,6 +449,14 @@ A complete minimal page using the tokens, base, layout, hero, ledger and footer.
 </html>
 ```
 
-## 14. Keeping this document honest
+## Do and don't
 
-`tests/test_design_system.py` checks that every `css file=site/styles.css` block above is still present, character for character, in `site/styles.css`. If you change the site's CSS, update this file in the same change.
+- **Do** keep one border width and one shadow offset. **Don't** add a second of either "just here".
+- **Do** put black text on every fill. **Don't** put pink text on yellow, or grey text on anything.
+- **Do** let the focus ring differ from the border. **Don't** remove it because the control "already has an outline".
+- **Do** measure contrast and tap targets (`hs-a11y-review`, `hs-responsive`). **Don't** judge a yellow-on-cream pair by eye.
+- **Don't** use a gradient, a blur or a rounded corner; if the page needs softness, this is the wrong style for it.
+
+## Keeping this document honest
+
+`scripts/build_design_doc.py` writes this file from `site/styles.css`; `tests/test_design_system.py` checks that every `css file=site/styles.css` block is still present, character for character, in the stylesheet, and that every token named here is defined. If you change the site's CSS, run the script in the same change.

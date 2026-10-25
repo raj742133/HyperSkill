@@ -3,9 +3,9 @@ window.HS = {
  "counts": {
   "phases": 9,
   "gateItems": 72,
-  "slots": 40,
+  "slots": 41,
   "providers": 38,
-  "tests": 348,
+  "tests": 364,
   "packs": 17,
   "picks": 822
  },
@@ -177,7 +177,8 @@ window.HS = {
     "site-scaffold",
     "design-lint",
     "logo-design",
-    "file-convert"
+    "file-convert",
+    "responsive-check"
    ],
    "gate": [
     {

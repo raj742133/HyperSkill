@@ -227,7 +227,8 @@
         "site-scaffold",
         "design-lint",
         "logo-design",
-        "file-convert"
+        "file-convert",
+        "responsive-check"
       ]
     },
     {
