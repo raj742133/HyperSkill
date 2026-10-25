@@ -239,6 +239,16 @@ hyperskill.py pause | resume | say "instruction"                   # steer Claud
 hyperskill.py config --autolive on|off                             # dashboard auto-start
 ```
 
+## Roadmap (not built yet)
+
+These are plans, not features. Nothing below exists today.
+
+**1. Adopt mode: run HyperSkill on an existing repo.** Today `init` works in any folder, but the phases and checks assume you start from an idea, so on an existing project you would be waiving many of them by hand. Adopt mode would first read the repository and record what is there (stack, structure, tests, dependencies, risks), pre-fill or waive the checks that evidence already answers, and plan a restructure as small, reviewed, test-guarded steps rather than a rewrite. A "characterisation tests first" gate would stop a refactor from silently changing behaviour.
+
+**2. A code view in the dashboard.** Today the dashboard shows which files were written or edited, with line counts, a sandboxed live preview, the chat, tests and the helper board. It has no file tree, editor, diff or terminal. The plan is a read-only file tree and diff view that shows which file Claude is changing right now and exactly what changed, plus a run log. A full editor and terminal would duplicate the IDE you already use, so they are not planned.
+
+**3. Playwright built in.** Today the ship phase requires a test strategy and end-to-end tests for signup, login, the core workflow, billing and invites, and the guidance names Playwright, but Claude writes and runs those tests in your project; HyperSkill does not install or run Playwright, and the dashboard's "Check and debug in Chrome" drives the app for checking, not as a saved test suite. The plan is a Playwright starter template and a "run end-to-end tests" button whose result is recorded as evidence in the gate.
+
 ## What is and is not verified
 
 Verified:

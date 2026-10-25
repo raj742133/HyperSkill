@@ -216,7 +216,7 @@ td.risk { max-width: 300px; }
 .solid:hover { background: var(--pink); color: var(--on-fill); box-shadow: 2px 2px 0 var(--shadow); text-decoration: none; }
 @media (max-width: 860px) { .watch-grid { grid-template-columns: 1fr; } }
 
-.dash, .packs, .styles, .tour, .more { padding-top: 56px; padding-bottom: 24px; }
+.dash, .packs, .styles, .tour, .more, .roadmap { padding-top: 56px; padding-bottom: 24px; }
 .dash-row { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 36px; align-items: center; margin: 32px 0; }
 .dash-row.flip { grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); } .dash-row.flip .dash-shot { order: 2; }
 .dash-shot { margin: 0; } .dash-shot img { display: block; width: 100%; height: auto; border: var(--bw) solid var(--line); box-shadow: var(--off) var(--off) 0 var(--shadow); background: var(--paper-2); }
