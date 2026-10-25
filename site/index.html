@@ -28,6 +28,7 @@
     <a href="#styles">Styles</a>
     <a href="#tour">Screens</a>
     <a href="#more">And also</a>
+    <a href="#next">Next</a>
     <a href="#watch">Recording</a>
     <a href="#bench">Bench</a>
     <a href="#limits">Limits</a>
@@ -226,6 +227,22 @@
         <p>GlitchTip (errors), Gotify (alerts), Windmill (automation), Vikunja (tasks), celld and RAG-Anything (questions over your own documents). Each is a tracked check with its licence caveat written next to it and a plain description of what &ldquo;done&rdquo; means, including the cost of running it yourself.</p></article>
       <article><h3>Honest about its limits</h3>
         <p>Tests cover the tracker, registry, hooks, dashboard and site, not model behaviour. Windows and macOS are untested, third-party skill text was read at README level, and the LibreOffice route of hs-convert could not be run in the build sandbox. The full list is under <a href="#limits">Limits</a>.</p></article>
+    </div>
+  </section>
+
+  <section class="roadmap" id="next" aria-labelledby="next-h">
+    <div class="sec-head">
+      <p class="eyebrow">Next</p>
+      <h2 id="next-h">Not built yet.</h2>
+      <p>Plans, not features. Nothing on this list exists today.</p>
+    </div>
+    <div class="more-grid">
+      <article><h3>Adopt mode: an existing repo</h3>
+        <p>Today it works in any folder, but the phases assume you start from an idea. Adopt mode would read the repo first (stack, structure, tests, risks), pre-fill or waive the checks the code already answers, and plan a restructure as small, reviewed, test-guarded steps, with tests that pin today&rsquo;s behaviour before anything moves.</p></article>
+      <article><h3>A code view in the dashboard</h3>
+        <p>Today you see which files changed and by how many lines. Next: a read-only file tree and diff that show which file Claude is working on right now and exactly what changed, with a run log. No built-in editor or terminal: your IDE does that better.</p></article>
+      <article><h3>Playwright built in</h3>
+        <p>Today the ship phase demands end-to-end tests for signup, login, billing and the core flow, and Claude writes them in your project. Next: a Playwright starter template and a button that runs them and records the result as evidence in the gate.</p></article>
     </div>
   </section>
 

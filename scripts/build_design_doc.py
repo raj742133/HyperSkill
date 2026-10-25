@@ -29,7 +29,7 @@ PARTS = [
     ("Numbered steps", "/* install */", "Install steps: a pink number tile and a boxed code block."),
     ("Limits list, footer and small-screen rules", "/* limits */", "The honest-limits list, the footer, reduced motion and the phone adjustments."),
     ("Feature block with a screenshot", "/* live view section */", "Copy next to a bordered, shadowed screenshot; plus the solid button."),
-    ("Screenshot rows, pack list, style grid, tour and card grid", ".dash, .packs, .styles, .tour, .more {", "Rows, lists and grids built from the same border, shadow and flat fills."),
+    ("Screenshot rows, pack list, style grid, tour and card grid", ".dash, .packs, .styles, .tour, .more", "Rows, lists and grids built from the same border, shadow and flat fills."),
 ]
 
 HEAD = '''# HyperSkill design system
