@@ -5,7 +5,16 @@ import unittest
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
+import subprocess
+import sys
+
+
 class DesignSystemDocTests(unittest.TestCase):
+    def test_the_document_is_what_the_generator_writes(self):
+        r = subprocess.run([sys.executable, os.path.join(ROOT, 'scripts', 'build_design_doc.py'), '--check'])
+        self.assertEqual(r.returncode, 0, 'run python3 scripts/build_design_doc.py and commit docs/design-system.md')
+
+
     def test_every_embedded_css_block_is_still_in_the_site_stylesheet(self):
         with open(os.path.join(ROOT, "docs", "design-system.md"), encoding="utf-8") as f:
             doc = f.read()
