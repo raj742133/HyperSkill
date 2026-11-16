@@ -21,6 +21,7 @@ import urllib.request
 HERE = os.path.dirname(os.path.abspath(__file__))
 SRC = os.path.join(HERE, "style_demos")
 OUT = os.path.normpath(os.path.join(HERE, "..", "site", "live", "previews", "styles-popular"))
+PUBLIC = os.path.normpath(os.path.join(HERE, "..", "site", "styles"))   # the same pages, served by the public site under their own strict policy
 UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36"
 HOSTS = ("https://fonts.googleapis.com/", "https://fonts.gstatic.com/")
 GLYPHS = "".join(chr(c) for c in range(32, 127)) + "—–·•→←↑↓✓✕×…’‘“”©"
@@ -95,6 +96,9 @@ def build(slug, cache):
     probe = re.sub(r"data:font[^)]*\)", "", html).replace("http://www.w3.org/2000/svg", "")  # an SVG namespace is a name, not a request
     assert "/*FONTS*/" not in html and "http://" not in probe and "https://" not in probe, slug + ": a demo must not load anything"
     os.makedirs(OUT, exist_ok=True)
+    os.makedirs(PUBLIC, exist_ok=True)
+    with open(os.path.join(PUBLIC, slug + ".html"), "w", encoding="utf-8") as f:
+        f.write(html)
     with open(os.path.join(OUT, slug + ".html"), "w", encoding="utf-8") as f:
         f.write(html)
     return len(html)

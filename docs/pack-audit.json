@@ -215,6 +215,18 @@
    "obfuscation": 1
   }
  },
+ "skills/hs-brand-board": {
+  "files": 2,
+  "counts": {
+   "network": 0,
+   "run-programs": 0,
+   "dynamic-code": 0,
+   "download-and-run": 0,
+   "credentials": 0,
+   "writes-outside": 0,
+   "obfuscation": 0
+  }
+ },
  "skills/hs-convert": {
   "files": 2,
   "counts": {

@@ -4,9 +4,9 @@ window.HS = {
   "phases": 9,
   "gateItems": 72,
   "adoptItems": 0,
-  "slots": 41,
+  "slots": 42,
   "providers": 38,
-  "tests": 407,
+  "tests": 412,
   "packs": 17,
   "picks": 822
  },
@@ -386,7 +386,8 @@ window.HS = {
     "copy-review",
     "explainer-figure",
     "site-scaffold",
-    "file-convert"
+    "file-convert",
+    "brand-board"
    ],
    "gate": [
     {

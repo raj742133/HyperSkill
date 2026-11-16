@@ -309,6 +309,12 @@
         "need": "optional",
         "when": "when a render or screenshot has to change format for a channel",
         "why": "the right installed tool, no overwrites, and a result you look at"
+      },
+      {
+        "slot": "brand-board",
+        "need": "optional",
+        "when": "when the launch needs a brand overview for a pitch, a README header or a handover",
+        "why": "one page that shows the real logo, palette, type and rules, with measured contrast"
       }
     ],
     "scale": [

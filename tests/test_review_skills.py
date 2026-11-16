@@ -166,3 +166,51 @@ class Wiring(Tmp):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class BrandBoardTests(Tmp):
+    BOARD = os.path.join(ROOT, "skills", "hs-brand-board", "scripts", "board.py")
+
+    def spec(self, **over):
+        s = {"name": "Daybreak", "tagline": "Small habits.", "colors": [{"name": "Ink", "hex": "#14110f", "role": "text"}, {"name": "Paper", "hex": "#fff8e1", "role": "background"},
+                                                                    {"name": "Sun", "hex": "#ffe14d", "role": "highlight"}, {"name": "Blue", "hex": "#3b5bff", "role": "action"}]}
+        s.update(over)
+        return self.write("brand.json", json.dumps(s))
+
+    def test_a_board_is_built_with_measured_contrast_and_balanced_markup(self):
+        out = os.path.join(self.d, "board.html")
+        r = run(self.BOARD, self.spec(), "--out", out)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        html = open(out, encoding="utf-8").read()
+        self.assertEqual(html.count("<section"), html.count("</section>"))
+        self.assertEqual(html.count("<div"), html.count("</div>"))
+        self.assertIn("Ink on Paper", html)
+        self.assertIn("Sun on Paper", html)
+        self.assertIn("fails 4.5:1 for text", html, "yellow on cream must be flagged")
+        self.assertNotIn("http", html.replace("http://www.w3.org", ""), "nothing is fetched")
+
+    def test_text_from_the_spec_is_escaped_and_a_logo_is_only_ever_an_image(self):
+        logo = self.write("logo.svg", '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 8 8"><script>alert(1)</script><rect width="8" height="8"/></svg>')
+        out = os.path.join(self.d, "b.html")
+        r = run(self.BOARD, self.spec(name="<img src=x onerror=alert(1)>", logo=logo), "--out", out)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        html = open(out, encoding="utf-8").read()
+        self.assertNotIn("<img src=x", html)
+        self.assertIn("&lt;img src=x", html)
+        self.assertIn('<img src="data:image/svg+xml;base64,', html)
+        self.assertNotIn("<script", html)
+
+    def test_invented_proof_and_bad_colours_are_refused(self):
+        for over in ({"stats": [{"value": "10x", "label": "faster"}]}, {"quotes": ["best ever"]}, {"customers": ["Acme"]}):
+            r = run(self.BOARD, self.spec(**over))
+            self.assertEqual(r.returncode, 2, over)
+            self.assertIn("real and sourced", r.stderr)
+        bad = self.write("bad.json", json.dumps({"name": "x", "colors": [{"name": "a", "hex": "red"}, {"name": "b", "hex": "#fff"}]}))
+        r = run(self.BOARD, bad)
+        self.assertEqual(r.returncode, 2)
+        self.assertIn("needs a hex", r.stderr)
+
+    def test_the_slot_and_provider_exist(self):
+        reg = json.load(open(os.path.join(ROOT, "skills", "hyperskill", "integrations.json"), encoding="utf-8"))
+        self.assertEqual(reg["slots"]["brand-board"]["providers"], ["hs-brand-board"])
+        self.assertTrue(reg["providers"]["hs-brand-board"]["builtin"])

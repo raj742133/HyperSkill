@@ -214,6 +214,18 @@ def find_browser():
 _OLD_HEADLESS = False
 
 
+def _kill(p):
+    """Stop the browser and everything it started (its renderer and helper processes keep writing to the profile folder otherwise)."""
+    try:
+        if hasattr(os, "killpg"):
+            os.killpg(p.pid, 9)
+        else:
+            p.kill()
+    except OSError:
+        pass
+    p.wait()
+
+
 def _set_old(flag):
     """The new headless mode timed out once: use the old one for the rest of this run instead of waiting every time."""
     global _OLD_HEADLESS
@@ -230,7 +242,7 @@ def run_chrome(cmd, expect_file=None, timeout_new=8, timeout_old=15):
     for flag, limit in modes:
         if expect_file and os.path.exists(expect_file):
             os.remove(expect_file)
-        p = subprocess.Popen([cmd[0], flag] + cmd[1:], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        p = subprocess.Popen([cmd[0], flag] + cmd[1:], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, **({"start_new_session": True} if os.name != "nt" else {}))
         end, ok = time.time() + limit, False
         try:
             while time.time() < end:
@@ -243,8 +255,7 @@ def run_chrome(cmd, expect_file=None, timeout_new=8, timeout_old=15):
                     break
                 time.sleep(0.1)
         finally:
-            p.kill()
-            p.wait()
+            _kill(p)
         if ok:
             return True
         _set_old(flag)
@@ -261,7 +272,7 @@ def shot(html_path, png_path, w, h, transparent=True):
         cmd.append("--default-background-color=00000000")
     if hasattr(os, "geteuid") and os.geteuid() == 0:
         cmd.append("--no-sandbox")
-    with tempfile.TemporaryDirectory(prefix="hs-logo-") as prof:
+    with tempfile.TemporaryDirectory(ignore_cleanup_errors=True, prefix="hs-logo-") as prof:
         cmd += ["--user-data-dir=" + prof, "file://" + os.path.abspath(html_path)]
         run_chrome(cmd, png_path)
     return os.path.isfile(png_path) and os.path.getsize(png_path) > 0
@@ -324,8 +335,8 @@ def run_chrome_console(args, url, timeout=45):
     if not exe:
         return None
     for flag in (("--headless=old",) if _OLD_HEADLESS else ("--headless", "--headless=old")):
-        p = subprocess.Popen([exe, flag] + args + ["--enable-logging=stderr", "--v=0", url], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
-        end, found, buf = time.time() + (timeout if flag == "--headless=old" else 12), None, ""
+        p = subprocess.Popen([exe, flag] + args + ["--enable-logging=stderr", "--v=0", url], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, **({"start_new_session": True} if os.name != "nt" else {}))
+        end, found, buf = time.time() + (timeout if flag == "--headless=old" else 20), None, ""
         try:
             while time.time() < end and found is None:
                 ready, _, _ = select.select([p.stdout], [], [], 0.5)
@@ -337,8 +348,7 @@ def run_chrome_console(args, url, timeout=45):
                     if m and m.group(1):
                         found = base64.b64decode(m.group(1))
         finally:
-            p.kill()
-            p.wait()
+            _kill(p)
         if found is not None:
             return found
         _set_old(flag)
@@ -352,7 +362,7 @@ def render_png(raw, size, png_path, pad=0.0, background=None):
     html = ('<!doctype html><meta charset="utf-8"><body><script>var i=new Image();i.onload=function(){var c=document.createElement("canvas");c.width=c.height=%d;var x=c.getContext("2d");'
             '%sx.drawImage(i,%d,%d,%d,%d);var u=c.toDataURL("image/png").split(",")[1];console.log("HSRESULT"+u)};i.onerror=function(){console.log("HSRESULT")};i.src="%s"</script>'
             % (size, ('x.fillStyle="%s";x.fillRect(0,0,%d,%d);' % (background, size, size)) if background else "", off, off, inner, inner, data_uri(raw)))
-    with tempfile.TemporaryDirectory(prefix="hs-logo-") as d:
+    with tempfile.TemporaryDirectory(ignore_cleanup_errors=True, prefix="hs-logo-") as d:
         p = os.path.join(d, "r.html")
         open(p, "w").write(html)
         args = ["--disable-gpu", "--user-data-dir=" + os.path.join(d, "prof")] + (["--no-sandbox"] if hasattr(os, "geteuid") and os.geteuid() == 0 else [])
