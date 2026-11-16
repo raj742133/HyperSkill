@@ -211,6 +211,14 @@
     </div>
   </section>
 
+  <section id="e2e" class="integ" aria-labelledby="e2e-h" hidden>
+    <h2 id="e2e-h" class="eyebrow">End-to-end tests <span id="e2e-verdict" class="e2e-verdict"></span></h2>
+    <p class="sub">Runs your project&rsquo;s own Playwright suite (never downloads anything) and keeps the result in <code>docs/e2e-last.json</code>. A green run can be cited as evidence for the ship phase&rsquo;s end-to-end check; a test that only passes on retry counts as failing.</p>
+    <p id="e2e-setup" class="sub" hidden></p>
+    <div class="code-bar"><button type="button" id="e2e-run" class="btn go">Run end-to-end tests</button><button type="button" id="e2e-record" class="btn" hidden>Record this run as evidence</button><span id="e2e-msg" class="sub" role="status" aria-live="polite"></span></div>
+    <ul id="e2e-list" class="xt-list"></ul>
+  </section>
+
   <section id="integ" class="integ" aria-labelledby="i-h" hidden>
     <h2 id="i-h" class="eyebrow">Skills and integrations <span id="i-count" class="count"></span></h2>
     <p id="i-slots" class="sub"></p>
@@ -268,5 +276,6 @@
 </main>
 <script src="/live/live.js"></script>
 <script src="/live/code.js"></script>
+<script src="/live/e2e.js"></script>
 </body>
 </html>

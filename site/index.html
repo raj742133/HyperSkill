@@ -28,7 +28,6 @@
     <a href="#styles">Styles</a>
     <a href="#tour">Screens</a>
     <a href="#more">And also</a>
-    <a href="#next">Next</a>
     <a href="#watch">Recording</a>
     <a href="#bench">Bench</a>
     <a href="#limits">Limits</a>
@@ -227,24 +226,12 @@
         <p><code>init --adopt</code> reads your repository first and writes an inventory: stack, tests, CI, git facts and the risks it finds (no tests, secrets in source, a committed <code>.env</code>), without ever printing a secret. Then four extra checks: a person corrects the inventory, tests pin today&rsquo;s behaviour <em>before</em> the first change, a plan of small undoable steps, and a passing test run per step.</p></article>
       <article><h3>A code view in the dashboard</h3>
         <p>A read-only file tree with what changed against git, which files Claude wrote or edited lately, and each file&rsquo;s text or diff; &ldquo;Follow Claude&rdquo; jumps to whatever it just changed. Confined to the project, secret files never listed, secret-looking lines hidden. No editor or terminal: your IDE does that better.</p></article>
+      <article><h3>Playwright end-to-end tests</h3>
+        <p><code>e2e init</code> adds a starter suite for signup, login, the core flow, billing and invites; <code>e2e run</code> runs the Playwright already in your project (nothing is downloaded) and records the result. Placeholders left in make a run &ldquo;incomplete&rdquo;, a retry-only pass counts as failing, and a green run can be cited as evidence from a dashboard button.</p></article>
       <article><h3>Self-hosted building blocks</h3>
         <p>GlitchTip (errors), Gotify (alerts), Windmill (automation), Vikunja (tasks), celld and RAG-Anything (questions over your own documents). Each is a tracked check with its licence caveat written next to it and a plain description of what &ldquo;done&rdquo; means, including the cost of running it yourself.</p></article>
       <article><h3>Honest about its limits</h3>
         <p>Tests cover the tracker, registry, hooks, dashboard and site, not model behaviour. Windows and macOS are untested, third-party skill text was read at README level, and the LibreOffice route of hs-convert could not be run in the build sandbox. The full list is under <a href="#limits">Limits</a>.</p></article>
-    </div>
-  </section>
-
-  <section class="roadmap" id="next" aria-labelledby="next-h">
-    <div class="sec-head">
-      <p class="eyebrow">Next</p>
-      <h2 id="next-h">Not built yet.</h2>
-      <p>Plans, not features. Nothing on this list exists today.</p>
-    </div>
-    <div class="more-grid">
-      
-      
-      <article><h3>Playwright built in</h3>
-        <p>Today the ship phase demands end-to-end tests for signup, login, billing and the core flow, and Claude writes them in your project. Next: a Playwright starter template and a button that runs them and records the result as evidence in the gate.</p></article>
     </div>
   </section>
 

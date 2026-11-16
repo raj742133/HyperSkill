@@ -173,6 +173,12 @@ The dashboard has a **Code** section: a read-only file tree, which files changed
 
 <img src="docs/img/r2/code-view.webp" alt="The Code section of the dashboard: a file tree with changed and Claude tags, and a diff of src/streak.js with the removed line in red and the added line in green" width="640">
 
+## End-to-end tests (Playwright)
+
+`hyperskill.py e2e init` copies a starter `playwright.config.js` and `e2e/critical-flows.spec.js` into your project (never overwriting): smoke tests that already run, plus five `test.fixme` placeholders for the flows the ship phase asks for: signup, login, the core workflow, billing and invites. **HyperSkill installs nothing**: it prints `npm install -D @playwright/test && npx playwright install chromium` for you to run, and every run uses only the Playwright already in your project's `node_modules` (never `npx`, which would download code on the fly). `hyperskill.py e2e run` runs the suite and writes `docs/e2e-last.json`; the verdict is **green** (ran, nothing failed, no retries needed, no placeholders left), **incomplete** (passes, but `test.fixme` placeholders remain, so it cannot be cited), **failing** (a failure, or a test that only passed on retry) or **could not run**. The dashboard has a **Run end-to-end tests** button (it runs your project's own test code on your computer: only use it on a project you trust) and, after a green run, **Record this run as evidence** for the ship phase's `e2e-critical` check. See [`skills/hs-e2e`](skills/hs-e2e/SKILL.md).
+
+<img src="docs/img/r2/e2e-run.webp" alt="The End-to-end tests section of the dashboard: a green verdict, the Run and Record buttons, and a line with the counts of passed, failed, flaky and skipped tests" width="640">
+
 ## Safety and tamper-evidence
 
 HyperSkill's promise is that a pass means something, so the parts that record passes defend themselves. This is **tamper-evident and accident-proof, not a sandbox**: it stops an agent that is sloppy or tempted to take a shortcut, and it shows you when something was changed behind your back. It does not stop a person, or a process that already has your shell and your files, from doing anything you could do yourself.
@@ -248,12 +254,6 @@ hyperskill.py place add ITEM --where PAGE/SECTION | place check --close   # wher
 hyperskill.py pause | resume | say "instruction"                   # steer Claude through the plugin hook
 hyperskill.py config --autolive on|off                             # dashboard auto-start
 ```
-
-## Roadmap (not built yet)
-
-These are plans, not features. Nothing below exists today.
-
-**1. Playwright built in.** Today the ship phase requires a test strategy and end-to-end tests for signup, login, the core workflow, billing and invites, and the guidance names Playwright, but Claude writes and runs those tests in your project; HyperSkill does not install or run Playwright, and the dashboard's "Check and debug in Chrome" drives the app for checking, not as a saved test suite. The plan is a Playwright starter template and a "run end-to-end tests" button whose result is recorded as evidence in the gate.
 
 ## What is and is not verified
 

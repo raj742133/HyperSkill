@@ -35,6 +35,7 @@ import hs_work as workmod  # noqa: E402
 import hs_run  # noqa: E402
 import hs_skills as skills  # noqa: E402
 import hs_code as codeview  # noqa: E402
+import hs_e2e as e2e  # noqa: E402
 import hyperskill as core  # noqa: E402
 
 LIVE_DIR = os.path.normpath(os.path.join(_HERE, "..", "site", "live"))
@@ -47,6 +48,7 @@ STATIC = {  # the only files this server will ever send
     "/live/live.css": (LIVE_DIR, "live.css", "text/css; charset=utf-8"),
     "/live/live.js": (LIVE_DIR, "live.js", "text/javascript; charset=utf-8"),
     "/live/code.js": (LIVE_DIR, "code.js", "text/javascript; charset=utf-8"),
+    "/live/e2e.js": (LIVE_DIR, "e2e.js", "text/javascript; charset=utf-8"),
     "/favicon.svg": (SITE_DIR, "favicon.svg", "image/svg+xml"),
     "/live/catalog.json": (os.path.normpath(os.path.join(_HERE, "..", "skills", "hyperskill")), "catalog.json", "application/json"),
 }
@@ -199,6 +201,16 @@ def perform(root, action, body, runner=None):
             raise Refused("unknown check")
         return iid
 
+    if action == "e2e_run":  # the person clicked the button: run the project's own Playwright suite, in the background, one run at a time
+        st_ = e2e.state(root)
+        if not st_["configured"] or not st_["installed"]:
+            raise Refused("Playwright is not set up in this project yet: run `hyperskill.py e2e init`, then " + " && ".join(e2e.INSTALL))
+        return {"ok": True, "output": "started" if e2e.start_background(root) else "a run is already in progress"}
+    if action == "e2e_record":  # cite the last green run as evidence for the ship phase's end-to-end check
+        ev = e2e.evidence(e2e.last(root))
+        if not ev:
+            raise Refused("the last run is not green, so there is nothing to record")
+        return run_tracker(root, "gate", "ship", "--pass", "e2e-critical", "--evidence", ev)
     if action == "pass":
         ph = phase()
         return run_tracker(root, "gate", ph["id"], "--pass", item(ph), "--evidence", text_field(body, "evidence"))
@@ -450,6 +462,8 @@ def make_handler(root, port, token=None, runner=None, key=None, session=None):
                 return self._preview(m)
             if path.startswith("/live/site/"):
                 return self._site(path[len("/live/site/"):])
+            if path == "/live/e2e.json":
+                return self._send(200, json.dumps(e2e.state(root)).encode(), "application/json", {"Cache-Control": "no-store"})
             if path.startswith("/live/code/"):
                 return self._code(path[len("/live/code/"):], query)
             if path == "/live/state.json":
@@ -479,7 +493,7 @@ def make_handler(root, port, token=None, runner=None, key=None, session=None):
                 return self._upload()
             if not self.headers.get("Content-Type", "").startswith("application/json"):
                 return self._send(415, b'{"error":"send JSON"}', "application/json")
-            m = re.fullmatch(r"/live/api/([a-z_]{1,24})", self.path.split("?")[0])
+            m = re.fullmatch(r"/live/api/([a-z0-9_]{1,24})", self.path.split("?")[0])
             if not m:
                 return self._send(404, b'{"error":"not found"}', "application/json")
             try:
