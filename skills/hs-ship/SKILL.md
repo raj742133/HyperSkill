@@ -20,7 +20,7 @@ Goal: any change reaches production only after automated proof, can be rolled ba
 ## Steps
 
 1. **Git hygiene.** `.gitignore` (env files, build output, OS/editor files); pre-commit hook running lint/format on staged files; secret scanner in pre-commit (e.g. gitleaks); Conventional Commits documented in `CLAUDE.md`. Scan the **full git history** for committed secrets and report.
-2. **Test strategy** in `docs/testing.md`: unit (services), integration (API + real database), end-to-end (Playwright) for critical flows. State what is mocked (external APIs only) and what never is (own DB, own auth checks). Set up tooling for all three.
+2. **Test strategy** in `docs/testing.md`: unit (services), integration (API + real database), end-to-end (Playwright) for critical flows: `hyperskill.py e2e init` then `e2e run` (skill `hs-e2e`) starts the suite and records the result for the check. State what is mocked (external APIs only) and what never is (own DB, own auth checks). Set up tooling for all three.
 3. **Tests for existing code** by module: happy path, invalid input, boundaries, permission denied, cross-tenant. **Do not modify code under test**; if a test reveals a bug, stop and report. Bug fixes are test-first: failing test shown, fix, passing test, full suite green.
 4. **CI.** GitHub Actions on PRs and pushes to the default branch: cached install -> lint -> typecheck -> unit -> integration (real Postgres service container) -> build. Fail fast, < 10 minutes, badge in README.
 5. **CD.** PR preview deploys; default branch -> staging automatically; production behind manual approval; migrations run in the deploy *before* new code serves traffic and a failed migration fails the deploy; rollback documented in `docs/runbooks/rollback.md` and **practised once**.

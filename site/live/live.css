@@ -215,3 +215,8 @@ a.btn { display: inline-flex; align-items: center; text-decoration: none; }
 .code-pre .add { background: rgba(46, 160, 67, .18); } .code-pre .del { background: rgba(218, 54, 51, .16); } .code-pre .hunk { background: rgba(88, 130, 255, .14); } .code-pre .meta { opacity: .6; }
 .code-empty { padding: 14px 12px; opacity: .75; }
 @media (max-width: 760px) { .code-body { grid-template-columns: minmax(0, 1fr); } }
+
+/* end-to-end tests */
+.e2e-verdict { font-weight: 700; margin-left: 8px; padding: 0 8px; border: 1px solid currentColor; border-radius: 999px; font-size: 12px; }
+.e2e-verdict.green { color: #1d6b2a; } .e2e-verdict.failing, .e2e-verdict.could-not-run { color: #a3261c; } .e2e-verdict.run { color: #5a3fbf; }
+#e2e-list .bad { color: #a3261c; } #e2e-list .warn { color: #8a5a00; }

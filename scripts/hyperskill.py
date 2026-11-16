@@ -7,6 +7,7 @@ resume. A phase may only be advanced once every gate item is either passed
 
 Usage:
   hyperskill.py init [--name NAME] [--force] [--no-karpathy] [--noncommercial] [--tenancy organization|user|none] [--unavailable LIST] [--adopt]
+  hyperskill.py e2e [init|run|status]     Playwright end-to-end tests: starter, run, record for the ship gate
   hyperskill.py adopt [scan|plan|status]   existing project: read it, write docs/adopt/inventory.md and restructure-plan.md
   hyperskill.py config [--tenancy T] [--unavailable LIST|none]   change tenancy / what this environment lacks
   hyperskill.py status [--json]
@@ -74,6 +75,7 @@ import hs_brief as brief  # noqa: E402
 import hs_preview  # noqa: E402
 import hs_work as workmod  # noqa: E402
 import hs_adopt as adoptmod  # noqa: E402
+import hs_e2e as e2emod  # noqa: E402
 GATES_PATH = os.path.join(_HERE, "..", "skills", "hyperskill", "gates.json")
 INTEGRATIONS_PATH = os.path.join(_HERE, "..", "skills", "hyperskill", "integrations.json")
 
@@ -604,6 +606,45 @@ def cmd_adopt(args):
                     if it["id"] == gid:
                         r = st["phases"][ph["id"]]["gate"].get(gid)
                         print("  [%s] %-26s (%s) %s" % ({"passed": "x", "waived": "~"}.get(r["state"], " ") if r else " ", gid, ph["id"], it["text"][:90]))
+
+
+def cmd_e2e(args):
+    what = args.what or "status"
+    if what == "init":
+        copied, skipped = e2emod.init(args.root)
+        for c in copied:
+            print("wrote " + c.replace(os.sep, "/"))
+        for k in skipped:
+            print("kept " + k.replace(os.sep, "/") + " (already there)")
+        print("next, run these yourself (HyperSkill installs nothing): " + " && ".join(e2emod.INSTALL))
+        print("then replace each test.fixme in e2e/critical-flows.spec.js with a real test, and run: hyperskill.py e2e run")
+    elif what == "run":
+        rec = e2emod.run(args.root, args.grep)
+        print("end-to-end tests: " + rec["verdict"])
+        if rec.get("error"):
+            print("  " + rec["error"])
+        else:
+            print("  %d passed, %d failed, %d flaky, %d skipped in %.1f s" % (rec["passed"], rec["failed"], rec["flaky"], rec["skipped"], rec["duration_ms"] / 1000))
+            for f in rec["failing"][:8]:
+                print("  FAIL %s: %s" % (f["title"], f["error"]))
+            for t in rec["flaky_titles"][:5]:
+                print("  FLAKY (passed only on retry) " + t)
+            if rec.get("fixme"):
+                print("  %d placeholder test(s) (test.fixme): those flows are not covered yet, so this run cannot be cited as evidence" % rec["fixme"])
+            elif rec["skipped"]:
+                print("  %d skipped: each skip needs a written reason before the skips-justified check" % rec["skipped"])
+        activity.append(args.root, "test", "End-to-end tests: %s" % rec["verdict"], passed=rec.get("passed"), failed=rec.get("failed"), runner="playwright") if "passed" in rec else None
+        ev = e2emod.evidence(rec)
+        if ev and rec["verdict"] == "green":
+            print("evidence for the e2e-critical check (after you confirm the flows are covered): " + ev)
+        if rec["verdict"] != "green":
+            sys.exit(1)
+    else:
+        st = e2emod.state(args.root)
+        print("config: %s; installed: %s; last run: %s" % ("yes" if st["configured"] else "no (run: hyperskill.py e2e init)", "yes" if st["installed"] else "no (" + " && ".join(st["install"]) + ")", st["verdict"]))
+        if st["last"] and "passed" in st["last"]:
+            l = st["last"]
+            print("  %d passed, %d failed, %d flaky, %d skipped at %s" % (l["passed"], l["failed"], l["flaky"], l["skipped"], l["at"]))
 
 
 def cmd_advance(args):
@@ -1328,6 +1369,11 @@ def build_parser():
     p = sub.add_parser("adopt", help="start from an existing project: read it, write an inventory and a restructure plan, add the adopt-only checks")
     p.add_argument("what", nargs="?", choices=("scan", "plan", "status"), help="scan (default): read the project; plan: create the restructure plan skeleton; status: the adopt-only checks")
     p.set_defaults(fn=cmd_adopt)
+
+    p = sub.add_parser("e2e", help="end-to-end tests with Playwright: init a starter, run the suite and record the result for the ship gate")
+    p.add_argument("what", nargs="?", choices=("init", "run", "status"))
+    p.add_argument("--grep", help="run only tests whose title matches")
+    p.set_defaults(fn=cmd_e2e)
 
     p = sub.add_parser("config", help="show or change tenancy and what this environment lacks")
     p.add_argument("--tenancy", choices=TENANCIES)

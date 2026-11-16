@@ -963,6 +963,28 @@
       "risks": [
         "a method, not a tool: quality depends on looking at the running page, and it should run in a fresh context"
       ]
+    },
+    "hs-e2e": {
+      "name": "hs-e2e (bundled)",
+      "kind": "skill",
+      "license": "MIT",
+      "policy": "recommended",
+      "builtin": true,
+      "install": [
+        "already bundled in this plugin at skills/hs-e2e"
+      ],
+      "detect": {
+        "skills": [
+          "hs-e2e"
+        ]
+      },
+      "provides": "Playwright end-to-end tests for the ship phase: a starter config and spec for signup, login, the core workflow, billing and invites; `hyperskill.py e2e run` runs the project's own Playwright and records docs/e2e-last.json (green, incomplete, failing); a dashboard button runs it and can cite a green run as evidence.",
+      "vetted": "2026-11-16: written for this project. Run for real against a throwaway page with the Playwright already installed on the build machine.",
+      "risks": [
+        "running the suite executes the project's own test code on this computer: only on a project you trust",
+        "HyperSkill installs nothing: the owner runs npm install and npx playwright install",
+        "needs Node and a browser Playwright can use"
+      ]
     }
   },
   "slots": {
@@ -1044,7 +1066,8 @@
     "qa-browser": {
       "providers": [
         "chrome-devtools-agents",
-        "gstack"
+        "gstack",
+        "hs-e2e"
       ],
       "fallback": "Playwright e2e per docs/testing.md"
     },
