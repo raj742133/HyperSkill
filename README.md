@@ -163,6 +163,10 @@ Real screenshots from a demo project, taken in a real browser from the running t
 
 <img src="docs/img/r2/logo-kit.webp" alt="hs-logo: the exported icon set" width="640">
 
+## Existing projects: adopt mode
+
+`hyperskill.py init --adopt` (or `adopt` in a project that already has state) reads the repository and writes `docs/adopt/inventory.md` and `inventory.json`: languages, package managers and frameworks, tests, CI, git facts, where the code lives, the largest files, the **risks found** (no tests, no CI, no lockfile, secrets in source, a committed `.env`, no git, huge files, an uncommitted tree) and the gate checks the files may already answer. It never follows symlinks, skips dependency and build folders, and never prints or stores the text of anything that looks like a secret, only the file and line. It also creates `docs/adopt/restructure-plan.md` (never overwritten) and switches on four adopt-only checks: the inventory was read and corrected by a person who knows the project, **tests that pin today's behaviour pass before the first change**, a restructure plan of small steps each with its proof and its undo, and every step committed with a passing test run. The full procedure is in [`skills/hyperskill/references/adopt.md`](skills/hyperskill/references/adopt.md). The scan does not run your tests, read your database or see your deployed system.
+
 ## Safety and tamper-evidence
 
 HyperSkill's promise is that a pass means something, so the parts that record passes defend themselves. This is **tamper-evident and accident-proof, not a sandbox**: it stops an agent that is sloppy or tempted to take a shortcut, and it shows you when something was changed behind your back. It does not stop a person, or a process that already has your shell and your files, from doing anything you could do yourself.
@@ -243,11 +247,9 @@ hyperskill.py config --autolive on|off                             # dashboard a
 
 These are plans, not features. Nothing below exists today.
 
-**1. Adopt mode: run HyperSkill on an existing repo.** Today `init` works in any folder, but the phases and checks assume you start from an idea, so on an existing project you would be waiving many of them by hand. Adopt mode would first read the repository and record what is there (stack, structure, tests, dependencies, risks), pre-fill or waive the checks that evidence already answers, and plan a restructure as small, reviewed, test-guarded steps rather than a rewrite. A "characterisation tests first" gate would stop a refactor from silently changing behaviour.
+**1. A code view in the dashboard.** Today the dashboard shows which files were written or edited, with line counts, a sandboxed live preview, the chat, tests and the helper board. It has no file tree, editor, diff or terminal. The plan is a read-only file tree and diff view that shows which file Claude is changing right now and exactly what changed, plus a run log. A full editor and terminal would duplicate the IDE you already use, so they are not planned.
 
-**2. A code view in the dashboard.** Today the dashboard shows which files were written or edited, with line counts, a sandboxed live preview, the chat, tests and the helper board. It has no file tree, editor, diff or terminal. The plan is a read-only file tree and diff view that shows which file Claude is changing right now and exactly what changed, plus a run log. A full editor and terminal would duplicate the IDE you already use, so they are not planned.
-
-**3. Playwright built in.** Today the ship phase requires a test strategy and end-to-end tests for signup, login, the core workflow, billing and invites, and the guidance names Playwright, but Claude writes and runs those tests in your project; HyperSkill does not install or run Playwright, and the dashboard's "Check and debug in Chrome" drives the app for checking, not as a saved test suite. The plan is a Playwright starter template and a "run end-to-end tests" button whose result is recorded as evidence in the gate.
+**2. Playwright built in.** Today the ship phase requires a test strategy and end-to-end tests for signup, login, the core workflow, billing and invites, and the guidance names Playwright, but Claude writes and runs those tests in your project; HyperSkill does not install or run Playwright, and the dashboard's "Check and debug in Chrome" drives the app for checking, not as a saved test suite. The plan is a Playwright starter template and a "run end-to-end tests" button whose result is recorded as evidence in the gate.
 
 ## What is and is not verified
 

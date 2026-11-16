@@ -89,6 +89,21 @@
         {
           "id": "scaffold-runs",
           "text": "Scaffold runs: dev server starts and /api/health responds"
+        },
+        {
+          "id": "inventory-read",
+          "text": "docs/adopt/inventory.md was read by a person who knows the project and corrected where the scan was wrong (stack, tests, risks)",
+          "adopted": true
+        },
+        {
+          "id": "behaviour-pinned",
+          "text": "Tests that pin today's behaviour exist for every area the restructure will touch, and they pass before the first change",
+          "adopted": true
+        },
+        {
+          "id": "restructure-plan",
+          "text": "docs/adopt/restructure-plan.md lists small steps, each with its files, how to prove behaviour is unchanged, and how to undo it; no step changes structure and behaviour at once",
+          "adopted": true
         }
       ],
       "slots": [
@@ -162,6 +177,11 @@
         {
           "id": "slow-work-offloaded",
           "text": "Any request over ~1s has a reason or has been moved to a background job"
+        },
+        {
+          "id": "restructure-steps-proven",
+          "text": "Every restructure step is committed on its own with a passing test run recorded in the plan, and the behaviour-pinning tests still pass",
+          "adopted": true
         }
       ],
       "slots": [

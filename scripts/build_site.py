@@ -68,7 +68,7 @@ def build():
     gates = load("skills/hyperskill/gates.json")["phases"]
     reg = load("skills/hyperskill/integrations.json")
     phases = [{"id": p["id"], "title": p["title"], "skill": p["skill"], "slots": p.get("slots", []),
-               "gate": [{"id": g["id"], "text": g["text"]} for g in p["gate"]]} for p in gates]
+               "gate": [{"id": g["id"], "text": g["text"]} for g in p["gate"] if not g.get("adopted")]} for p in gates]
     providers = []
     for pid, v in reg["providers"].items():
         if v.get("builtin"):
@@ -83,7 +83,8 @@ def build():
     data = {
         "counts": {
             "phases": len(phases),
-            "gateItems": sum(len(p["gate"]) for p in phases),
+            "gateItems": sum(1 for p in phases for g in p["gate"] if not g.get("adopted")),
+            "adoptItems": sum(1 for p in phases for g in p["gate"] if g.get("adopted")),
             "slots": len(reg["slots"]),
             "providers": len(providers),
             "tests": count_tests(),

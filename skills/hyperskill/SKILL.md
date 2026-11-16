@@ -35,6 +35,10 @@ python3 <plugin>/scripts/hyperskill.py status
 6. **Advance** with `hyperskill.py advance`. If it refuses, the gate is not clear; go fix, don't argue with it.
 7. **Update memory.** Keep `CLAUDE.md` (stack, rules, commands, decision pointers) and `docs/` current. Every session starts from zero without them.
 
+## 1b. Existing projects (adopt mode)
+
+If the folder already holds a project, do not start at research as if it were an idea. Read `references/adopt.md`, run `hyperskill.py init --adopt` (or `adopt` if state exists), have the owner correct `docs/adopt/inventory.md`, pin today's behaviour with tests, write the restructure plan, and change structure in small steps that each keep the tests passing.
+
 ## 2. Non-negotiable rules
 
 These apply in every phase (they come from hard experience with AI-built products):
