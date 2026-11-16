@@ -37,6 +37,30 @@ class SiteTests(unittest.TestCase):
         for k in ("Content-Security-Policy", "X-Content-Type-Options", "Strict-Transport-Security"):
             self.assertIn(k, keys)
 
+    def test_the_ten_style_demos_are_public_pages_under_their_own_strict_policy(self):
+        with open(os.path.join(ROOT, "vercel.json"), encoding="utf-8") as f:
+            rules = json.load(f)["headers"]
+        broad, demo = rules[0], rules[1]
+        self.assertTrue(broad["source"].startswith("/((?!styles/"), "the broad rule must not also match the demo pages")
+        self.assertEqual(demo["source"], "/styles/([a-z-]+)\\.html")
+        csp = next(h["value"] for h in demo["headers"] if h["key"] == "Content-Security-Policy")
+        for need in ("sandbox allow-scripts allow-forms", "default-src 'none'", "connect-src 'none'", "base-uri 'none'", "form-action 'none'"):
+            self.assertIn(need, csp)
+        self.assertNotIn("allow-same-origin", csp)
+        self.assertNotIn("http", csp)
+        self.assertEqual({h["key"] for h in demo["headers"]}, {h["key"] for h in broad["headers"]}, "the demo rule replaces the broad one on those paths, so it carries every other header too")
+        slugs = sorted(f[:-5] for f in os.listdir(os.path.join(SITE, "styles")) if f.endswith(".html"))
+        self.assertEqual(len(slugs), 10)
+        with open(os.path.join(SITE, "index.html"), encoding="utf-8") as f:
+            html = f.read()
+        for slug in slugs:
+            self.assertIn('href="styles/%s.html"' % slug, html)
+            page = open(os.path.join(SITE, "styles", slug + ".html"), encoding="utf-8").read()
+            probe = page.replace("http://www.w3.org/2000/svg", "")
+            self.assertNotIn("https://", probe)
+            self.assertNotIn("http://", probe, slug + " must not load anything")
+            self.assertEqual(page, open(os.path.join(SITE, "live", "previews", "styles-popular", slug + ".html"), encoding="utf-8").read(), "the public copy is the same page the dashboard serves")
+
     def test_live_view_files_are_published_and_the_policy_lets_the_replay_load_its_data(self):
         for name in ("index.html", "live.css", "live.js", "replay.json"):
             self.assertTrue(os.path.isfile(os.path.join(SITE, "live", name)), name)
