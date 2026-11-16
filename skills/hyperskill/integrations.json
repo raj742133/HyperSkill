@@ -985,6 +985,27 @@
         "HyperSkill installs nothing: the owner runs npm install and npx playwright install",
         "needs Node and a browser Playwright can use"
       ]
+    },
+    "hs-brand-board": {
+      "name": "hs-brand-board (bundled)",
+      "kind": "skill",
+      "license": "MIT",
+      "policy": "recommended",
+      "builtin": true,
+      "install": [
+        "already bundled in this plugin at skills/hs-brand-board"
+      ],
+      "detect": {
+        "skills": [
+          "hs-brand-board"
+        ]
+      },
+      "provides": "A one-page bento brand board from a small spec: logo, colours with measured contrast, type, voice, a sample of the UI and do/don't rules, as one self-contained HTML file; refuses invented stats, quotes and customers.",
+      "vetted": "2026-11-16: written for this project, from the idea of a Figma Community skill seen in a post whose page could not be opened (nothing read or copied). Rendered and checked in a real browser.",
+      "risks": [
+        "fonts are shown by name only: the board does not embed or fetch them",
+        "a board shows decisions, it does not make them: the palette and logo must already be chosen"
+      ]
     }
   },
   "slots": {
@@ -1250,6 +1271,12 @@
         "hs-responsive"
       ],
       "fallback": "open the page at 375px in Chrome devtools, scroll sideways, tap every control, and write down what broke"
+    },
+    "brand-board": {
+      "providers": [
+        "hs-brand-board"
+      ],
+      "fallback": "a short docs/brand.md listing the logo file, the colours with their contrast ratios, the fonts and the do and don't rules"
     }
   }
 }

@@ -77,6 +77,18 @@ def browser():
 _OLD_HEADLESS = False
 
 
+def _kill(p):
+    """Stop the browser and everything it started (its renderer and helper processes keep writing to the profile folder otherwise)."""
+    try:
+        if hasattr(os, "killpg"):
+            os.killpg(p.pid, 9)
+        else:
+            p.kill()
+    except OSError:
+        pass
+    p.wait()
+
+
 def _set_old(flag):
     """The new headless mode timed out once: use the old one for the rest of this run instead of waiting every time."""
     global _OLD_HEADLESS
@@ -93,7 +105,7 @@ def run_chrome_console(exe, args, url, timeout=45):
     import select
     import time
     for flag in (("--headless=old",) if _OLD_HEADLESS else ("--headless", "--headless=old")):
-        p = subprocess.Popen([exe, flag] + args + ["--enable-logging=stderr", "--v=0", url], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+        p = subprocess.Popen([exe, flag] + args + ["--enable-logging=stderr", "--v=0", url], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, **({"start_new_session": True} if os.name != "nt" else {}))
         end, found = time.time() + (timeout if flag == "--headless=old" else 20), None
         try:
             while time.time() < end and found is None:
@@ -106,8 +118,7 @@ def run_chrome_console(exe, args, url, timeout=45):
                     if m:
                         found = base64.b64decode(m.group(1)).decode("utf-8")
         finally:
-            p.kill()
-            p.wait()
+            _kill(p)
         if found is not None:
             return found
         _set_old(flag)
@@ -122,7 +133,7 @@ def probe(page, width, dark):
     base = '<base href="file://%s/">' % os.path.dirname(os.path.abspath(page)).replace('"', "%22")
     html = re.sub(r"(<head[^>]*>)", r"\1" + base, src, count=1, flags=re.I) if re.search(r"<head", src, re.I) else base + src
     html = html.replace("</body>", "<script>" + PROBE + "</script></body>") if "</body>" in html else html + "<script>" + PROBE + "</script>"
-    with tempfile.TemporaryDirectory(prefix="hs-pc-") as d:
+    with tempfile.TemporaryDirectory(ignore_cleanup_errors=True, prefix="hs-pc-") as d:
         p = os.path.join(d, "page.html")
         open(p, "w", encoding="utf-8").write(html)
         out = run_chrome_console(exe, ["--disable-gpu", "--hide-scrollbars", "--window-size=%d,900" % width, "--user-data-dir=" + os.path.join(d, "profile")]
