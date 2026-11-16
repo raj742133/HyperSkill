@@ -191,6 +191,26 @@
     </div>
   </section>
 
+  <section id="code" class="integ" aria-labelledby="code-h" hidden>
+    <h2 id="code-h" class="eyebrow">Code <span id="code-count" class="count"></span></h2>
+    <p class="sub">Read-only. The project&rsquo;s files, which ones changed against git, and which ones Claude wrote or edited lately. Pick a file to see its text or its diff. Files that usually hold secrets are never listed, and lines that look like secrets are hidden.</p>
+    <p id="code-now" class="sub"></p>
+    <p id="code-nogit" class="sub" hidden>This folder is not a git repository, so there is no diff to show. Run <code>git init</code> and commit to get one.</p>
+    <div class="code-bar">
+      <input id="code-filter" type="search" placeholder="Filter files" aria-label="Filter files">
+      <label class="sub"><input id="code-changed" type="checkbox"> Changed only</label>
+      <label class="sub"><input id="code-follow" type="checkbox"> Follow Claude</label>
+    </div>
+    <div class="code-body">
+      <ul id="code-tree" class="code-tree" aria-label="Project files"></ul>
+      <div class="code-main">
+        <div class="code-head"><strong id="code-file"></strong>
+          <span role="tablist" aria-label="View"><button type="button" class="code-tab" role="tab" data-v="diff" aria-selected="true">Diff</button><button type="button" class="code-tab" role="tab" data-v="file" aria-selected="false">File</button></span></div>
+        <div id="code-pre" class="code-pre" tabindex="0" aria-label="File or diff"></div>
+      </div>
+    </div>
+  </section>
+
   <section id="integ" class="integ" aria-labelledby="i-h" hidden>
     <h2 id="i-h" class="eyebrow">Skills and integrations <span id="i-count" class="count"></span></h2>
     <p id="i-slots" class="sub"></p>
@@ -247,5 +267,6 @@
   <p class="foot" id="foot"></p>
 </main>
 <script src="/live/live.js"></script>
+<script src="/live/code.js"></script>
 </body>
 </html>

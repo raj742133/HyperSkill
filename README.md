@@ -167,6 +167,12 @@ Real screenshots from a demo project, taken in a real browser from the running t
 
 `hyperskill.py init --adopt` (or `adopt` in a project that already has state) reads the repository and writes `docs/adopt/inventory.md` and `inventory.json`: languages, package managers and frameworks, tests, CI, git facts, where the code lives, the largest files, the **risks found** (no tests, no CI, no lockfile, secrets in source, a committed `.env`, no git, huge files, an uncommitted tree) and the gate checks the files may already answer. It never follows symlinks, skips dependency and build folders, and never prints or stores the text of anything that looks like a secret, only the file and line. It also creates `docs/adopt/restructure-plan.md` (never overwritten) and switches on four adopt-only checks: the inventory was read and corrected by a person who knows the project, **tests that pin today's behaviour pass before the first change**, a restructure plan of small steps each with its proof and its undo, and every step committed with a passing test run. The full procedure is in [`skills/hyperskill/references/adopt.md`](skills/hyperskill/references/adopt.md). The scan does not run your tests, read your database or see your deployed system.
 
+## The code view
+
+The dashboard has a **Code** section: a read-only file tree, which files changed against git, which ones Claude wrote or edited lately (tagged), and each file's text or diff, with an optional "Follow Claude" mode that jumps to whatever it just changed. It is confined to the project folder (paths that leave it, symlinks, `.hyperskill/` and the usual secret files such as `.env` and private keys are refused) and lines that look like secrets are hidden before they are sent. There is no editor and no terminal: your IDE is better at both.
+
+<img src="docs/img/r2/code-view.webp" alt="The Code section of the dashboard: a file tree with changed and Claude tags, and a diff of src/streak.js with the removed line in red and the added line in green" width="640">
+
 ## Safety and tamper-evidence
 
 HyperSkill's promise is that a pass means something, so the parts that record passes defend themselves. This is **tamper-evident and accident-proof, not a sandbox**: it stops an agent that is sloppy or tempted to take a shortcut, and it shows you when something was changed behind your back. It does not stop a person, or a process that already has your shell and your files, from doing anything you could do yourself.
@@ -247,9 +253,7 @@ hyperskill.py config --autolive on|off                             # dashboard a
 
 These are plans, not features. Nothing below exists today.
 
-**1. A code view in the dashboard.** Today the dashboard shows which files were written or edited, with line counts, a sandboxed live preview, the chat, tests and the helper board. It has no file tree, editor, diff or terminal. The plan is a read-only file tree and diff view that shows which file Claude is changing right now and exactly what changed, plus a run log. A full editor and terminal would duplicate the IDE you already use, so they are not planned.
-
-**2. Playwright built in.** Today the ship phase requires a test strategy and end-to-end tests for signup, login, the core workflow, billing and invites, and the guidance names Playwright, but Claude writes and runs those tests in your project; HyperSkill does not install or run Playwright, and the dashboard's "Check and debug in Chrome" drives the app for checking, not as a saved test suite. The plan is a Playwright starter template and a "run end-to-end tests" button whose result is recorded as evidence in the gate.
+**1. Playwright built in.** Today the ship phase requires a test strategy and end-to-end tests for signup, login, the core workflow, billing and invites, and the guidance names Playwright, but Claude writes and runs those tests in your project; HyperSkill does not install or run Playwright, and the dashboard's "Check and debug in Chrome" drives the app for checking, not as a saved test suite. The plan is a Playwright starter template and a "run end-to-end tests" button whose result is recorded as evidence in the gate.
 
 ## What is and is not verified
 

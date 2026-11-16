@@ -34,6 +34,7 @@ import hs_preview as preview
 import hs_work as workmod  # noqa: E402
 import hs_run  # noqa: E402
 import hs_skills as skills  # noqa: E402
+import hs_code as codeview  # noqa: E402
 import hyperskill as core  # noqa: E402
 
 LIVE_DIR = os.path.normpath(os.path.join(_HERE, "..", "site", "live"))
@@ -45,6 +46,7 @@ STATIC = {  # the only files this server will ever send
     "/live/": (LIVE_DIR, "index.html", "text/html; charset=utf-8"),
     "/live/live.css": (LIVE_DIR, "live.css", "text/css; charset=utf-8"),
     "/live/live.js": (LIVE_DIR, "live.js", "text/javascript; charset=utf-8"),
+    "/live/code.js": (LIVE_DIR, "code.js", "text/javascript; charset=utf-8"),
     "/favicon.svg": (SITE_DIR, "favicon.svg", "image/svg+xml"),
     "/live/catalog.json": (os.path.normpath(os.path.join(_HERE, "..", "skills", "hyperskill")), "catalog.json", "application/json"),
 }
@@ -448,6 +450,8 @@ def make_handler(root, port, token=None, runner=None, key=None, session=None):
                 return self._preview(m)
             if path.startswith("/live/site/"):
                 return self._site(path[len("/live/site/"):])
+            if path.startswith("/live/code/"):
+                return self._code(path[len("/live/code/"):], query)
             if path == "/live/state.json":
                 try:
                     return self._send(200, json.dumps(build_state(root, bool(token), runner, port)).encode(), "application/json")
@@ -512,6 +516,24 @@ def make_handler(root, port, token=None, runner=None, key=None, session=None):
                 return self._send(400, json.dumps({"ok": False, "output": str(exc)}).encode(), "application/json")
             except (ValueError, OSError):
                 return self._send(400, b'{"ok":false,"output":"could not attach that"}', "application/json")
+
+        def _code(self, what, query):
+            """The code view: the project's file tree, one file, one diff. Read-only, confined to the project, never shows secrets."""
+            from urllib.parse import parse_qs
+            q = parse_qs(query)
+            rel = (q.get("path") or [""])[0]
+            try:
+                if what == "tree.json":
+                    body = codeview.tree(root)
+                elif what == "file.json":
+                    body = codeview.read(root, rel)
+                elif what == "diff.json":
+                    body = codeview.diff(root, rel)
+                else:
+                    return self._send(404, b"not found", "text/plain")
+            except codeview.CodeError as exc:
+                return self._send(404, json.dumps({"error": str(exc)}).encode(), "application/json")
+            return self._send(200, json.dumps(body).encode(), "application/json", {"Cache-Control": "no-store"})
 
         def _site(self, rel):
             """A file of the project being built, for the preview frame. Sandboxed so it can never reach the dashboard's key."""
