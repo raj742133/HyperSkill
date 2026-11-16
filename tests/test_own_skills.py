@@ -138,6 +138,28 @@ class ConvertTests(Tmp):
         self.assertFalse(os.path.exists(os.path.join(self.d, "bad.jpg")))
 
 
+@unittest.skipUnless(shutil.which("soffice") or shutil.which("libreoffice"), "needs LibreOffice")
+class OfficeConvertTests(Tmp):
+    def test_documents_really_convert_through_libreoffice(self):
+        for name, body, to, magic in (("a.html", "<html><body><h1>Hi</h1></body></html>", "pdf", b"%PDF"), ("b.csv", "a,b\n1,2\n", "xlsx", b"PK"),
+                                      ("c.txt", "plain text\n", "docx", b"PK"), ("d.txt", "plain text\n", "pdf", b"%PDF")):
+            src = self.write(name, body)
+            r = py(CONVERT, "run", src, to)
+            self.assertEqual(r.returncode, 0, name + r.stdout + r.stderr)
+            out = os.path.join(self.d, os.path.splitext(name)[0] + "." + to)
+            with open(out, "rb") as f:
+                self.assertEqual(f.read(len(magic)), magic, name)
+
+    @unittest.skipUnless(shutil.which("pdftoppm"), "needs pdftoppm")
+    def test_a_pdf_converts_to_an_image(self):
+        self.write("e.html", "<html><body><h1>Hi</h1></body></html>")
+        self.assertEqual(py(CONVERT, "run", os.path.join(self.d, "e.html"), "pdf").returncode, 0)
+        r = py(CONVERT, "run", os.path.join(self.d, "e.pdf"), "png")
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        with open(os.path.join(self.d, "e.png"), "rb") as f:
+            self.assertEqual(f.read(4), b"\x89PNG")
+
+
 class LogoTests(Tmp):
     def test_a_clean_mark_passes_and_a_dirty_one_fails_with_reasons(self):
         good = self.write("good.svg", MARK)

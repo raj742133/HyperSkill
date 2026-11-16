@@ -6,7 +6,7 @@ window.HS = {
   "adoptItems": 0,
   "slots": 41,
   "providers": 38,
-  "tests": 397,
+  "tests": 407,
   "packs": 17,
   "picks": 822
  },

@@ -691,7 +691,7 @@
       "risks": [
         "its checks start headless Chrome from local scripts and talk to it over localhost",
         "needs Node 20.10 or later, plus Chrome or Chromium for the checks",
-        "adds about 27 MB to the plugin (mostly built example pages)",
+        "adds about 6.5 MB to the plugin (the built example pages; printable sheets and light builds are regenerated on demand)",
         "the 3D mode is marked beta by the original author",
         "builds are long: its own guidance quotes hours for larger figures, so agree the size with the owner first"
       ]
@@ -872,7 +872,7 @@
         ]
       },
       "provides": "Converts files with the tools already installed (ImageMagick, ffmpeg, LibreOffice, pandoc, pdftoppm): chooses the tool, builds the command without a shell, never overwrites, deletes failed output.",
-      "vetted": "2026-10-24: written for this project, after reading Filee's README and format list (MIT); no code copied. Image, video and PDF routes tested here; the LibreOffice route could not be run in the build sandbox and is untested.",
+      "vetted": "2026-10-24: written for this project, after reading Filee's README and format list (MIT); no code copied. Image, video, PDF and (since 2026-11-16) LibreOffice document routes are exercised by real conversions in the test suite; the pandoc route is untested because pandoc is not installed on the build machine.",
       "risks": [
         "converting untrusted documents and images runs complex parsers: use a throwaway folder and only when needed",
         "lossy formats lose quality each time: convert from the original",

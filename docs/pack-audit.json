@@ -1,0 +1,422 @@
+{
+ "packs/better-icons": {
+  "files": 2,
+  "counts": {
+   "network": 0,
+   "run-programs": 0,
+   "dynamic-code": 0,
+   "download-and-run": 1,
+   "credentials": 0,
+   "writes-outside": 0,
+   "obfuscation": 0
+  }
+ },
+ "packs/cloudflare-security-audit": {
+  "files": 21,
+  "counts": {
+   "network": 0,
+   "run-programs": 12,
+   "dynamic-code": 0,
+   "download-and-run": 0,
+   "credentials": 2,
+   "writes-outside": 3,
+   "obfuscation": 1
+  }
+ },
+ "packs/diagram-design": {
+  "files": 78,
+  "counts": {
+   "network": 0,
+   "run-programs": 0,
+   "dynamic-code": 0,
+   "download-and-run": 0,
+   "credentials": 0,
+   "writes-outside": 0,
+   "obfuscation": 1
+  }
+ },
+ "packs/emil-skills": {
+  "files": 24,
+  "counts": {
+   "network": 0,
+   "run-programs": 0,
+   "dynamic-code": 0,
+   "download-and-run": 2,
+   "credentials": 0,
+   "writes-outside": 0,
+   "obfuscation": 0
+  }
+ },
+ "packs/hallmark": {
+  "files": 129,
+  "counts": {
+   "network": 4,
+   "run-programs": 11,
+   "dynamic-code": 0,
+   "download-and-run": 2,
+   "credentials": 1,
+   "writes-outside": 1,
+   "obfuscation": 0
+  }
+ },
+ "packs/humanizer": {
+  "files": 2,
+  "counts": {
+   "network": 0,
+   "run-programs": 0,
+   "dynamic-code": 0,
+   "download-and-run": 0,
+   "credentials": 0,
+   "writes-outside": 0,
+   "obfuscation": 0
+  }
+ },
+ "packs/hyperframes": {
+  "files": 266,
+  "counts": {
+   "network": 10,
+   "run-programs": 79,
+   "dynamic-code": 0,
+   "download-and-run": 34,
+   "credentials": 43,
+   "writes-outside": 0,
+   "obfuscation": 0
+  }
+ },
+ "packs/impeccable": {
+  "files": 54,
+  "counts": {
+   "network": 20,
+   "run-programs": 0,
+   "dynamic-code": 0,
+   "download-and-run": 0,
+   "credentials": 0,
+   "writes-outside": 0,
+   "obfuscation": 1
+  }
+ },
+ "packs/karpathy-skills": {
+  "files": 2,
+  "counts": {
+   "network": 0,
+   "run-programs": 0,
+   "dynamic-code": 0,
+   "download-and-run": 0,
+   "credentials": 0,
+   "writes-outside": 0,
+   "obfuscation": 0
+  }
+ },
+ "packs/open-code-review": {
+  "files": 3,
+  "counts": {
+   "network": 0,
+   "run-programs": 0,
+   "dynamic-code": 0,
+   "download-and-run": 7,
+   "credentials": 0,
+   "writes-outside": 0,
+   "obfuscation": 0
+  }
+ },
+ "packs/ponytail": {
+  "files": 7,
+  "counts": {
+   "network": 0,
+   "run-programs": 0,
+   "dynamic-code": 0,
+   "download-and-run": 1,
+   "credentials": 0,
+   "writes-outside": 0,
+   "obfuscation": 0
+  }
+ },
+ "packs/sitewright": {
+  "files": 353,
+  "counts": {
+   "network": 15,
+   "run-programs": 7,
+   "dynamic-code": 0,
+   "download-and-run": 11,
+   "credentials": 10,
+   "writes-outside": 0,
+   "obfuscation": 0
+  }
+ },
+ "packs/slopmonster": {
+  "files": 11,
+  "counts": {
+   "network": 0,
+   "run-programs": 4,
+   "dynamic-code": 0,
+   "download-and-run": 0,
+   "credentials": 1,
+   "writes-outside": 0,
+   "obfuscation": 0
+  }
+ },
+ "packs/superpowers": {
+  "files": 79,
+  "counts": {
+   "network": 1,
+   "run-programs": 3,
+   "dynamic-code": 0,
+   "download-and-run": 5,
+   "credentials": 6,
+   "writes-outside": 0,
+   "obfuscation": 0
+  }
+ },
+ "packs/taste-skill": {
+  "files": 39,
+  "counts": {
+   "network": 7,
+   "run-programs": 3,
+   "dynamic-code": 1,
+   "download-and-run": 1,
+   "credentials": 0,
+   "writes-outside": 0,
+   "obfuscation": 0
+  }
+ },
+ "packs/ui-ux-pro-max": {
+  "files": 125,
+  "counts": {
+   "network": 2,
+   "run-programs": 25,
+   "dynamic-code": 0,
+   "download-and-run": 14,
+   "credentials": 6,
+   "writes-outside": 9,
+   "obfuscation": 2
+  }
+ },
+ "packs/watch": {
+  "files": 9,
+  "counts": {
+   "network": 0,
+   "run-programs": 5,
+   "dynamic-code": 0,
+   "download-and-run": 18,
+   "credentials": 1,
+   "writes-outside": 0,
+   "obfuscation": 0
+  }
+ },
+ "skills/hs-a11y-review": {
+  "files": 3,
+  "counts": {
+   "network": 0,
+   "run-programs": 1,
+   "dynamic-code": 0,
+   "download-and-run": 0,
+   "credentials": 0,
+   "writes-outside": 0,
+   "obfuscation": 1
+  }
+ },
+ "skills/hs-convert": {
+  "files": 2,
+  "counts": {
+   "network": 0,
+   "run-programs": 2,
+   "dynamic-code": 0,
+   "download-and-run": 0,
+   "credentials": 0,
+   "writes-outside": 0,
+   "obfuscation": 0
+  }
+ },
+ "skills/hs-design-review": {
+  "files": 1,
+  "counts": {
+   "network": 0,
+   "run-programs": 0,
+   "dynamic-code": 0,
+   "download-and-run": 0,
+   "credentials": 0,
+   "writes-outside": 0,
+   "obfuscation": 0
+  }
+ },
+ "skills/hs-e2e": {
+  "files": 4,
+  "counts": {
+   "network": 0,
+   "run-programs": 0,
+   "dynamic-code": 0,
+   "download-and-run": 2,
+   "credentials": 0,
+   "writes-outside": 0,
+   "obfuscation": 0
+  }
+ },
+ "skills/hs-foundation": {
+  "files": 2,
+  "counts": {
+   "network": 0,
+   "run-programs": 0,
+   "dynamic-code": 0,
+   "download-and-run": 0,
+   "credentials": 0,
+   "writes-outside": 0,
+   "obfuscation": 0
+  }
+ },
+ "skills/hs-harden": {
+  "files": 3,
+  "counts": {
+   "network": 0,
+   "run-programs": 0,
+   "dynamic-code": 0,
+   "download-and-run": 0,
+   "credentials": 0,
+   "writes-outside": 0,
+   "obfuscation": 0
+  }
+ },
+ "skills/hs-launch": {
+  "files": 5,
+  "counts": {
+   "network": 0,
+   "run-programs": 0,
+   "dynamic-code": 0,
+   "download-and-run": 0,
+   "credentials": 0,
+   "writes-outside": 0,
+   "obfuscation": 0
+  }
+ },
+ "skills/hs-logo": {
+  "files": 3,
+  "counts": {
+   "network": 0,
+   "run-programs": 2,
+   "dynamic-code": 0,
+   "download-and-run": 0,
+   "credentials": 0,
+   "writes-outside": 0,
+   "obfuscation": 1
+  }
+ },
+ "skills/hs-operate": {
+  "files": 2,
+  "counts": {
+   "network": 0,
+   "run-programs": 0,
+   "dynamic-code": 0,
+   "download-and-run": 0,
+   "credentials": 0,
+   "writes-outside": 0,
+   "obfuscation": 0
+  }
+ },
+ "skills/hs-plan": {
+  "files": 3,
+  "counts": {
+   "network": 0,
+   "run-programs": 0,
+   "dynamic-code": 0,
+   "download-and-run": 0,
+   "credentials": 0,
+   "writes-outside": 0,
+   "obfuscation": 0
+  }
+ },
+ "skills/hs-product": {
+  "files": 3,
+  "counts": {
+   "network": 0,
+   "run-programs": 0,
+   "dynamic-code": 0,
+   "download-and-run": 0,
+   "credentials": 0,
+   "writes-outside": 0,
+   "obfuscation": 0
+  }
+ },
+ "skills/hs-research": {
+  "files": 2,
+  "counts": {
+   "network": 0,
+   "run-programs": 0,
+   "dynamic-code": 0,
+   "download-and-run": 0,
+   "credentials": 0,
+   "writes-outside": 0,
+   "obfuscation": 0
+  }
+ },
+ "skills/hs-responsive": {
+  "files": 2,
+  "counts": {
+   "network": 0,
+   "run-programs": 1,
+   "dynamic-code": 0,
+   "download-and-run": 0,
+   "credentials": 0,
+   "writes-outside": 0,
+   "obfuscation": 1
+  }
+ },
+ "skills/hs-scale": {
+  "files": 1,
+  "counts": {
+   "network": 0,
+   "run-programs": 0,
+   "dynamic-code": 0,
+   "download-and-run": 0,
+   "credentials": 0,
+   "writes-outside": 0,
+   "obfuscation": 0
+  }
+ },
+ "skills/hs-ship": {
+  "files": 2,
+  "counts": {
+   "network": 0,
+   "run-programs": 0,
+   "dynamic-code": 0,
+   "download-and-run": 0,
+   "credentials": 0,
+   "writes-outside": 0,
+   "obfuscation": 0
+  }
+ },
+ "skills/hs-watch": {
+  "files": 2,
+  "counts": {
+   "network": 3,
+   "run-programs": 1,
+   "dynamic-code": 0,
+   "download-and-run": 0,
+   "credentials": 0,
+   "writes-outside": 0,
+   "obfuscation": 0
+  }
+ },
+ "skills/hyperfigure": {
+  "files": 131,
+  "counts": {
+   "network": 6,
+   "run-programs": 42,
+   "dynamic-code": 1,
+   "download-and-run": 2,
+   "credentials": 0,
+   "writes-outside": 0,
+   "obfuscation": 3
+  }
+ },
+ "skills/hyperskill": {
+  "files": 9,
+  "counts": {
+   "network": 0,
+   "run-programs": 0,
+   "dynamic-code": 0,
+   "download-and-run": 0,
+   "credentials": 0,
+   "writes-outside": 0,
+   "obfuscation": 0
+  }
+ }
+}

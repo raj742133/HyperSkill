@@ -50,7 +50,7 @@ Weak fits, said plainly: Vikunja is only a convenient home for the launch to-do 
 - **anatomy** (MIT) is what **Hyperfigure** already is; nothing new was needed.
 - **logo-design-skill** (MIT) has a process, tests and tools plus a 1,400-logo library. **hs-logo** takes the process and the test list, and writes its own audit, test sheet and kit. The library was not used: it is large, and "study these existing logos" is exactly where look-alikes come from.
 - **The three Instagram reels** could not be opened from the build environment (instagram.com does not resolve there, and reels are login-walled). Nothing was taken from them. If a reel names a tool or repository, paste its name or a screenshot of the caption and it will be looked at the same way.
-- **Not verified:** the LibreOffice route of hs-convert exits with "source file could not be loaded" for every input in the build sandbox (including a plain call outside the script), so it is untested; image, video and PDF routes are tested.
+- **LibreOffice route:** in the first build sandbox it exited with "source file could not be loaded" for every input; on a later machine it works, and html to pdf, csv to xlsx, txt to docx and pdf to png are now covered by tests that really convert. The pandoc route is still untested (pandoc is not installed on the build machine).
 
 ## Six links, 2026-10-24 (second batch)
 

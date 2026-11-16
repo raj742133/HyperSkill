@@ -190,7 +190,7 @@ HyperSkill's promise is that a pass means something, so the parts that record pa
 - **What a person knows only a person can confirm.** Four checks (`go-no-go`, `system-design-read`, `architecture-explained`, `promo-rendered`) cannot be passed or waived by Claude until you press **Confirm** on them in the dashboard. With no person available, mark that with `config --unavailable human` and the check stays on the launch to-do list.
 - **Checks before you push.** `scripts/check.sh` runs the tests, the plugin validator, shell and JavaScript syntax and checks that the generated site data is current. `scripts/install-git-hooks.sh` makes it run before every `git push`; `.github/workflows/ci.yml` runs the same script on GitHub when Actions is available.
 
-What this still does not cover: a determined agent with full shell access can find ways around a hook (the hook looks at the command text), the commands inside a backticked `--pass` evidence are not run, Windows is untested, and anything running as you can read your key file.
+What this still does not cover: a determined agent with full shell access can find ways around a hook (the hook looks at the command text), the commands inside a backticked `--pass` evidence are not run, Windows and macOS have never been run on a real machine (a test checks that POSIX-only calls are guarded and that hooks find `python` as well as `python3`, but that is not the same as running it; the repository's GitHub Actions workflow, which would run the tests on both, fails before it starts and has never run), and anything running as you can read your key file.
 
 ## Figures
 
@@ -200,7 +200,7 @@ What this still does not cover: a determined agent with full shell access can fi
 
 <sub>`skills/hyperfigure/examples/raptor-engine`.</sub>
 
-It is a capability that other phases call through the `explainer-figure` slot, not a tenth phase: the plan phase uses it to check an architecture can be explained, the product phase for docs and landing visuals, the launch phase for promo. It needs Node 20.10 or later, plus Chrome or Chromium for its checks, and it adds about 27 MB to the plugin (mostly built example pages).
+It is a capability that other phases call through the `explainer-figure` slot, not a tenth phase: the plan phase uses it to check an architecture can be explained, the product phase for docs and landing visuals, the launch phase for promo. It needs Node 20.10 or later, plus Chrome or Chromium for its checks, and it adds about 6.5 MB to the plugin (printable sheets and light builds are regenerated with its own scripts).
 
 ## Install
 
@@ -261,14 +261,14 @@ Verified:
 
 - The plugin installs from GitHub into a clean config, and `/hyperskill` ran headless from an install of the same plugin (two separate tests, not one end-to-end run).
 - The tracker and the integration resolver are covered by 348 tests; `claude plugin validate .` passes.
-- Two full runs on real code, described above, with the failures they exposed.
+- Earlier full runs on three small products (their example folders have since been removed from the repository) exposed real failures that were fixed.
 
 Not verified, so do not rely on it yet:
 
 - It has been run only by its author, on three small products. Nobody else has used it.
 - **The dashboard and its hooks are tested, but not yet inside a long real Claude Code session.** The pause, the instruction hand-over, the automatic start, the skill plan and the brief hand-over are covered by tests that call the hook the way Claude Code does, and the page was driven in a real browser. Whether a live agent always follows them (reads the plan, records its decisions, extracts the brief honestly) depends on the model, and the tracker only enforces what it can check: open gaps, open selected checks, open gates.
 - **The picker's pictures are not all real products.** The Sitewright, font and Hyperfigure ones are recordings and renders. The design-tell, concept, fix, add-on, landing-pattern and style pictures are simplified illustrations drawn for this project.
-- The bundled third-party skills are copied unmodified and read at README level, not audited. The Karpathy guidelines repository ships no licence file (its README says MIT), which a lawyer may not accept.
+- The bundled third-party skills are copied unmodified. They were read at README level and scanned for risky patterns by `scripts/audit_packs.py` (results in [`docs/pack-audit.md`](docs/pack-audit.md): network calls, running programs, installs, credential reads, hidden text), which is a list of places to look, not an audit. The Karpathy guidelines repository ships no licence file (its README says MIT), which a lawyer may not accept.
 - "Used in the code" for a picked component is a text search, not proof that it renders well or in the right place.
 - The video instructions (`hs-launch`) were checked against the installed HyperFrames documentation, not executed.
 - Third-party skills are read at README level and not pinned to a version. Read a skill before enabling it; installed skills run with your agent's permissions.

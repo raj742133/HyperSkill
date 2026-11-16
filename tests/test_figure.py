@@ -47,7 +47,7 @@ class HyperfigureTests(unittest.TestCase):
         self.assertIn("1482e84", a["vetted"])
         self.assertIn("not a line-by-line audit", a["vetted"].lower())
         risks = " ".join(a["risks"])
-        for word in ("Chrome", "Node 20.10", "27 MB", "beta"):
+        for word in ("Chrome", "Node 20.10", "6.5 MB", "beta"):
             self.assertIn(word, risks)
         self.assertNotIn("anatomy", reg["providers"], "the original name is no longer a separate provider")
         self.assertEqual(reg["slots"]["explainer-figure"]["providers"], ["hyperfigure"])
