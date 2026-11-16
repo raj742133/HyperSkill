@@ -181,6 +181,16 @@ def build_command(root, text, mode, budget, session, model=None, effort=None, ch
     return cmd[:cmd.index("--allowedTools")] + extra + ["--allowedTools"] + tools
 
 
+def _signal_group(p, how):
+    """Stop a run and the programs it started: its whole process group where the system has them, the process itself on Windows."""
+    if hasattr(os, "killpg"):
+        os.killpg(p.pid, signal.SIGTERM if how == "term" else signal.SIGKILL)
+    elif how == "term":
+        p.terminate()
+    else:
+        p.kill()
+
+
 class Runner:
     def __init__(self, root, allowed):
         self.root, self.allowed = root, allowed
@@ -220,7 +230,7 @@ class Runner:
             err = open(os.path.join(self.root, ".hyperskill", "run.err"), "wb")
             env = {k: v for k, v in os.environ.items() if k not in INHERITED_SESSION}
             env["HYPERSKILL_RUN"] = "1"
-            self.proc = subprocess.Popen(cmd, cwd=self.root, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=err, env=env, start_new_session=True)
+            self.proc = subprocess.Popen(cmd, cwd=self.root, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=err, env=env, **({"start_new_session": True} if os.name != "nt" else {}))
             self.started, self.mode, self.last = time.time(), mode, None
             threading.Thread(target=self._read, args=(self.proc, err), daemon=True).start()
             threading.Thread(target=self._watchdog, args=(self.proc,), daemon=True).start()
@@ -275,7 +285,7 @@ class Runner:
         if not p or p.poll() is not None:
             return False
         try:
-            os.killpg(p.pid, signal.SIGTERM)
+            _signal_group(p, "term")
         except OSError:
             return False
         for _ in range(50):
@@ -283,7 +293,7 @@ class Runner:
                 return True
             time.sleep(0.1)
         try:
-            os.killpg(p.pid, signal.SIGKILL)
+            _signal_group(p, "kill")
         except OSError:
             pass
         return True
