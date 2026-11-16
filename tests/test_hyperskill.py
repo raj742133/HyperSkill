@@ -109,7 +109,7 @@ if __name__ == "__main__":
 
 
 class DogfoodFixTests(unittest.TestCase):
-    """Fixes that came out of running HyperSkill on a real project (examples/duesoon/docs/dogfood/REPORT.md)."""
+    """Fixes that came out of running HyperSkill on a real project (a dogfood run on a small deadline-tracker app; the example folder has since been removed)."""
 
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()

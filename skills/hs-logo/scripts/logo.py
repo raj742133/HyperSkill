@@ -211,11 +211,51 @@ def find_browser():
     return None
 
 
+_OLD_HEADLESS = False
+
+
+def _set_old(flag):
+    """The new headless mode timed out once: use the old one for the rest of this run instead of waiting every time."""
+    global _OLD_HEADLESS
+    if flag == "--headless":
+        _OLD_HEADLESS = True
+
+
+def run_chrome(cmd, expect_file=None, timeout_new=8, timeout_old=15):
+    """Run a headless Chrome command and return once `expect_file` exists (some builds never exit after writing it, so the process is killed then).
+
+    The new headless mode is tried first and the old one if it produces nothing."""
+    import time
+    modes = (("--headless=old", timeout_old),) if _OLD_HEADLESS else (("--headless", timeout_new), ("--headless=old", timeout_old))
+    for flag, limit in modes:
+        if expect_file and os.path.exists(expect_file):
+            os.remove(expect_file)
+        p = subprocess.Popen([cmd[0], flag] + cmd[1:], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        end, ok = time.time() + limit, False
+        try:
+            while time.time() < end:
+                if expect_file and os.path.isfile(expect_file) and os.path.getsize(expect_file) > 0:
+                    time.sleep(0.15)                      # let the write finish
+                    ok = True
+                    break
+                if p.poll() is not None:
+                    ok = not expect_file or (os.path.isfile(expect_file) and os.path.getsize(expect_file) > 0)
+                    break
+                time.sleep(0.1)
+        finally:
+            p.kill()
+            p.wait()
+        if ok:
+            return True
+        _set_old(flag)
+    return False
+
+
 def shot(html_path, png_path, w, h, transparent=True):
     exe = find_browser()
     if not exe:
         return False
-    cmd = [exe, "--headless", "--disable-gpu", "--hide-scrollbars", "--force-device-scale-factor=1",
+    cmd = [exe, "--disable-gpu", "--hide-scrollbars", "--force-device-scale-factor=1",
            "--window-size=%d,%d" % (w, h), "--screenshot=" + png_path]
     if transparent:
         cmd.append("--default-background-color=00000000")
@@ -223,10 +263,7 @@ def shot(html_path, png_path, w, h, transparent=True):
         cmd.append("--no-sandbox")
     with tempfile.TemporaryDirectory(prefix="hs-logo-") as prof:
         cmd += ["--user-data-dir=" + prof, "file://" + os.path.abspath(html_path)]
-        try:
-            subprocess.run(cmd, capture_output=True, timeout=90)
-        except subprocess.TimeoutExpired:
-            return False
+        run_chrome(cmd, png_path)
     return os.path.isfile(png_path) and os.path.getsize(png_path) > 0
 
 
@@ -275,20 +312,55 @@ def data_uri(raw):
     return "data:image/svg+xml;base64," + base64.b64encode(raw).decode()
 
 
+def run_chrome_console(args, url, timeout=45):
+    """Open `url` in headless Chrome and return the first console line the page prints after the marker HSRESULT (base64).
+
+    Reading the console works on Chrome builds where --screenshot and --dump-dom never finish. The process is killed as soon as the line arrives.
+    The new headless mode is tried first, then the old one."""
+    import base64
+    import select
+    import time
+    exe = find_browser()
+    if not exe:
+        return None
+    for flag in (("--headless=old",) if _OLD_HEADLESS else ("--headless", "--headless=old")):
+        p = subprocess.Popen([exe, flag] + args + ["--enable-logging=stderr", "--v=0", url], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+        end, found, buf = time.time() + (timeout if flag == "--headless=old" else 12), None, ""
+        try:
+            while time.time() < end and found is None:
+                ready, _, _ = select.select([p.stdout], [], [], 0.5)
+                if ready:
+                    line = p.stdout.readline()
+                    if not line:
+                        break
+                    m = re.search(r"HSRESULT([A-Za-z0-9+/=]*)", line)
+                    if m and m.group(1):
+                        found = base64.b64decode(m.group(1))
+        finally:
+            p.kill()
+            p.wait()
+        if found is not None:
+            return found
+        _set_old(flag)
+    return None
+
+
 def render_png(raw, size, png_path, pad=0.0, background=None):
-    """Render the SVG at size x size, optionally on a solid background with padding (a fraction of the size)."""
+    """Render the SVG at size x size as a PNG by drawing it on a canvas in headless Chrome (optionally on a solid background with padding)."""
     inner = int(round(size * (1 - 2 * pad)))
     off = (size - inner) // 2
-    bg = "background:%s;" % background if background else ""
-    html = ('<!doctype html><meta charset="utf-8"><style>html,body{margin:0;padding:0;%sheight:%dpx;width:%dpx;overflow:hidden}'
-            'img{position:absolute;left:%dpx;top:%dpx;width:%dpx;height:%dpx}</style><img alt="" src="%s">'
-            % (bg, size, size, off, off, inner, inner, data_uri(raw)))
+    html = ('<!doctype html><meta charset="utf-8"><body><script>var i=new Image();i.onload=function(){var c=document.createElement("canvas");c.width=c.height=%d;var x=c.getContext("2d");'
+            '%sx.drawImage(i,%d,%d,%d,%d);var u=c.toDataURL("image/png").split(",")[1];console.log("HSRESULT"+u)};i.onerror=function(){console.log("HSRESULT")};i.src="%s"</script>'
+            % (size, ('x.fillStyle="%s";x.fillRect(0,0,%d,%d);' % (background, size, size)) if background else "", off, off, inner, inner, data_uri(raw)))
     with tempfile.TemporaryDirectory(prefix="hs-logo-") as d:
         p = os.path.join(d, "r.html")
         open(p, "w").write(html)
-        big = max(size, 600)
-        ok = shot(p, png_path, big, big, transparent=not background)
-        return ok and (big == size or crop_png(png_path, size, size))
+        args = ["--disable-gpu", "--user-data-dir=" + os.path.join(d, "prof")] + (["--no-sandbox"] if hasattr(os, "geteuid") and os.geteuid() == 0 else [])
+        png = run_chrome_console(args, "file://" + p)
+    if not png or png[:4] != b"\x89PNG":
+        return False
+    open(png_path, "wb").write(png)
+    return True
 
 
 def ico(pngs):
@@ -346,8 +418,8 @@ h2{font-size:13px;letter-spacing:.06em;text-transform:uppercase;margin:0 0 12px;
     sheet = os.path.join(out, "test-sheet.html")
     open(sheet, "w", encoding="utf-8").write(html)
     png = os.path.join(out, "test-sheet.png")
-    made = shot(sheet, png, 1100, 1500, transparent=False)
-    return {"html": sheet, "png": png if made else None, "note": None if made else "no browser found: open the HTML sheet yourself"}
+    made = shot(sheet, png, 1100, 1500, transparent=False)   # best effort: some Chrome builds cannot take a command-line screenshot
+    return {"html": sheet, "png": png if made else None, "note": None if made else "no PNG of the sheet (this Chrome cannot take a command-line screenshot, or none was found): open test-sheet.html in a browser"}
 
 
 def cmd_kit(svg, out, name, theme, background):
