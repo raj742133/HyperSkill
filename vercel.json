@@ -7,7 +7,7 @@
   "cleanUrls": true,
   "headers": [
     {
-      "source": "/((?!styles/[a-z-]+\\.html$).*)",
+      "source": "/((?!styles/[a-z-]+(?:\\.html)?$).*)",
       "headers": [
         {
           "key": "Content-Security-Policy",
@@ -32,7 +32,7 @@
       ]
     },
     {
-      "source": "/styles/([a-z-]+)\\.html",
+      "source": "/styles/([a-z-]+)(\\.html)?",
       "headers": [
         {
           "key": "Content-Security-Policy",
