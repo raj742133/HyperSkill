@@ -206,7 +206,7 @@ class DashboardFilesTests(unittest.TestCase):
         self.assertNotIn("https://", html)
         self.assertIn('href="/live/live.css"', html)
         self.assertIn('<script src="/live/live.js">', html)
-        self.assertEqual(html.count("<script"), 1)
+        self.assertEqual(html.count("<script"), 2)
 
 
 if __name__ == "__main__":
