@@ -40,9 +40,9 @@ PROBE = r"""
       var own = ""; for (var c = el.firstChild; c; c = c.nextSibling) if (c.nodeType === 3) own += c.nodeValue;
       if (own.trim() && parseFloat(cs.fontSize) < 12 && res.small_text.length < 10) res.small_text.push({ sel: path(el), size: parseFloat(cs.fontSize), text: own.trim().slice(0, 24) });
     }
-    parent.postMessage("HSRESULT" + JSON.stringify(res), "*");
+    window.__HS = JSON.stringify(res);
   }
-  window.addEventListener("load", function () { setTimeout(run, 700); });
+  window.addEventListener("load", run);   // synchronously on load: --dump-dom prints right after the load event
 })();
 """
 
@@ -61,6 +61,46 @@ def browser():
     return None
 
 
+_OLD_HEADLESS = False
+
+
+def _set_old(flag):
+    """The new headless mode timed out once: use the old one for the rest of this run instead of waiting every time."""
+    global _OLD_HEADLESS
+    if flag == "--headless":
+        _OLD_HEADLESS = True
+
+
+def run_chrome_console(exe, args, url, timeout=45):
+    """Open `url` in headless Chrome and return the first console line the page prints after the marker HSRESULT (base64 of JSON).
+
+    Reading the console instead of `--dump-dom` works on Chrome builds where a page with a script keeps the dump from ever finishing;
+    the process is killed as soon as the line arrives. The new headless mode is tried first, then the old one."""
+    import base64
+    import select
+    import time
+    for flag in (("--headless=old",) if _OLD_HEADLESS else ("--headless", "--headless=old")):
+        p = subprocess.Popen([exe, flag] + args + ["--enable-logging=stderr", "--v=0", url], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+        end, found = time.time() + (timeout if flag == "--headless=old" else 20), None
+        try:
+            while time.time() < end and found is None:
+                ready, _, _ = select.select([p.stdout], [], [], 0.5)
+                if ready:
+                    line = p.stdout.readline()
+                    if not line:
+                        break
+                    m = re.search(r"HSRESULT([A-Za-z0-9+/=]+)", line)
+                    if m:
+                        found = base64.b64decode(m.group(1)).decode("utf-8")
+        finally:
+            p.kill()
+            p.wait()
+        if found is not None:
+            return found
+        _set_old(flag)
+    return None
+
+
 def measure(page, widths):
     exe = browser()
     if not exe:
@@ -73,18 +113,15 @@ def measure(page, widths):
     with tempfile.TemporaryDirectory(prefix="hs-rs-") as d:
         open(os.path.join(d, "page.html"), "w", encoding="utf-8").write(html)
         for w in widths:
-            wrap = ('<!doctype html><meta charset="utf-8"><body style="margin:0"><iframe src="page.html" style="border:0;width:%dpx;height:900px"></iframe><pre id="hs-out"></pre>'
-                    '<script>window.addEventListener("message",function(e){if(typeof e.data==="string"&&e.data.indexOf("HSRESULT")===0)document.getElementById("hs-out").textContent=e.data.slice(8)})</script>' % w)
+            wrap = ('<!doctype html><meta charset="utf-8"><body style="margin:0"><iframe id="f" src="page.html" style="border:0;width:%dpx;height:900px"></iframe><pre id="hs-out"></pre>'
+                    '<script>window.addEventListener("load",function(){var v="";try{v=document.getElementById("f").contentWindow.__HS||""}catch(e){}console.log("HSRESULT"+btoa(unescape(encodeURIComponent(v))))})</script>' % w)
             open(os.path.join(d, "wrap.html"), "w").write(wrap)
-            cmd = [exe, "--headless", "--disable-gpu", "--hide-scrollbars", "--window-size=%d,900" % max(w + 20, 520), "--virtual-time-budget=7000",
-                   "--allow-file-access-from-files", "--user-data-dir=" + os.path.join(d, "profile"), "--dump-dom"]
-            if hasattr(os, "geteuid") and os.geteuid() == 0:
-                cmd.append("--no-sandbox")
-            r = subprocess.run(cmd + ["file://" + os.path.join(d, "wrap.html")], capture_output=True, text=True, timeout=120)
-            m = re.search(r'<pre id="hs-out">(.*?)</pre>', r.stdout, re.S)
-            if not m or not m.group(1).strip():
+            got = run_chrome_console(exe, ["--disable-gpu", "--hide-scrollbars", "--window-size=%d,900" % max(w + 20, 520), "--allow-file-access-from-files",
+                                           "--user-data-dir=" + os.path.join(d, "profile%d" % w)] + (["--no-sandbox"] if hasattr(os, "geteuid") and os.geteuid() == 0 else []),
+                                     "file://" + os.path.join(d, "wrap.html"))
+            if not got:
                 raise SystemExit("page_check: the page did not report back at %d px (a script error, or a resource that never loads?)" % w)
-            res = json.loads(H.unescape(m.group(1)))
+            res = json.loads(got)
             res["requested"] = w
             out.append(res)
     return out

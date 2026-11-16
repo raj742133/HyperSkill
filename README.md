@@ -289,8 +289,6 @@ scripts/               hyperskill.py (state, gates, integrations), hs_hook.py, h
 site/shots/           screenshots of every feature (README and site)
 site/styles/          clips of the ten visual styles
 site/                  the static launch site (Vercel; vercel.json); site/live is the live view and its replay
-examples/duesoon/      full nine-phase run
-examples/chaser/       research, plan and build of the second run
 docs/                  sources, integration review, README images
 tests/                 348 tests for the tracker, resolver, hook, dashboard server and its controls, skill plan, catalogue, brief, previews, structure and site
 ```

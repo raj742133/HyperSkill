@@ -36,7 +36,7 @@ HyperSkill's own code and text are under the MIT licence (`LICENSE`, copyright l
 **Still true:**
 - Third-party skills are referenced and **not vendored, with two exceptions: Hyperfigure (item 8) and the seventeen packs under `packs/` (item 9)**, which are bundled with their original licences. Re-vet and pin a version before enabling any; `onetake` is PolyForm Noncommercial and must not be used on a commercial project; `claude-opus5.5-video` states no licence.
 - The kit's fonts and sound effects are not in this repository; check each file's licence before bundling any.
-- Installing the plugin from a local folder copies untracked files too (for example `examples/duesoon/node_modules`); installing from the GitHub source copies tracked files only.
+- Installing the plugin from a local folder copies untracked files too (for example a local `node_modules` folder); installing from the GitHub source copies tracked files only.
 
 ## Not verified
 

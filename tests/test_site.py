@@ -15,14 +15,6 @@ class SiteTests(unittest.TestCase):
                            capture_output=True, text=True)
         self.assertEqual(r.returncode, 0, r.stderr)
 
-    def test_chaser_copy_is_up_to_date(self):
-        r = subprocess.run([sys.executable, os.path.join(ROOT, "scripts", "sync_chaser.py"), "--check"], capture_output=True, text=True)
-        self.assertEqual(r.returncode, 0, r.stderr)
-
-    def test_tide_copy_is_up_to_date(self):
-        r = subprocess.run([sys.executable, os.path.join(ROOT, "scripts", "sync_tide.py"), "--check"], capture_output=True, text=True)
-        self.assertEqual(r.returncode, 0, r.stderr)
-
     def test_html_references_exist(self):
         with open(os.path.join(SITE, "index.html"), encoding="utf-8") as f:
             html = f.read()
@@ -44,19 +36,6 @@ class SiteTests(unittest.TestCase):
         keys = {h["key"] for rule in cfg["headers"] for h in rule["headers"]}
         for k in ("Content-Security-Policy", "X-Content-Type-Options", "Strict-Transport-Security"):
             self.assertIn(k, keys)
-
-    def test_tide_and_chaser_get_the_strict_policy_and_the_broad_one_leaves_them_alone(self):
-        with open(os.path.join(ROOT, "vercel.json"), encoding="utf-8") as f:
-            rules = json.load(f)["headers"]
-        broad, strict = rules[0], rules[1]
-        self.assertIn("(?!(?:tide|chaser)", broad["source"], "the broad rule must not also match /tide and /chaser")
-        self.assertEqual(strict["source"], "/(tide|chaser)(/.*)?")
-        csp = next(h["value"] for h in strict["headers"] if h["key"] == "Content-Security-Policy")
-        for need in ("connect-src 'none'", "font-src 'none'", "base-uri 'none'", "frame-ancestors 'none'", "script-src 'self'"):
-            self.assertIn(need, csp)
-        self.assertNotIn("http", csp)
-        # the strict rule replaces the broad one on those paths, so it must carry every other security header too
-        self.assertEqual({h["key"] for h in strict["headers"]}, {h["key"] for h in broad["headers"]})
 
     def test_live_view_files_are_published_and_the_policy_lets_the_replay_load_its_data(self):
         for name in ("index.html", "live.css", "live.js", "replay.json"):
