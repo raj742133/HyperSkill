@@ -3,9 +3,10 @@ window.HS = {
  "counts": {
   "phases": 9,
   "gateItems": 72,
+  "adoptItems": 0,
   "slots": 41,
   "providers": 38,
-  "tests": 361,
+  "tests": 375,
   "packs": 17,
   "picks": 822
  },

@@ -6,7 +6,8 @@ resume. A phase may only be advanced once every gate item is either passed
 (with evidence) or waived (with a reason). Standard library only.
 
 Usage:
-  hyperskill.py init [--name NAME] [--force] [--no-karpathy] [--noncommercial] [--tenancy organization|user|none] [--unavailable LIST]
+  hyperskill.py init [--name NAME] [--force] [--no-karpathy] [--noncommercial] [--tenancy organization|user|none] [--unavailable LIST] [--adopt]
+  hyperskill.py adopt [scan|plan|status]   existing project: read it, write docs/adopt/inventory.md and restructure-plan.md
   hyperskill.py config [--tenancy T] [--unavailable LIST|none]   change tenancy / what this environment lacks
   hyperskill.py status [--json]
   hyperskill.py gate PHASE                          show gate items and their state
@@ -72,6 +73,7 @@ import hs_catalog as cat  # noqa: E402
 import hs_brief as brief  # noqa: E402
 import hs_preview  # noqa: E402
 import hs_work as workmod  # noqa: E402
+import hs_adopt as adoptmod  # noqa: E402
 GATES_PATH = os.path.join(_HERE, "..", "skills", "hyperskill", "gates.json")
 INTEGRATIONS_PATH = os.path.join(_HERE, "..", "skills", "hyperskill", "integrations.json")
 
@@ -232,6 +234,8 @@ NEEDS = ("host", "provider", "device", "human")
 
 def applies(st, item):
     """An item with a tenancy list only applies to projects of that tenancy (default: organization)."""
+    if item.get("adopted") and not st.get("adopted"):   # checks that only exist when HyperSkill was started on an existing project
+        return False
     t = item.get("tenancy")
     return not t or st.get("tenancy", "organization") in t
 
@@ -361,6 +365,8 @@ def cmd_init(args):
              ", unavailable: " + ",".join(st["unavailable"]) if st["unavailable"] else "", st["current"]))
     if not args.no_karpathy:
         print("coding rules on: Karpathy guidelines installed and read at every session start (turn off: integrations disable %s)" % DEFAULT_ON)
+    if getattr(args, "adopt", False):
+        adopt_scan(args.root, st, announce=True)
 
 
 def cmd_config(args):
@@ -534,7 +540,70 @@ def cmd_gate(args):
         if r:
             print("      %s: %s" % (r["state"], r.get("evidence") or r.get("reason")))
         elif tag == "[n/a]":
-            print("      not applicable for tenancy '%s'" % st["tenancy"])
+            print("      only for projects started with adopt mode" if item.get("adopted") else "      not applicable for tenancy '%s'" % st["tenancy"])
+
+
+ADOPT_DIR = os.path.join("docs", "adopt")
+
+
+def adopt_scan(root, st=None, announce=False):
+    """Read the project, write docs/adopt/inventory.{md,json} and the plan skeleton, and mark the project as adopted."""
+    st = st or load_state(root)
+    report = adoptmod.scan(root)
+    out = os.path.join(root, ADOPT_DIR)
+    os.makedirs(out, exist_ok=True)
+    with open(os.path.join(out, "inventory.md"), "w", encoding="utf-8") as f:
+        f.write(adoptmod.render(report))
+    with open(os.path.join(out, "inventory.json"), "w", encoding="utf-8") as f:
+        json.dump(report, f, indent=1, default=str)
+    plan = os.path.join(out, "restructure-plan.md")
+    if not os.path.exists(plan):
+        with open(plan, "w", encoding="utf-8") as f:
+            f.write(adoptmod.plan_template())
+    st["adopted"] = True
+    st["adopt"] = {"scanned": now(), "files": report["files"], "tests": report["tests"]["files"], "risks": len(report["risks"]),
+                   "high_risks": sum(1 for k in report["risks"] if k["severity"] == "high")}
+    save_state(root, st)
+    activity.append(root, "adopt", "Read the existing project: " + adoptmod.summary_line(report), phase=st["current"])
+    print("adopt mode: " + adoptmod.summary_line(report))
+    print("  wrote %s/inventory.md, inventory.json and restructure-plan.md" % ADOPT_DIR.replace(os.sep, "/"))
+    order = {"high": 0, "medium": 1, "low": 2}
+    for k in sorted(report["risks"], key=lambda k: order[k["severity"]])[:8]:
+        print("  [%s] %s: %s" % (k["severity"], k["id"], k["text"][:150]))
+    if report["evidence_candidates"]:
+        print("  files that may already answer gate checks: " + ", ".join(sorted(report["evidence_candidates"])))
+    print("next: read docs/adopt/inventory.md and correct it; then pin today's behaviour with tests before any restructure (see skills/hyperskill/references/adopt.md)")
+    return report
+
+
+def cmd_adopt(args):
+    st = load_state(args.root)
+    what = args.what or "scan"
+    if what == "scan":
+        adopt_scan(args.root, st)
+    elif what == "plan":
+        path = os.path.join(args.root, ADOPT_DIR, "restructure-plan.md")
+        if not os.path.exists(path):
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+            with open(path, "w", encoding="utf-8") as f:
+                f.write(adoptmod.plan_template())
+            print("wrote docs/adopt/restructure-plan.md")
+        else:
+            print("docs/adopt/restructure-plan.md already exists; edit it (nothing was overwritten)")
+        st["adopted"] = True
+        save_state(args.root, st)
+    else:
+        if not st.get("adopted"):
+            print("not in adopt mode. Run: hyperskill.py adopt")
+            return
+        a = st.get("adopt", {})
+        print("adopt mode: scanned %s; %s files, %s test files, %s risks (%s high)" % (a.get("scanned"), a.get("files"), a.get("tests"), a.get("risks"), a.get("high_risks")))
+        for gid in ("inventory-read", "behaviour-pinned", "restructure-plan", "restructure-steps-proven"):
+            for ph in load_gates():
+                for it in ph["gate"]:
+                    if it["id"] == gid:
+                        r = st["phases"][ph["id"]]["gate"].get(gid)
+                        print("  [%s] %-26s (%s) %s" % ({"passed": "x", "waived": "~"}.get(r["state"], " ") if r else " ", gid, ph["id"], it["text"][:90]))
 
 
 def cmd_advance(args):
@@ -1253,7 +1322,12 @@ def build_parser():
     p.add_argument("--noncommercial", action="store_true", help="project is not commercial (unlocks noncommercial-licence tools)")
     p.add_argument("--tenancy", choices=TENANCIES, help="who owns data: organization (default), user, or none")
     p.add_argument("--unavailable", help="comma list of what this environment lacks: host,provider,device,human")
+    p.add_argument("--adopt", action="store_true", help="the project already exists: read it, write docs/adopt/, and add the adopt-only checks")
     p.set_defaults(fn=cmd_init)
+
+    p = sub.add_parser("adopt", help="start from an existing project: read it, write an inventory and a restructure plan, add the adopt-only checks")
+    p.add_argument("what", nargs="?", choices=("scan", "plan", "status"), help="scan (default): read the project; plan: create the restructure plan skeleton; status: the adopt-only checks")
+    p.set_defaults(fn=cmd_adopt)
 
     p = sub.add_parser("config", help="show or change tenancy and what this environment lacks")
     p.add_argument("--tenancy", choices=TENANCIES)
