@@ -42,7 +42,12 @@ class SiteTests(unittest.TestCase):
             rules = json.load(f)["headers"]
         broad, demo = rules[0], rules[1]
         self.assertTrue(broad["source"].startswith("/((?!styles/"), "the broad rule must not also match the demo pages")
-        self.assertEqual(demo["source"], "/styles/([a-z-]+)\\.html")
+        self.assertEqual(demo["source"], "/styles/([a-z-]+)(\\.html)?", "cleanUrls redirects x.html to x, so both spellings need the strict policy")
+        import re as _re
+        for path in ("/styles/glassmorphism", "/styles/glassmorphism.html"):
+            self.assertIsNotNone(_re.fullmatch(demo["source"], path), path)
+            self.assertIsNone(_re.fullmatch(broad["source"], path), path + " must not also get the broad policy")
+        self.assertIsNotNone(_re.fullmatch(broad["source"], "/styles/glassmorphism.mp4"), "the clips keep the broad policy")
         csp = next(h["value"] for h in demo["headers"] if h["key"] == "Content-Security-Policy")
         for need in ("sandbox allow-scripts allow-forms", "default-src 'none'", "connect-src 'none'", "base-uri 'none'", "form-action 'none'"):
             self.assertIn(need, csp)
