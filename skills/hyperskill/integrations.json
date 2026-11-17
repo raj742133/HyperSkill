@@ -1006,6 +1006,27 @@
         "fonts are shown by name only: the board does not embed or fetch them",
         "a board shows decisions, it does not make them: the palette and logo must already be chosen"
       ]
+    },
+    "fable-playbook": {
+      "name": "Fable Playbook (bundled, the owner's own)",
+      "kind": "skill",
+      "license": "owner's own work, included unmodified at the owner's request",
+      "policy": "recommended",
+      "builtin": true,
+      "install": [
+        "already bundled in this plugin at skills/fable-playbook"
+      ],
+      "detect": {
+        "skills": [
+          "fable-playbook"
+        ]
+      },
+      "provides": "An advisor protocol for any long or multi-step task: three checkpoints (before starting, after planning, before replying), a plan-quality test, a table of common failure modes and a self-check.",
+      "vetted": "2026-11-17: supplied by the owner as their own skill and bundled byte for byte (sha256 00b42ffc1f9e151e9fdb6b3fbfb7e6285f53812b8762c7e4539167907c030479); a test fails if the file is changed.",
+      "risks": [
+        "it tells the model to run its protocol unprompted whenever it is loaded, so load it for large steps, not for every small edit",
+        "it adds checkpoint text to replies, which is noise on small tasks"
+      ]
     }
   },
   "slots": {
@@ -1277,6 +1298,12 @@
         "hs-brand-board"
       ],
       "fallback": "a short docs/brand.md listing the logo file, the colours with their contrast ratios, the fonts and the do and don't rules"
+    },
+    "task-advisor": {
+      "providers": [
+        "fable-playbook"
+      ],
+      "fallback": "before a large step write down the deliverable, the explicit constraints and the riskiest step; before reporting, compare what was asked with what was delivered and list what is unverified"
     }
   }
 }

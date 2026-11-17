@@ -4,9 +4,9 @@ window.HS = {
   "phases": 9,
   "gateItems": 72,
   "adoptItems": 0,
-  "slots": 42,
+  "slots": 43,
   "providers": 38,
-  "tests": 412,
+  "tests": 413,
   "packs": 17,
   "picks": 822
  },
@@ -62,7 +62,8 @@ window.HS = {
     "ui-library-choice",
     "explainer-figure",
     "site-scaffold",
-    "architecture-diagram"
+    "architecture-diagram",
+    "task-advisor"
    ],
    "gate": [
     {
@@ -110,7 +111,8 @@ window.HS = {
    "slots": [
     "coding-discipline",
     "code-review",
-    "implementation-discipline"
+    "implementation-discipline",
+    "task-advisor"
    ],
    "gate": [
     {
@@ -179,7 +181,8 @@ window.HS = {
     "design-lint",
     "logo-design",
     "file-convert",
-    "responsive-check"
+    "responsive-check",
+    "task-advisor"
    ],
    "gate": [
     {
@@ -229,7 +232,8 @@ window.HS = {
     "qa-browser",
     "release",
     "browser-verify",
-    "implementation-discipline"
+    "implementation-discipline",
+    "task-advisor"
    ],
    "gate": [
     {
@@ -285,7 +289,8 @@ window.HS = {
    "slots": [
     "security-audit",
     "code-review",
-    "artifact-analysis"
+    "artifact-analysis",
+    "task-advisor"
    ],
    "gate": [
     {
