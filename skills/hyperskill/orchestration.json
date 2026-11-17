@@ -69,6 +69,12 @@
         "need": "situational",
         "when": "when an idea in the design (cache key, queue, auth flow) is hard to explain in words",
         "why": "an interactive figure makes the architecture review concrete"
+      },
+      {
+        "slot": "task-advisor",
+        "need": "situational",
+        "when": "before drafting the design, after the plan is written (test it against the four conditions), and before presenting it",
+        "why": "names the deliverable and constraints first, plans the riskiest step first, and checks asked against delivered before anything is reported"
       }
     ],
     "foundation": [
@@ -89,6 +95,12 @@
         "need": "optional",
         "when": "when the build steps are large enough to need TDD and sub-plans",
         "why": "structure inside a phase; it never replaces HyperSkill's gates"
+      },
+      {
+        "slot": "task-advisor",
+        "need": "situational",
+        "when": "before a large step (a migration, an auth change), after planning it, and before reporting it",
+        "why": "names the deliverable and constraints first, plans the riskiest step first, and checks asked against delivered before anything is reported"
       }
     ],
     "product": [
@@ -187,6 +199,12 @@
         "need": "situational",
         "when": "when a screen was designed desktop-first, or before the phone-test gate is marked passed",
         "why": "measured overflow, tap targets and form zoom at phone, tablet and desktop widths"
+      },
+      {
+        "slot": "task-advisor",
+        "need": "situational",
+        "when": "before a large screen or flow, after planning it, and before reporting it",
+        "why": "names the deliverable and constraints first, plans the riskiest step first, and checks asked against delivered before anything is reported"
       }
     ],
     "ship": [
@@ -219,6 +237,12 @@
         "need": "optional",
         "when": "for fixes large enough to need a written plan and tests first",
         "why": "structure for big changes"
+      },
+      {
+        "slot": "task-advisor",
+        "need": "situational",
+        "when": "before the release plan and the pipeline work, and before reporting readiness",
+        "why": "names the deliverable and constraints first, plans the riskiest step first, and checks asked against delivered before anything is reported"
       }
     ],
     "harden": [
@@ -239,6 +263,12 @@
         "need": "optional",
         "when": "when the product ships a bundle or binary to users' machines (a web build, Electron app, mobile app)",
         "why": "what you ship is what an attacker reads: leaked secrets, published source maps and unexpected endpoints"
+      },
+      {
+        "slot": "task-advisor",
+        "need": "situational",
+        "when": "before the threat model and the review, and before reporting findings",
+        "why": "names the deliverable and constraints first, plans the riskiest step first, and checks asked against delivered before anything is reported"
       }
     ],
     "operate": [

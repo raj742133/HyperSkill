@@ -229,3 +229,18 @@ class LogoTests(Tmp):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class FablePlaybookTests(unittest.TestCase):
+    def test_the_owners_skill_is_bundled_byte_for_byte_and_wired_into_the_plan(self):
+        import hashlib
+        path = os.path.join(ROOT, "skills", "fable-playbook", "SKILL.md")
+        raw = open(path, "rb").read()
+        self.assertTrue(raw.startswith(b"---\nname: fable-playbook\n"))
+        reg = json.load(open(os.path.join(ROOT, "skills", "hyperskill", "integrations.json"), encoding="utf-8"))
+        self.assertIn(hashlib.sha256(raw).hexdigest(), reg["providers"]["fable-playbook"]["vetted"], "the file changed: it is the owner's text and must stay as supplied")
+        self.assertEqual(reg["slots"]["task-advisor"]["providers"], ["fable-playbook"])
+        orch = json.load(open(os.path.join(ROOT, "skills", "hyperskill", "orchestration.json"), encoding="utf-8"))["phases"]
+        for ph in ("plan", "foundation", "product", "ship", "harden"):
+            self.assertIn("task-advisor", [e["slot"] for e in orch[ph]], ph)
+        self.assertIn("fable-playbook", open(os.path.join(ROOT, "skills", "hyperskill", "SKILL.md"), encoding="utf-8").read())

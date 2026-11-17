@@ -112,7 +112,8 @@
         "ui-library-choice",
         "explainer-figure",
         "site-scaffold",
-        "architecture-diagram"
+        "architecture-diagram",
+        "task-advisor"
       ]
     },
     {
@@ -187,7 +188,8 @@
       "slots": [
         "coding-discipline",
         "code-review",
-        "implementation-discipline"
+        "implementation-discipline",
+        "task-advisor"
       ]
     },
     {
@@ -248,7 +250,8 @@
         "design-lint",
         "logo-design",
         "file-convert",
-        "responsive-check"
+        "responsive-check",
+        "task-advisor"
       ]
     },
     {
@@ -321,7 +324,8 @@
         "qa-browser",
         "release",
         "browser-verify",
-        "implementation-discipline"
+        "implementation-discipline",
+        "task-advisor"
       ]
     },
     {
@@ -383,7 +387,8 @@
       "slots": [
         "security-audit",
         "code-review",
-        "artifact-analysis"
+        "artifact-analysis",
+        "task-advisor"
       ]
     },
     {
